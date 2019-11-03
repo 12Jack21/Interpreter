@@ -25,8 +25,8 @@ public class LexicalAnalysis {
     private static LexiNode oneScan(char[] pro, LexiNode node) {
         HashMap<String, Integer> str2Code = str2IntMap();
         int p = node.getP(), i = 0;
-        char ch = pro[p++];
         char[] token = new char[20];
+        char ch = pro[p++];
         String special = null;
 
         //判断换行和 \t 符号的特殊条件
@@ -138,12 +138,13 @@ public class LexicalAnalysis {
 
     // 完整的扫描一整个程序
     public static List<LexiNode> lexicalScan(String pro) {
+        pro += "\b"; //TODO 防止 indexOutOfBound ,但是又会出现将 \b 当成节点的问题
         List<LexiNode> nodes = new ArrayList<>();
         HashMap<String, Integer> str2Code = str2IntMap();
         //起始节点
         LexiNode node = new LexiNode("", -1, 1, 1, 0);
 
-        boolean singleCom = false; //TODO 考虑是否将 空格作为 一个 Node
+        boolean singleCom = false;
         boolean multiCom = false;
         do {
             node = oneScan(pro.toCharArray(), node); //单词扫描

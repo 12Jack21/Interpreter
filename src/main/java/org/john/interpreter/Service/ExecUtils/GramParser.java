@@ -34,7 +34,7 @@ public class GramParser {
     public static final int IDerror = -3; //标识符的错误编码
 
     // LL 分析过程
-    public boolean LLParse(List<LexiNode> nodes) {
+    public ASTNode LLParse(List<LexiNode> nodes) {
         try {
             boolean legal = true;
 
@@ -158,11 +158,11 @@ public class GramParser {
 //            fileWriter.write(rootNode.toJSON());
 //            fileWriter.flush();
 //            fileWriter.close();
-            return legal;
+            return rootNode;
 
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
 
     }

@@ -1,6 +1,6 @@
 break;
 continue{}
-char a = '\n';
+char a = 2;
 -----
 // piece one
    int a[3];

@@ -1,8 +1,10 @@
 package org.john.interpreter.Service.ExecUtils;
 
+import org.john.interpreter.dto.Wrapper;
 import org.springframework.util.ResourceUtils;
 
 import java.io.*;
+import java.nio.file.Watchable;
 import java.util.List;
 
 public class Executor {
@@ -18,11 +20,23 @@ public class Executor {
             sbuf.append(line);
             sbuf.append("\n");//添加换行符
         }
-        sbuf.deleteCharAt(sbuf.lastIndexOf("\n"));//删除最后一个换行符
+        if (sbuf.indexOf("\n") != -1)
+            sbuf.deleteCharAt(sbuf.lastIndexOf("\n"));//删除最后一个换行符
         // 程序文件的每个程序都用 "-----" 来分隔
         String[] pros = sbuf.toString().split("-----\n");
 
         return pros;
+    }
+
+    public static Wrapper analyze(String pro){
+        if (!pro.endsWith("\n"))
+            pro += "\n";
+        List<LexiNode> lexiNodes = LexicalAnalysis.lexicalScan(pro);
+        GramParser gramParser = new GramParser();
+        ASTNode astNode = gramParser.LLParse(LexicalAnalysis.preprocess(lexiNodes));
+
+        Wrapper wrapper = new Wrapper(lexiNodes,astNode);
+        return wrapper;
     }
 
     private static void testProgram() {
