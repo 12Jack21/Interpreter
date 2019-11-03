@@ -1,16 +1,113 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Index Page</title>
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <link rel="stylesheet" th:href="@{css/bootstrap.min.css}">
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <!--    <link rel="stylesheet" href="../static/css/fontawesome.min.css">-->
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.css">
+    <link rel="stylesheet" href="../static/css/index.css">
+    <link rel="stylesheet" th:href="@{css/bootstrap-treeview.css}">
+    <link rel="stylesheet" href="../static/css/bootstrap-treeview.css">
+
+    <script th:src="@{js/jquery-3.3.1.slim.min.js}"></script>
+    <script src="../static/js/jquery-3.3.1.slim.min.js"></script>
+    <script th:src="@{js/popper.min.js}"></script>
+    <script src="../static/js/popper.min.js"></script>
+    <script th:src="@{js/bootstrap.min.js}"></script>
+    <script src="../static/js/bootstrap.min.js"></script>
+    <script th:src="@{js/bootstrap-treeview.js}"></script>
+    <script src="../static/js/bootstrap-treeview.js"></script>
 
 </head>
 <body>
+<div class="container">
+    <div class="row" style="margin-top: 5%">
+        <div class="col-5">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="input-group mb-3">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="inputGroupFile">
+                        <label class="custom-file-label" for="inputGroupFile">
+                            Choose code file(.txt) to upload</label>
+                    </div>
+                    <div class="input-group-append">
+                        <span class="input-group" id="inputGroupFileAdd">
+                            <button class="btn" type="submit" id="upload">Upload</button>
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!-- Alert when code error occurs of succeed -->
+        <div class="col-7">
+            <div class="alert alert-success" role="alert">
+                A simple success alert—check it out!
+            </div>
+            <div class="alert alert-danger" role="alert">
+                A simple dangerous alert—check it out!
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-5">
+            <!-- Source Code display -->
+            <div class="card">
+                <div class="card-header">
+                    Source Code
+                </div>
+                <div class="card-body">
+                    <blockquote class="blockquote mb-0">
+                        <div class="row">
+                            <!--                            <div class="col-2" style="background-color: #9fcdff">-->
+                            <!--                                <ul class="pre-number" ></ul>-->
+                            <!--                            </div>-->
+                            <div class="col-12">
+                                <textarea class="form-control" id="code_area" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+        <div class="col-7">
+            <!-- Result after interpreter operations -->
+            <div class="card">
+                <div class="card-header">
+                    <!-- only one active in the meantime -->
+                    <div class="nav nav-tabs card-header-tabs" id="tab-items">
+                        <a class="nav-item nav-link" id="nav-home-tab" data-toggle="tab" href="#nav-home">Lexical</a>
+                        <a class="nav-item nav-link active" id="nav-profile-tab" data-toggle="tab" href="#nav-profile">Grammar</a>
+                        <a class="nav-item nav-link " id="nav-contact-tab" data-toggle="tab" href="#nav-contact">Semantic</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="tab-content">
+                        <div class="tab-pane fade show" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                            Lexical analysis
+                        </div>
+                        <div class="tab-pane fade show active" id="nav-profile" role="tabpanel"
+                             aria-labelledby="nav-profile-tab">
+                            <!-- TreeView -->
+                            <div id="menuTree"></div>
+                        </div>
+                        <div class="tab-pane fade show" id="nav-contact" role="tabpanel"
+                             aria-labelledby="nav-contact-tab">
+                            Semantics Analysis
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
 
 </body>
+
+<script src="../static/js/index.js"></script>
+<script th:src="@{js/index.js}"></script>
 </html>

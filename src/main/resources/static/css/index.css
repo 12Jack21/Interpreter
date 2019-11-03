@@ -1,0 +1,8 @@
+.pre-number li {
+    color: #abb2bf!important;
+    border-right: 1px solid #c5c5c5;
+    padding:0 8px;
+    line-height: 22px;
+    list-style: none;
+    margin: 0;
+}

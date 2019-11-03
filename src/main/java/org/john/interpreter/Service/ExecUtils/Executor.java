@@ -10,6 +10,21 @@ public class Executor {
     private static LexicalAnalysis lexicalAnalysis;
     private static GramParser gramParser;
 
+    public static String[] readCodeFile(InputStream stream) throws IOException {
+        StringBuffer sbuf = new StringBuffer();
+        String line;
+        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+        while ((line = br.readLine()) != null) {
+            sbuf.append(line);
+            sbuf.append("\n");//添加换行符
+        }
+        sbuf.deleteCharAt(sbuf.lastIndexOf("\n"));//删除最后一个换行符
+        // 程序文件的每个程序都用 "-----" 来分隔
+        String[] pros = sbuf.toString().split("-----\n");
+
+        return pros;
+    }
+
     private static void testProgram() {
         try {
             //获取文件路径
@@ -17,22 +32,12 @@ public class Executor {
             System.out.println(prefix);
             FileInputStream fis = new FileInputStream(prefix + "/SampleTest.txt");
 
-            //用于读取程序
-            StringBuffer sbuf = new StringBuffer();
-            String line;
-            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-            while ((line = br.readLine()) != null) {
-                sbuf.append(line);
-                sbuf.append("\n");//添加换行符
-            }
-            sbuf.deleteCharAt(sbuf.lastIndexOf("\n"));//删除最后一个换行符
-
             /* 写入Txt文件 */
             File write = new File(prefix + "/MyOutput.txt"); // 相对路径，如果没有则要建立一个新的output.txt文件
             BufferedWriter out = new BufferedWriter(new FileWriter(write));
 
             // 程序文件的每个程序都用 "-----" 来分隔
-            String[] pros = sbuf.toString().split("-----\n");
+            String[] pros = readCodeFile(fis);
             int index = 0;
             List<LexiNode> lexiNodes = null;
             for (String pro : pros) {
