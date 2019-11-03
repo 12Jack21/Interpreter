@@ -12,11 +12,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class CompileController {
 
     @ResponseBody
-    @RequestMapping("/index")
+    @RequestMapping("/index_")
     public String index(){
         return "index";
     }
 
 
-
+    @RequestMapping("/index")
+    public String indexPage(){
+        return "index";
+    }
 }
