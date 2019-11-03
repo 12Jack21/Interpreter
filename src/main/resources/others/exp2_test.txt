@@ -1,0 +1,124 @@
+/* basic test case for 2nd expriment in compiler experiment
+ * **PASS THIS DOC BEFORE CHECKING**
+ * **MORE FUNCITON,HIGHER SCORE**
+ * @Author Xu asssistance
+ * @Date 2019-10-28
+*/
+
+/* suggested check/output format
+ *
+ * 1. PLEASE print the syntax tree in a nice way.(please not just word ! VERY ANNOYANCE)
+ * 2. each tree node should contain, the source string, the label at least.
+ * 3. you should bring a long test case youself which includes all the function you have implemented.
+ * 4. error handling can be to interrupt the program at time. Or like lexical analysis does.
+*/
+
+
+/* FAQ
+ * Q1: which grammer do you recommend ?
+ * A1: LL(1) with descent recursion for convenience. Since the basic demand is quite simple and concrete, the construction of grammer can be rather but relaxing. Other words, other advanced grammer is so-called overkilled.
+
+ * Q2: what about the left combination of addition/subtraction ?
+ * A2: although it's regarded as left combination in C, it's also right combination indeed. Small alternation on grammer expression to erase the left recursion and the cancellation of the lookahead may help.
+
+ * Q3: which syntax tree format do you recommend ?
+ * A3: help to yourself. I have seen presentation by JAVA directory library(pretty good-looking among all the program), by XML inspector (although most of it is text), by indented line(at least this level). More concrete and vivid presentation will earn you much comfort.
+
+ * Q4: I assume the IF keyword should be followed by left parentthese and the  THEN block should always start with left bracket. So the situation ...
+ * A4: well,well, good assumption, pretty design. Little hazard will you involve in and simple grammer will you gain while few convention is added. In a word, it's gray zone in this experiment and I'd like to slander this behavior.
+
+ * Q5: Will it hurt if the syntax tree is too much deep and big?
+ * A5: it hurt only when you want to build a complete compiler. Based on the course demand and test, it is the last thing you should consider.
+
+ * Q6: As long as I implement the required feature and pass the check , then I can gain high score?
+ * A6: Only the required feature will win you high but not so high score(80-90). Extra implementation of symbol and number, the char and the string(especially for this), the control keyword and reserved word will bring you to 90-100. (criterion at lease in assistance's opinion.)
+
+ * Q7: Can I  deal with the sign of number in the semantic analysis stage?
+ * A7: Sure. It is the trade-off between the abtraction and coding. Watching out the simplicity of code  is all I want to mention.
+
+ * Q8: any hint about the syntax analysis?
+ * A8: Syntax Analysis(STA) is the stage before the semantic analysis. It aims at transforming the token stream into syntax tree(the same as three tuple mode).In this stage, every statement or block should be "understood" correctly and interpretered into simple structure. That is to say, all structure errors(like bracket error, dangling else error, semicolon missing error or illegal formula error......) should be thrown. By the way, division by zero error can also be detected.
+
+*
+*/
+
+
+/*
+ * BASIC test
+ * only required CMM is used
+*/
+
+// no.1
+while(-1+2*3/(4-3)+(+3)-(-2)/(4 * 4 + 2)/(4/4*3)/2.0);
+
+// no.2
+if (a>b==2+3<>repeat)
+   print(repeat<2<>3+5==a);
+
+// no.3
+int k[3]={1,(23+d),1*5==1+1};
+int asdf_____2[2];
+asdf_____2[1<-1]=12357860;
+
+// no.4
+if(1){
+  if(b)
+     if(c+1){
+       if(d==1)
+          if(((2=4)))
+          else break;
+     }
+  else continue;
+}
+
+/*
+ * extended Test
+ * for what has been mentioned in expr1_basic_test.txt
+*/
+
+// boolean operator test
+if(sdf==23||-1&&+3==12<>p2+1||p3/3)
+        print(1==2&&a[2]||32/ads&&d2*5);
+
+// array assignment
+real a[5]={1,(((0000))),scan(QAQ),afsdf23,(1+1)*1+1};
+
+// char&string manipulation
+char a='!',s='@',c=' ',d='`',f='"';
+char q[]="asdfghjkl;'\][=)(*&^%$#@!"; // it is legal due to the syntax sugar
+char z[3]="12";		// it is legal with warning
+char t[4]={'\n','\r','\t','\\'};
+
+
+// number format
+int a=0x234,b=0234,c=123e-3,d=234_234_234.123_123;
+
+// identifier format
+real _asdfd,asdf_;
+
+// extended operator
+int a = 2*3**3,b=a--,c=a>=23=<23,d=~1|4&7|~3;
+
+
+/*
+ * advanced test
+ * for point,function
+*/
+
+// point manipulation
+void *(*foo)());
+int **p = &k;
+int *(**doo(int*)());
+
+// function
+int b(){
+    int k = 1;
+    return k;
+}
+
+void a(int b,int c){
+     void *(a(int));
+     a(b);
+}
+
+/* !! you should go through the doc before you sign up for checking !! */

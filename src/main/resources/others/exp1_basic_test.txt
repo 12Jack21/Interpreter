@@ -1,0 +1,226 @@
+/*
+ * basic lexical test for 1st expr. in interpreter experiment
+ * **only the required CMM is used**
+ * **please pass this doc before checking**
+ * **more function, higher score**
+ * @Date 2019.10.21
+ * @Author Xu assistance
+*/
+
+/*
+ * suggested error handling
+ * 1. output the line number(optional) and position of the error
+ * 2. you should not interrupt the program even when error occurs.Just output the error and continue analysing.
+ * 3. handling method depends on you. You can ignore the whole token, one character, one line, one statement and so on. They are all acceptable since they have been implemented in many compilers.
+*/
+
+/*
+ * suggested output format
+ * 1. output the <type,string,posiiton(optional)> form
+ *    type: number / keyword / identifier ...(based on table you own defined)
+ *    string: original string in source code
+ *    position(optional): line number / position
+*/
+
+/*
+ * suggested checking form
+ * 1. introduce the basic environment/language, the other tool you use.
+ * 2. **DOC** is essential (for the score and the report) and graph(flowchat, automata, UML etc.) is also important (for the review and the check).
+ * 3. run the sample and explain the output(proper comments may help)
+ * 4. wait for detailed inquiry by teacher or assistance.
+*/
+
+/*
+ * CONSENSUS about lexical analysis
+ *   The job of lexical analysis(LA) is simply to parse the file or string of the source code, i.e. all LA can do is just to ignore the comment , recognize the characters and output the token of the substring.
+ *   So the error it may throw is quite basic such as the illegal number form error, the illegal identifier form error, the undefined symbol error.
+ *   the unrecognized identifier error, the asymmetrical brackets error, the lack of the semicolon error ... All those error are produced by the syntax analysis(SyA) or semantics analysis(SaA).
+ *   It is Ok to do ALL these jobs in the LA for convenience. But what every stage should do and can do ought to be clear in your mind.
+*/
+
+
+
+/*
+ * NECESSARY knowledge about C
+ * 1. there is NO Boolean type in c, boolean type is regarded as int(8b for x64,4b for x86), 0 for false,elsewise true.
+ * 2. there is NO String type in c, string type is regarded as char[]. So 'a' is a char while "a" is an array of char whose length is one. In addition, the char(1b for x64/x86) value is between 0 and 127 as the ASCII table implys.
+ * 3. there is Double type and Float type in c, but you can treat them as Real type. There is Int type and Long type in c, but you can treat them as Int type.
+ * 4. Unlike python, the if/else block or while block is defined as the next statement OR the following block surrounded by '{','}'
+ * 5. The declaration of array in C is different to Java."int a[3];"  is the declaration of a 3-size integer array and zero initialization. What's more, "int a[3] = {1.2.3};" is pre-assignment of the array.
+ * 6. the function of "break" and "continue" acts on the while block rather than if/else block, so does JAVA do.
+*/
+
+
+
+/*
+ * HINT
+ * 1. 'may regard as right form' means it is legal in C
+ * 2. 'depend on yourself' means the name is not important but the type or function is necessary.
+ * 3. 'hope/expected to implement' means it is very useful feature. Although it is not explicitly declared in requirement document, it surely will win you much extra score.
+ * 4. function/procedure is fairly hard. Because it need the deep concen about the variable scope, parameter's value, code stack and returned value. So just ignore it if you have little knowledge about the compilation principle. 
+*/
+
+
+// undefined operation for half comment. So you can treat the remaining as comment or throw error for "'*/' not found"
+/* the error line /*
+
+
+// PART ONE:the above is the check for comment.
+// comment the error line and go to next part
+
+
+
+
+// PART TWO: basic number detection
+   // right form
+   12.6
+   0.3
+   0123456789
+   -20.000
+   -02346
+   +23476
+   +0234
+   0239.120
+   // error form
+   0.0.2.2.5
+   23.-3
+   .34  // may regard as right form ~
+   0x123 // may regard as right form ~
+   123..
+   4..3245
+   234e-3 // may regard as right from ~
+   23.    // may regard as right form ~
+   234_234   // may regard as right form in JAVA
+
+
+
+// PART THREE: basic sign detection
+   // right form
+   ;
+   <
+   >
+   ==
+   <>
+   >=	// expected to implement
+   <= 	// expected to implement
+   &&	// expected to implement
+   || 	// expected to implement   
+
+
+   (
+   }
+   )
+   [
+   }
+   ]
+   =
+   '	// expected to implement
+   "	// expected to implement
+   \n	// expected to implement
+   \r	// expected to implement
+   \t	// expected to implement
+
+   /
+   +
+   -
+   *
+   // wrong form
+   @
+   #
+   $
+   ^
+   **   // may regard as right form in python
+   --   // may regard as right form
+   \
+   !    // may regard as right form in Java
+   ,	// may regard as right form
+
+
+
+// PART FOUR: basic identifier dectection
+   // right form
+   asdf
+   1DSF3
+   DSF
+   SD2DF23as23s
+   a________3
+   s0_234_4_23ss
+   zxcvbnmlkjhggfdsapoiuytrewqqwertyuiopasdfghjklmnbvcxzzxcvbnmasdfghjklqwertyuiop      // may be regard as wrong form due to the length limit(64) of variable name.
+   no2nOFN23
+   // wrong form
+   _w234 // may regard as right form
+   _234
+   gfdff_
+   23asdfc
+   sdf23_____
+   3jk3n23kl3n4nl6
+
+
+// PART FIVE: basic keyword detection
+   // type
+   int
+   real         // depend on yourself
+   char         // expect to implement
+
+   // structure
+   while
+   for
+   break        // expect to implement
+   continue	// expect to implement
+   if
+   else
+
+   // input,output is REQUIRED in PPT
+   print        // depend on yourself
+   scan         // depend on yourself
+
+  // you may treat the below as reserved word or identifier
+   define	// may regard as right form
+   goto	 	// may regard as right form
+   switch	// may regard as right form
+   include	// may regard as right form
+   typedef	// may regard as right form
+
+
+
+// PART SIX: comprehensive analysis
+   // here are some code adapted from C which is completely lexically legal.
+   // piece one
+   int a[3];
+   a = 234;
+   b = sdf_234df
+
+   // piece two
+   {
+        int a = 3<>5;
+        real b=-23;
+	int a[3] = { 1,3,,b,nono }
+	else print    (b);
+        if( a>b){ print(a        );
+        }
+        {
+          236 * 1+ 345/(23 * 34) - 2346/ (31- 31) =xx
+          }
+   }
+
+   // piece three
+   {
+        int a scan(a);real b =0.234;
+	{
+	{	print(a_b_c_d_e____1) == 0126.120
+        while (a >+234){
+              b = b - 1 - a;
+              while( b )
+		{
+                    real c = 123;
+                    2343 
+		= b - 23;
+                    b = 
+		- 14.1238675;
+                    print(a)
+             }
+       }
+   }
+
+/* you should pass all the test case before you start expr1 checking !! */
+
