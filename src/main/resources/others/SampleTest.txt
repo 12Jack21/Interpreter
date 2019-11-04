@@ -1,5 +1,5 @@
 break;
-continue{}
+continue;
 char a = 2;
 -----
 // piece one

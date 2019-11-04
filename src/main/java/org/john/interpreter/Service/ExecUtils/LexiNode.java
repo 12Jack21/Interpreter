@@ -72,7 +72,7 @@ public class LexiNode {
             else if (this.symbol.charAt(0) == '\t')
                 symbol = "\\t";
         }
-        String format = "<" + symbol + ", " + code + ", " + row + ", " + col + ">";
+        String format = "<" + symbol.trim() + ", " + code + ", " + row + ", " + col + ">";
         if (code == -1 && !symbol.equals(""))
             format += "\tError Occurs!!!";
         return format;

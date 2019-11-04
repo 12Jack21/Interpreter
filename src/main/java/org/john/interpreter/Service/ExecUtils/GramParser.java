@@ -16,10 +16,10 @@ public class GramParser {
     private int[][] llTable;
     private HashMap<String, Character> str2CharMap = str2CharMap();
     private HashMap<Integer, String> int2StrMap = int2StrMap();
-    LinkedList<Character> stack = new LinkedList<>(); //·ÖÎö·ûºÅÕ»
-    LinkedList<String> errorStack = new LinkedList<>(); // ´íÎóĞÅÏ¢Õ»
+    LinkedList<Character> stack = new LinkedList<>(); //åˆ†æç¬¦å·æ ˆ
+    LinkedList<String> errorStack = new LinkedList<>(); // é”™è¯¯ä¿¡æ¯æ ˆ
 
-    LinkedList<Character> matchStack = new LinkedList<>(); //À¨ºÅÆ¥ÅäÕ»
+    LinkedList<Character> matchStack = new LinkedList<>(); //æ‹¬å·åŒ¹é…æ ˆ
 
     public GramParser() {
         try {
@@ -34,27 +34,27 @@ public class GramParser {
         return errorStack;
     }
 
-    //´íÎó´úÂë
-    public static final int IDerror = -3; //±êÊ¶·ûµÄ´íÎó±àÂë
+    //é”™è¯¯ä»£ç 
+    public static final int IDerror = -3; //æ ‡è¯†ç¬¦çš„é”™è¯¯ç¼–ç 
 
-    // LL ·ÖÎö¹ı³Ì
+    // LL åˆ†æè¿‡ç¨‹
     public ASTNode LLParse(List<LexiNode> nodes) {
         try {
             boolean legal = true;
 
-            //³õÊ¼»¯Õ»ÖĞÓĞÒ»¸ö ¿ªÊ¼·ûºÅ ÔªËØ + # ºÅ
+            //åˆå§‹åŒ–æ ˆä¸­æœ‰ä¸€ä¸ª å¼€å§‹ç¬¦å· å…ƒç´  + # å·
             stack.addFirst('P');
             stack.add('#');
 
-            // µ±Ç°Ö´ĞĞ²Ù×÷µÄÓï·¨Ê÷½Úµã
+            // å½“å‰æ‰§è¡Œæ“ä½œçš„è¯­æ³•æ ‘èŠ‚ç‚¹
             ASTNode curNode = null;
-            //¸ù½Úµã
+            //æ ¹èŠ‚ç‚¹
             ASTNode rootNode = null;
             int childNum;
 
-            Character top, symbol; //Õ»¶¥Ö¸Õë£¬É¨Ãèµ½µÄtoken
-            int y, x, pos; //LL·ÖÎö±íµÄ ĞĞºÍÁĞÎ»ÖÃ
-            int index = 0; //É¨ÃèµÄË÷Òı
+            Character top, symbol; //æ ˆé¡¶æŒ‡é’ˆï¼Œæ‰«æåˆ°çš„token
+            int y, x, pos; //LLåˆ†æè¡¨çš„ è¡Œå’Œåˆ—ä½ç½®
+            int index = 0; //æ‰«æçš„ç´¢å¼•
             LexiNode node;
             while (index < nodes.size()) {
 
@@ -64,11 +64,11 @@ public class GramParser {
 
                 if (node.getCode() == -1) {
                     legal = false;
-                    throw new Exception("µÚ" + node.getRow() + "ĞĞ," + node.getCol() + "ÁĞ´¦³öÏÖ´Ê·¨·ÖÎö³ö´í");
+                    throw new Exception("ç¬¬" + node.getRow() + "è¡Œ," + node.getCol() + "åˆ—å¤„å‡ºç°è¯æ³•åˆ†æå‡ºé”™");
                 }
-                //ÅĞ¶ÏÎªÖÕ½á·ûºÅ
+                //åˆ¤æ–­ä¸ºç»ˆç»“ç¬¦å·
                 if (top < 'A' || top > 'Z') {
-                    //¼ÌĞøÉ¨Ãè
+                    //ç»§ç»­æ‰«æ
                     if (top == symbol) {
                         index++;
                         if (symbol == '#')
@@ -79,20 +79,20 @@ public class GramParser {
                     } else {
                         legal = false;
                         if (top == '#')
-                            //Õ»ÄÚÒÑ¾­Îª¿Õ£¬ÎŞ·¨¼ÌĞøÉ¨ÃèÁË
+                            //æ ˆå†…å·²ç»ä¸ºç©ºï¼Œæ— æ³•ç»§ç»­æ‰«æäº†
                             break; // nearest namely while loop
 
-                        //TODO ×Ô¶¯¼ÓÉÏÕâ¸öÈ±ÉÙµÄ·ûºÅ / Ìø¹ı¸Ã·ûºÅ
+                        //TODO è‡ªåŠ¨åŠ ä¸Šè¿™ä¸ªç¼ºå°‘çš„ç¬¦å· / è·³è¿‡è¯¥ç¬¦å·
                         //index++;
                         curNode = curNode.findLefted();
                         curNode.addChild(new ASTNode(0,top,true,false));
 
-                        errorStack.add("µÚ" + node.getRow() + "ĞĞ," + node.getCol() + "ÁĞ´¦³öÏÖÓï·¨´íÎó,È±ÉÙ " + top);
+                        errorStack.add("ç¬¬" + node.getRow() + "è¡Œ," + node.getCol() + "åˆ—å¤„å‡ºç°è¯­æ³•é”™è¯¯,ç¼ºå°‘ " + top);
 
                     }
-                    updateMatch(top); //¸üĞÂÆ¥ÅäÕ» TODO ¶ªµôÒ»¸öÓï¾äµÄÊ±ºò£¬¸ÃÔõÃ´´¦ÀíÕâ¸öÕ»---
+                    updateMatch(top); //æ›´æ–°åŒ¹é…æ ˆ TODO ä¸¢æ‰ä¸€ä¸ªè¯­å¥çš„æ—¶å€™ï¼Œè¯¥æ€ä¹ˆå¤„ç†è¿™ä¸ªæ ˆ---
 
-                } else { //Îª·ÇÖÕ½á·ûºÅ
+                } else { //ä¸ºéç»ˆç»“ç¬¦å·
                     y = llDrive.getYcharMap().get(top);
                     x = llDrive.getXcharMap().get(symbol);
                     pos = llTable[y][x];
@@ -103,19 +103,19 @@ public class GramParser {
                             rootNode = new ASTNode(childNum, 'P', false,true);
                             curNode = rootNode;
                         } else {
-                            curNode = curNode.findLefted(); //ÕÒµ½»¹Ê£º¢×Ó½ÚµãÃ»Á¬ÉÏµÄ½Úµã
+                            curNode = curNode.findLefted(); //æ‰¾åˆ°è¿˜å‰©å­©å­èŠ‚ç‚¹æ²¡è¿ä¸Šçš„èŠ‚ç‚¹
                             curNode.addChild(new ASTNode(childNum, top, false,true));
                         }
                     } else {
-                        if (node.getCode() == -2) // '#'ºÅ
-                            throw new Exception("È±ÉÙ½áÊø·û");
+                        if (node.getCode() == -2) // '#'å·
+                            throw new Exception("ç¼ºå°‘ç»“æŸç¬¦");
                         else{
-                            // ¶ªµô³ö´íµÄÓï¾ä S£¬¼ÌĞøÏÂÒ»ÌõÓï¾äµÄÓï·¨·ÖÎö
-                            // ½ÚµãËÑË÷µ½ S µÄ First¼¯£¬Õ»Ò»Ö±pop Ö±µ½Óöµ½ p£¨ÏÂÒ»ÌõÓï¾äµÄ¿ªÊ¼£©
+                            // ä¸¢æ‰å‡ºé”™çš„è¯­å¥ Sï¼Œç»§ç»­ä¸‹ä¸€æ¡è¯­å¥çš„è¯­æ³•åˆ†æ
+                            // èŠ‚ç‚¹æœç´¢åˆ° S çš„ Firsté›†ï¼Œæ ˆä¸€ç›´pop ç›´åˆ°é‡åˆ° pï¼ˆä¸‹ä¸€æ¡è¯­å¥çš„å¼€å§‹ï¼‰
                             legal = false;
-                            errorStack.add("µÚ" + node.getRow() + "ĞĞ," + node.getCol() + "ÁĞ´¦³öÏÖÓï·¨´íÎó," + errorHandle(top,symbol));
+                            errorStack.add("ç¬¬" + node.getRow() + "è¡Œ," + node.getCol() + "åˆ—å¤„å‡ºç°è¯­æ³•é”™è¯¯," + errorHandle(top,symbol));
 
-                            // 1.Õ»µÄ¶ªÆú
+                            // 1.æ ˆçš„ä¸¢å¼ƒ
                             while (top != 'P') {
                                 curNode = curNode.findLefted(); // TODO Handle NullPointerException
                                 if (curNode != null)
@@ -123,10 +123,10 @@ public class GramParser {
 
                                 top = stack.pop();
                             }
-                            // ´ËÊ±ÕÒµ½ÁË P£¬µ«ÓÉÓÚ·µ»ØÑ­»·Ê±»áÔÙ popÒ»´Î£¬¹ÊĞèÒª»ØÍË
+                            // æ­¤æ—¶æ‰¾åˆ°äº† Pï¼Œä½†ç”±äºè¿”å›å¾ªç¯æ—¶ä¼šå† popä¸€æ¬¡ï¼Œæ•…éœ€è¦å›é€€
                             stack.addFirst('P');
 
-                            // 2.´Ê·¨·ÖÎö½ÚµãµÄ¶ªÆú,ÕÒµ½ SµÄ first¼¯ÖĞµÄ´Ê·¨µ¥Ôª
+                            // 2.è¯æ³•åˆ†æèŠ‚ç‚¹çš„ä¸¢å¼ƒ,æ‰¾åˆ° Sçš„ firsté›†ä¸­çš„è¯æ³•å•å…ƒ
                             List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get('S').split(","));
 
                             while (!stateStart.contains(symbol.toString())){
@@ -135,34 +135,34 @@ public class GramParser {
                                     continue;
                                 symbol = str2CharMap.get(int2StrMap.get(nodes.get(index).getCode()));
                             }
-                            // ´ËÊ±ÒÑ¾­ÕÒµ½ÆğÊ¼·ûºÅÁË£¬ÇÒ·µ»ØÑ­»·Ê±²»Ôö¼Ó index£¬¹Ê²»ÓÃ»ØÍË
+                            // æ­¤æ—¶å·²ç»æ‰¾åˆ°èµ·å§‹ç¬¦å·äº†ï¼Œä¸”è¿”å›å¾ªç¯æ—¶ä¸å¢åŠ  indexï¼Œæ•…ä¸ç”¨å›é€€
                         }
                     }
 
                 }
             }
-            //·ÖÎöÍê³Éºó£¬Õ»ÖĞ»¹ÓĞÔªËØ
+            //åˆ†æå®Œæˆåï¼Œæ ˆä¸­è¿˜æœ‰å…ƒç´ 
             if (stack.size() > 0)
-                throw new Exception("È±ÉÙ½áÊø·û");
+                throw new Exception("ç¼ºå°‘ç»“æŸç¬¦");
 
             if (legal)
-                System.out.println("\nÓï·¨·ÖÎö³É¹¦£¡£¡£¡\n");
+                System.out.println("\nè¯­æ³•åˆ†ææˆåŠŸï¼ï¼ï¼\n");
             else
-                System.out.println("Óï·¨·ÖÎöÊ§°Ü£¬´íÎóÈçÏÂ£º");
-            //Êä³ö´íÎóÕ»ÖĞµÄÄÚÈİ
+                System.out.println("è¯­æ³•åˆ†æå¤±è´¥ï¼Œé”™è¯¯å¦‚ä¸‹ï¼š");
+            //è¾“å‡ºé”™è¯¯æ ˆä¸­çš„å†…å®¹
             for (String error:errorStack){
                 System.out.println(error);
             }
 
-            //Êä³ö AST
+            //è¾“å‡º AST
             System.out.println(rootNode.toJSON());
 
-            //Ğ´ÈëÎÄ¼ş
+            //å†™å…¥æ–‡ä»¶
 //            FileWriter fileWriter = new FileWriter("./AST.txt");
 //            fileWriter.write(rootNode.toJSON());
 //            fileWriter.flush();
 //            fileWriter.close();
-            
+
             return rootNode;
 
         } catch (Exception e) {
@@ -177,7 +177,7 @@ public class GramParser {
         return null;
     }
 
-    // À¨ºÅÓ³Éä
+    // æ‹¬å·æ˜ å°„
     public char parMap(char symbol){
         if (symbol == '(')
             return ')';
@@ -191,27 +191,27 @@ public class GramParser {
         if (top == '(' || top == '[' || top == '{')
             matchStack.addFirst(top);
         else if (top == ')' || top == ']' || top == '}')
-            matchStack.pop(); // ËÆºõÓÃ²»µ½ canMatchº¯Êı
+            matchStack.pop(); // ä¼¼ä¹ç”¨ä¸åˆ° canMatchå‡½æ•°
 
     }
 
-    // ·ÇÖÕ½á·û -> ÖÕ½á·û ±¨´íÊ±½øÈë£¬ÀûÓÃ½üËÆÇî¾ÙµÄ·½·¨±¨´í½Ï¾ßÌåµÄ´íÎó
+    // éç»ˆç»“ç¬¦ -> ç»ˆç»“ç¬¦ æŠ¥é”™æ—¶è¿›å…¥ï¼Œåˆ©ç”¨è¿‘ä¼¼ç©·ä¸¾çš„æ–¹æ³•æŠ¥é”™è¾ƒå…·ä½“çš„é”™è¯¯
     private String errorHandle(char top,char symbol){
         List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get('S').split(","));
 
         if (matchStack.size() != 0){
             Character src = matchStack.pop();
-            return "È±ÉÙ " + parMap(src);
+            return "ç¼ºå°‘ " + parMap(src);
         }
         else if (stateStart.contains(String.valueOf(symbol)) && symbol != ';'){
-//            if (top == 'B' || top == '') ¸üÏ¸ÖÂµÄ»®·Ö
-            return "È±ÉÙ ;";
+//            if (top == 'B' || top == '') æ›´ç»†è‡´çš„åˆ’åˆ†
+            return "ç¼ºå°‘ ;";
         }else if (symbol == ','){
-            return "È±ÉÙ ±êÊ¶·û";
+            return "ç¼ºå°‘ æ ‡è¯†ç¬¦";
         }else if (symbol == ';')
-            return "È±ÉÙ ±í´ïÊ½";
+            return "ç¼ºå°‘ è¡¨è¾¾å¼";
         else
-            return "ÆäËû´íÎó";
+            return "å…¶ä»–é”™è¯¯";
     }
 
     public static void main(String[] args) {

@@ -52,6 +52,9 @@ $(document).ready(function () {
 
     });
 
+    /*
+    * Lexical, Grammar, Semantic Result handle here
+    * */
     $("#analyze").click(function (e) {
         let code = $("#code_area").text();
         $.ajax({
@@ -65,7 +68,9 @@ $(document).ready(function () {
             /* contentType and processData should set to false or the data cannot pass to the server*/
             traditional: true,
         }).done(function (data) {
-            console.log(data);
+            console.log("Wrapper: ",data);
+            // fill lexical result panel
+            showLexiResult(data.lexiResult);
 
             let treeData = obj2treeview(data.astNode, columnStructure);
             console.log("Column: ",treeData);
@@ -123,67 +128,33 @@ $(document).ready(function () {
         });
     });
 
-    var treeData = [
-        {
-            text: "item1",
-            icon: "fa fa-cube",
-            nodes: [
-                {
-                    text: "item1-1",
-                    icon: "fa fa-cube",
-                    href: "index1.html",
-                    state: {
-                        checked: false,
-                        disabled: false,
-                        expanded: false,
-                        selected: true
-                    }
-                },
-                {
-                    text: "item1-2",
-                    icon: "fa fa-cube",
-                    href: "index2.html",
-                    state: {
-                        checked: false,
-                        disabled: false,
-                        expanded: false,
-                        selected: false
-                    }
-                }
-            ]
-        },
-        {
-            text: "item2",
-            icon: "fa fa-cube",
-            href: "index3.html",
-            state: {
-                checked: false,
-                disabled: false,
-                expanded: false,
-                selected: false
-            }
-        }
-    ];
-
-
-
-
 });
 
-function alertGramError(errorList) {
-    console.log("Error list:",errorList);
+function showLexiResult(result) {
+    let list = result.split("\n");
+    let lexical = $("#lexical span");
+    let inner = "";
+    $.each(list,function (key,token) {
+        inner += token + "\n\r";
+    });
 
-    if (errorList.length === undefined)
-        errorList = [errorList];
+    lexical.text(inner);
+}
+
+function alertGramError(errorList) {
 
     let alert = $("#gramAlert");
-    alert.addClass('alert-danger').removeClass('alert-success');
 
-    let inner = "";
-    $.each(errorList,function (key, value) {
-        inner += value + "</br>";
-    });
-    alert.html(inner);
+    if (errorList.length === 0)
+        alert.addClass('alert-success').removeClass('alert-danger').text("Grammar parse succeed !");
+    else {
+        let inner = "";
+        $.each(errorList,function (key, value) {
+            inner += value + "</br>";
+        });
+        alert.html(inner);
+        alert.addClass('alert-danger').removeClass('alert-success');
+    }
 }
 
 var columnStructure = [{text: "name", nodes: "children"}];//外来数据转化为treeView数据的转化结构
@@ -201,14 +172,11 @@ function obj2treeview(resp, structure) {
         let treeViewNodeObj;
 
         let subNode;
-        console.log(resp[i]);
-        console.log("Attributes: ",resp[i][nodeStr]);
         if (resp[i][nodeStr] != undefined && resp[i][nodeStr].length != 0) {
             loopLevel++;
             subNode = obj2treeview(resp[i][nodeStr], structure);
             loopLevel--;
         }
-
         if (subNode != undefined) {
             treeViewNodeObj = {
                 text: resp[i][textStr],

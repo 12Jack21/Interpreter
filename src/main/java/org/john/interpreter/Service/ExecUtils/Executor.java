@@ -29,6 +29,7 @@ public class Executor {
         return pros;
     }
 
+     /* all the analysis set here */
     public static Wrapper analyze(String pro){
         if (!pro.endsWith("\n"))
             pro += "\n";
@@ -42,14 +43,6 @@ public class Executor {
         }
         if (lexiResult.lastIndexOf("\n") == lexiResult.length() - 1)
             lexiResult.deleteCharAt(lexiResult.length() - 1);
-
-        JSONObject json = new JSONObject();
-        try {
-            json = new JSONObject(astNode.toJSON());
-            System.out.println(json);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
         Wrapper wrapper = new Wrapper(lexiResult.toString(),astNode,gramParser.errorStack);
         return wrapper;
@@ -78,6 +71,9 @@ public class Executor {
                 for (LexiNode node : lexiNodes) {
                     out.write(node.toString());
                     out.write("\n");
+
+                    String s = node.toString();
+                    System.out.println(s);
                 }
             }
             out.flush(); // 把缓存区内容压入文件
