@@ -30,6 +30,10 @@ public class GramParser {
         }
     }
 
+    public LinkedList<String> getErrorStack() {
+        return errorStack;
+    }
+
     //错误代码
     public static final int IDerror = -3; //标识符的错误编码
 
@@ -60,7 +64,7 @@ public class GramParser {
 
                 if (node.getCode() == -1) {
                     legal = false;
-                    throw new Exception("(" + node.getRow() + "," + node.getCol() + ")处出现词法分析出错");
+                    throw new Exception("第" + node.getRow() + "行," + node.getCol() + "列处出现词法分析出错");
                 }
                 //判断为终结符号
                 if (top < 'A' || top > 'Z') {
@@ -83,7 +87,7 @@ public class GramParser {
                         curNode = curNode.findLefted();
                         curNode.addChild(new ASTNode(0,top,true,false));
 
-                        errorStack.add("(" + node.getRow() + "," + node.getCol() + ")处出现语法错误,缺少 " + top);
+                        errorStack.add("第" + node.getRow() + "行," + node.getCol() + "列处出现语法错误,缺少 " + top);
 
                     }
                     updateMatch(top); //更新匹配栈 TODO 丢掉一个语句的时候，该怎么处理这个栈---
@@ -109,7 +113,7 @@ public class GramParser {
                             // 丢掉出错的语句 S，继续下一条语句的语法分析
                             // 节点搜索到 S 的 First集，栈一直pop 直到遇到 p（下一条语句的开始）
                             legal = false;
-                            errorStack.add("(" + node.getRow() + "," + node.getCol() + ")处出现语法错误," + errorHandle(top,symbol));
+                            errorStack.add("第" + node.getRow() + "行," + node.getCol() + "列处出现语法错误," + errorHandle(top,symbol));
 
                             // 1.栈的丢弃
                             while (top != 'P') {
@@ -158,6 +162,7 @@ public class GramParser {
 //            fileWriter.write(rootNode.toJSON());
 //            fileWriter.flush();
 //            fileWriter.close();
+            
             return rootNode;
 
         } catch (Exception e) {

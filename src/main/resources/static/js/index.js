@@ -60,23 +60,61 @@ $(document).ready(function () {
             data: {
                 codes: code
             },
-            dataType:'json', //expected return json format data
+            dataType: 'json', //expected return json format data
             cache: false,
             /* contentType and processData should set to false or the data cannot pass to the server*/
             traditional: true,
         }).done(function (data) {
             console.log(data);
 
-            // var column1 = obj2treeview(data.astNode,columnStructure);
-            //
-            // var column2 = obj2treeview(data['astNode'],columnStructure);
-            //
-            // console.log(column1);
-            // console.log(column2);
+            let treeData = obj2treeview(data.astNode, columnStructure);
+            console.log("Column: ",treeData);
 
-            let json = JSON.parse(data);
-            console.log("json",json)
+            // fill the tree with data
+            $('#menuTree').treeview({
+                data: treeData,// 树形菜单数据
+                emptyIcon: "icon-circle",
+                enableLinks: false,
+                levels: 1,// 展开层级
+                backColor: "transparent",// 背景
+                color: "#454545",// 文本颜色
+                selectable: true,
+                //设置展开、选中等操作
+                state: {
+                    checked: true,
+                    disabled: true,
+                    expanded: true,
+                    selected: true
+                },
+                selectedBackColor: "rgba(186,186,184,0.22)",// 选中时的背景色
+                selectedColor: '', //选中时的文本颜色
+                onhoverColor: "rgba(186,186,184,0.22)",// hover时的颜色
+                showBorder: false,
+                expandIcon: 'fa fa-angle-right',     // 展开图标
+                collapseIcon: 'fa fa-angle-down',  // 收缩图标
 
+                onNodeSelected: function (event, data) {// 选中事件
+                    if (data && data.href) {
+                        // 打开相应的页面，内嵌iframe的方式
+                        $('#currentPage').attr('src', data.href)
+                    }
+                    // 重置收缩展开
+                    if (data.nodes != null) {
+                        var select_node = $('#menuTree').treeview('getSelected');
+                        if (select_node[0].state.expanded) {
+                            $('#menuTree').treeview('collapseNode', select_node);
+                            select_node[0].state.selected = false;
+                        } else {
+                            $('#menuTree').treeview('expandNode', select_node);
+                            select_node[0].state.selected = false;
+                        }
+                    }
+                }
+            });
+
+            let errorList = data.errors;
+            console.log("Errors:",errorList);
+            alertGramError(errorList);
 
         }).fail(function () {
             alert("upload code failed!");
@@ -127,74 +165,56 @@ $(document).ready(function () {
         }
     ];
 
-    //初始化
-    $('#menuTree').treeview({
-        data: treeData,// 树形菜单数据
-        emptyIcon: "icon-circle",
-        enableLinks: false,
-        levels: 1,// 展开层级
-        backColor: "transparent",// 背景
-        color: "#454545",// 文本颜色
-        selectable: true,
-        //设置展开、选中等操作
-        state: {
-            checked: true,
-            disabled: true,
-            expanded: true,
-            selected: true
-        },
-        selectedBackColor: "rgba(186,186,184,0.22)",// 选中时的背景色
-        selectedColor: '', //选中时的文本颜色
-        onhoverColor: "rgba(186,186,184,0.22)",// hover时的颜色
-        showBorder: false,
-        expandIcon: 'fa fa-angle-right',     // 展开图标
-        collapseIcon: 'fa fa-angle-down',  // 收缩图标
 
-        onNodeSelected: function (event, data) {// 选中事件
-            if (data && data.href) {
-                // 打开相应的页面，内嵌iframe的方式
-                $('#currentPage').attr('src', data.href)
-            }
-            // 重置收缩展开
-            if (data.nodes != null) {
-                var select_node = $('#menuTree').treeview('getSelected');
-                if (select_node[0].state.expanded) {
-                    $('#menuTree').treeview('collapseNode', select_node);
-                    select_node[0].state.selected = false;
-                } else {
-                    $('#menuTree').treeview('expandNode', select_node);
-                    select_node[0].state.selected = false;
-                }
-            }
-        }
-    });
 
 
 });
 
-var columnStructure = [{text: "name", nodes: "children"}];//外来数据转化为treeView数据的转化结构
-loopLevel=0;
-function obj2treeview(resp,structure){
-    var nodeArray = new Array();
-    var i = 0;
-    for(i= 0;i<resp.length;i++){
-        var treeViewNodeObj;
-        var textStr = structure[loopLevel].text;
-        var nodeStr = structure[loopLevel].nodes;
+function alertGramError(errorList) {
+    console.log("Error list:",errorList);
 
-        var subNode;
-        if(resp[i][nodeStr] != undefined){
+    if (errorList.length === undefined)
+        errorList = [errorList];
+
+    let alert = $("#gramAlert");
+    alert.addClass('alert-danger').removeClass('alert-success');
+
+    let inner = "";
+    $.each(errorList,function (key, value) {
+        inner += value + "</br>";
+    });
+    alert.html(inner);
+}
+
+var columnStructure = [{text: "name", nodes: "children"}];//外来数据转化为treeView数据的转化结构
+loopLevel = 0;
+
+function obj2treeview(resp, structure) {
+    let nodeArray = [];
+    let i = 0;
+
+    if (resp.length === undefined)
+        resp = [resp];
+    let textStr = structure[0].text;
+    let nodeStr = structure[0].nodes;
+    for (i = 0; i < resp.length; i++) {
+        let treeViewNodeObj;
+
+        let subNode;
+        console.log(resp[i]);
+        console.log("Attributes: ",resp[i][nodeStr]);
+        if (resp[i][nodeStr] != undefined && resp[i][nodeStr].length != 0) {
             loopLevel++;
-            subNode = obj2treeview(resp[i][nodeStr],structure);
+            subNode = obj2treeview(resp[i][nodeStr], structure);
             loopLevel--;
         }
 
-        if(subNode != undefined){
+        if (subNode != undefined) {
             treeViewNodeObj = {
                 text: resp[i][textStr],
                 nodes: subNode
             };
-        }else{
+        } else {
             treeViewNodeObj = {
                 text: resp[i][textStr]
             };

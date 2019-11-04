@@ -51,7 +51,7 @@ public class Executor {
             e.printStackTrace();
         }
 
-        Wrapper wrapper = new Wrapper(lexiResult.toString(),astNode);
+        Wrapper wrapper = new Wrapper(lexiResult.toString(),astNode,gramParser.errorStack);
         return wrapper;
     }
 
