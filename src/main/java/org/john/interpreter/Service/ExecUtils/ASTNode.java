@@ -1,8 +1,11 @@
 package org.john.interpreter.Service.ExecUtils;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class ASTNode {
+public class ASTNode implements Serializable {
 
     private int maxChildNum;
     private int curIndex;
@@ -72,6 +75,14 @@ public class ASTNode {
         }
         json.append("}");
         return json.toString();
+    }
+
+    public char getName() {
+        return name;
+    }
+
+    public ASTNode[] getChildren() {
+        return children;
     }
 
     public static void  main(String[] args){

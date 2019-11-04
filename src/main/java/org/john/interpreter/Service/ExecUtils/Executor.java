@@ -1,10 +1,11 @@
 package org.john.interpreter.Service.ExecUtils;
 
 import org.john.interpreter.dto.Wrapper;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.util.ResourceUtils;
 
 import java.io.*;
-import java.nio.file.Watchable;
 import java.util.List;
 
 public class Executor {
@@ -35,7 +36,22 @@ public class Executor {
         GramParser gramParser = new GramParser();
         ASTNode astNode = gramParser.LLParse(LexicalAnalysis.preprocess(lexiNodes));
 
-        Wrapper wrapper = new Wrapper(lexiNodes,astNode);
+        StringBuilder lexiResult = new StringBuilder();
+        for (LexiNode node:lexiNodes){
+            lexiResult.append(node).append("\n");
+        }
+        if (lexiResult.lastIndexOf("\n") == lexiResult.length() - 1)
+            lexiResult.deleteCharAt(lexiResult.length() - 1);
+
+        JSONObject json = new JSONObject();
+        try {
+            json = new JSONObject(astNode.toJSON());
+            System.out.println(json);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Wrapper wrapper = new Wrapper(lexiResult.toString(),astNode);
         return wrapper;
     }
 

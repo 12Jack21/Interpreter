@@ -138,7 +138,9 @@ public class LexicalAnalysis {
 
     // 完整的扫描一整个程序
     public static List<LexiNode> lexicalScan(String pro) {
-        pro += "\b"; //TODO 防止 indexOutOfBound ,但是又会出现将 \b 当成节点的问题
+        while (pro.endsWith("\n")) //除去最后的换行
+            pro = pro.substring(0,pro.length() - 1);
+        pro += " "; //TODO 防止 indexOutOfBound ,但是又会出现将 \b 当成节点的问题
         List<LexiNode> nodes = new ArrayList<>();
         HashMap<String, Integer> str2Code = str2IntMap();
         //起始节点
@@ -162,7 +164,7 @@ public class LexicalAnalysis {
 
             if (!singleCom && !multiCom && !node.getSymbol().equals("*/"))
                 nodes.add(node); // 浅拷贝?
-        } while (node.getP() < pro.length());
+        } while (node.getP() < pro.length() - 1);
         if (node.getSymbol().equals(""))
             nodes.remove(node);
         return nodes;

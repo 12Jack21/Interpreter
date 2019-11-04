@@ -1,35 +1,34 @@
 package org.john.interpreter.dto;
 
 import org.john.interpreter.Service.ExecUtils.ASTNode;
-import org.john.interpreter.Service.ExecUtils.LexiNode;
-
-import java.util.List;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 
 public class Wrapper {
-    private List<LexiNode> lexiNodes;
-    private ASTNode astNodes;
+    private String lexiResult;
+    private ASTNode astNode;
 
     public Wrapper() {
     }
 
-    public Wrapper(List<LexiNode> lexiNodes, ASTNode astNodes) {
-        this.lexiNodes = lexiNodes;
-        this.astNodes = astNodes;
+    public Wrapper(String lexiResult, ASTNode astNode) {
+        this.lexiResult = lexiResult;
+        this.astNode = astNode;
     }
 
-    public List<LexiNode> getLexiNodes() {
-        return lexiNodes;
+    public String getLexiResult() {
+        return lexiResult;
     }
 
-    public void setLexiNodes(List<LexiNode> lexiNodes) {
-        this.lexiNodes = lexiNodes;
+    public void setLexiResult(String lexiResult) {
+        this.lexiResult = lexiResult;
     }
 
-    public ASTNode getAstNodes() {
-        return astNodes;
+    public ASTNode getAstNode() {
+        return astNode;
     }
 
-    public void setAstNodes(ASTNode astNodes) {
-        this.astNodes = astNodes;
+    public void setAstNode(ASTNode astNode) {
+        this.astNode = astNode;
     }
+
 }

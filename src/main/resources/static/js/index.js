@@ -66,7 +66,17 @@ $(document).ready(function () {
             traditional: true,
         }).done(function (data) {
             console.log(data);
-            alert(data);
+
+            // var column1 = obj2treeview(data.astNode,columnStructure);
+            //
+            // var column2 = obj2treeview(data['astNode'],columnStructure);
+            //
+            // console.log(column1);
+            // console.log(column2);
+
+            let json = JSON.parse(data);
+            console.log("json",json)
+
 
         }).fail(function () {
             alert("upload code failed!");
@@ -116,12 +126,11 @@ $(document).ready(function () {
             }
         }
     ];
+
     //初始化
     $('#menuTree').treeview({
         data: treeData,// 树形菜单数据
         emptyIcon: "icon-circle",
-        // expandIcon:"glyphicon glyphicon-chevron-down",
-        // collapseIcon:"glyphicon glyphicon-chevron-right",
         enableLinks: false,
         levels: 1,// 展开层级
         backColor: "transparent",// 背景
@@ -160,8 +169,40 @@ $(document).ready(function () {
         }
     });
 
+
 });
 
+var columnStructure = [{text: "name", nodes: "children"}];//外来数据转化为treeView数据的转化结构
+loopLevel=0;
+function obj2treeview(resp,structure){
+    var nodeArray = new Array();
+    var i = 0;
+    for(i= 0;i<resp.length;i++){
+        var treeViewNodeObj;
+        var textStr = structure[loopLevel].text;
+        var nodeStr = structure[loopLevel].nodes;
+
+        var subNode;
+        if(resp[i][nodeStr] != undefined){
+            loopLevel++;
+            subNode = obj2treeview(resp[i][nodeStr],structure);
+            loopLevel--;
+        }
+
+        if(subNode != undefined){
+            treeViewNodeObj = {
+                text: resp[i][textStr],
+                nodes: subNode
+            };
+        }else{
+            treeViewNodeObj = {
+                text: resp[i][textStr]
+            };
+        }
+        nodeArray.push(treeViewNodeObj);
+    }
+    return nodeArray
+}
 
 // add line number
 function preNumber() {
