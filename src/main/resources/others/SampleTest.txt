@@ -1,7 +1,3 @@
-break;
-continue;
-char a = 2;
------
 // piece one
    int a[3];
    a = 234;
@@ -60,3 +56,7 @@ if (a>b==2+3<>repeat);
 -----
 if(a)
     b = 3;
+-----
+break;！
+continue;
+char a = 2;

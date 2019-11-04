@@ -67,8 +67,11 @@ public class ASTNode implements Serializable {
         StringBuilder json = new StringBuilder("{\"Name\":\" " + name + "\"");
         if (maxChildNum != 0) {
             json.append(",\"children\": [");
-            for (ASTNode child:children)
+            for (ASTNode child:children) {
+                if (child == null)
+                    continue;
                 json.append(child.toJSON()).append(",");
+            }
             if (json.toString().endsWith(","))
                 json.deleteCharAt(json.length() - 1); //删掉最后一个 逗号
             json.append("]");

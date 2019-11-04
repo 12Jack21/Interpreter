@@ -56,7 +56,7 @@ $(document).ready(function () {
     * Lexical, Grammar, Semantic Result handle here
     * */
     $("#analyze").click(function (e) {
-        let code = $("#code_area").text();
+        let code = $("#code_area").val();
         $.ajax({
             type: 'Post',
             url: "analyze", //relative path
@@ -137,14 +137,12 @@ function showLexiResult(result) {
     $.each(list,function (key,token) {
         inner += token + "\n\r";
     });
-
     lexical.text(inner);
 }
 
 function alertGramError(errorList) {
 
     let alert = $("#gramAlert");
-
     if (errorList.length === 0)
         alert.addClass('alert-success').removeClass('alert-danger').text("Grammar parse succeed !");
     else {
@@ -163,14 +161,12 @@ loopLevel = 0;
 function obj2treeview(resp, structure) {
     let nodeArray = [];
     let i = 0;
-
     if (resp.length === undefined)
         resp = [resp];
     let textStr = structure[0].text;
     let nodeStr = structure[0].nodes;
     for (i = 0; i < resp.length; i++) {
         let treeViewNodeObj;
-
         let subNode;
         if (resp[i][nodeStr] != undefined && resp[i][nodeStr].length != 0) {
             loopLevel++;
