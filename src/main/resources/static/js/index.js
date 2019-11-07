@@ -168,7 +168,9 @@ function obj2treeview(resp, structure) {
     for (i = 0; i < resp.length; i++) {
         let treeViewNodeObj;
         let subNode;
-        if (resp[i][nodeStr] != undefined && resp[i][nodeStr].length != 0) {
+        if (resp[i] == null)
+            continue;
+        if (resp[i][nodeStr] !== undefined && resp[i][nodeStr].length !== 0) {
             loopLevel++;
             subNode = obj2treeview(resp[i][nodeStr], structure);
             loopLevel--;
