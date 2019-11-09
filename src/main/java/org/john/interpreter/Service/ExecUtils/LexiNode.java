@@ -17,7 +17,7 @@ public class LexiNode {
     }
 
     public int getLength() {
-        return symbol.length();
+        return symbol.trim().length();
     }
 
     public String errorMsg() {

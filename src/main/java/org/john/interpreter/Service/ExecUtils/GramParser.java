@@ -63,9 +63,10 @@ public class GramParser {
                 while (node.getCode() == -1) {
                     legal = false;
                     errorStack.add("第" + node.getRow() + "行，第" + node.getCol() + "列出现无法识别的 token");
+                    index++;
                     if (index >= nodes.size())
                         break;
-                    node = nodes.get(index++); // 忽略掉无法识别的 token
+                    node = nodes.get(index); // 忽略掉无法识别的 token
                 }
                 if (index >= nodes.size())
                     break;
@@ -87,7 +88,7 @@ public class GramParser {
                             //栈内已经为空，无法继续扫描了
                             break; // nearest namely while loop
 
-                        //TODO 自动加上这个缺少的符号 / 跳过该符号
+                        //自动加上这个缺少的符号 / 跳过该符号---
                         //index++;
                         curNode = curNode.findLefted();
                         curNode.addChild(new ASTNode(0, top, true, false));
@@ -112,8 +113,9 @@ public class GramParser {
                             curNode.addChild(new ASTNode(childNum, top, false, true));
                         }
                     } else {
-                        if (node.getCode() == -2) { // '#'号
+                        if (node.getCode() == -2) { // "#" 号
                             errorStack.add("缺少结束符！"); //TODO handle undone
+
                         } else {
                             // 丢掉出错的语句 S，继续下一条语句的语法分析
                             // 节点搜索到 S 的 First集，栈一直pop 直到遇到 p（下一条语句的开始）
@@ -148,7 +150,7 @@ public class GramParser {
             }
             //分析完成后，栈中还有元素
             if (stack.size() > 0)
-                throw new Exception("缺少结束符");
+                errorStack.add("缺少结束符！");
 
             if (legal)
                 System.out.println("\n语法分析成功！！！\n");

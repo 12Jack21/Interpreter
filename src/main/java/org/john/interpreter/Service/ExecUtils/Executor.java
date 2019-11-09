@@ -88,3 +88,62 @@ public class Executor {
         testProgram();
     }
 }
+/*// piece one
+   int a[3];
+   a = 234;
+   b = sdf_234df
+-----
+   // piece two
+   {
+        int a = 3<>5;
+        real b=-23;
+	int a[3] = { 1,3,,b,nono }
+	else print    (b);
+        if( a>b){ print(a        );
+        }
+        {
+          236 * 1+ 345/(23 * 34) - 2346/ (31- 31) =xx
+          }
+   }
+-----
+   // piece three
+   {
+        int a scan(a);real b =0.234;
+	{
+	{	print(a_b_c_d_e____1) == 0126.120
+        while (a >+234){
+              b = b - 1 - a;
+              while( b )
+		{
+                    real c = 123;
+                    2343
+		= b - 23;
+                    b =
+		- 14.1238675;
+                    print(a)
+             }
+       }
+   }
+-----
+while(-1+2*3/(4-3)+(+3)-(-2)/(4 * 4 + 2)/(4/4*3)/2.0);
+-----
+if(1){
+  if(b)
+     if(c+1){
+       if(d==1)
+          if(((2==4))) ;
+          else break;
+     }
+  else continue;
+}
+
+-----
+int k[3]={1,(23+d),1*5==1+1};
+int asdf_____2[2];
+asdf_____2[1<-1]=12357860;
+-----
+if (a>b==2+3<>repeat);
+-----
+if(a)
+    b = 3;
+-----*/

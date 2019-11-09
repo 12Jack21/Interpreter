@@ -137,8 +137,8 @@ public class LexicalAnalysis {
         if (pro == null)
             return null;
         while (pro.endsWith("\n")) //除去最后的换行
-            pro = pro.substring(0,pro.length() - 1);
-        pro += " ";     //TODO 防止 indexOutOfBound ,但是又会出现将 \b 当成节点的问题
+            pro = pro.substring(0, pro.length() - 1);
+        pro += " ";     //TODO 防止 indexOutOfBound
         List<LexiNode> nodes = new ArrayList<>();
         HashMap<String, Integer> str2Code = str2IntMap();
         //起始节点
@@ -159,7 +159,6 @@ public class LexicalAnalysis {
             else if (node.getSymbol().equals("*/"))
                 multiCom = false;
 
-
             if (!singleCom && !multiCom && !node.getSymbol().equals("*/"))
                 nodes.add(node); // 浅拷贝?
         } while (node.getP() < pro.length() - 1);
@@ -172,10 +171,9 @@ public class LexicalAnalysis {
         LexiNode[] nodeArray = nodes.toArray(new LexiNode[nodes.size()]);
         // remove inverse meaning token
         for (LexiNode node : nodeArray) {
-            if (node.getLength() != 0) {
-                char c = node.getSymbol().charAt(0);
-                if (c == '\n' || c == '\r' || c == '\t')
-                    nodes.remove(node);
+            if (node.getLength() == 0) {
+                // '\n' || '\r' || '\t'
+                nodes.remove(node);
             }
         }
         nodes.add(new LexiNode("#", -2, -1, -1, -1));
