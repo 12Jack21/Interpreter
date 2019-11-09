@@ -52,19 +52,20 @@ public class CodeTable {
 
     //产生式
     public static String[] production = {
-            "P->S P", "P->",  // att: follow set of P should contains #
+            "P->S P", "P->{ P } P","P->",  // att: follow set of P should contains #
             "S->A ;", "S->K ;", "S->II", "S->W","S->N","S->;", //"S->L;"production versus "S->K"
+            "S'->{ S' }","S'->S","S'->",
             "A->int K C", "A->real K C", "A->char K C",
-            "B->[ R ]", "B->", //下标允许关系表达式
-            "C->, K C","C->", //多声明 or 赋值
+            "B->[ R ]", "B->",  //下标允许关系表达式
+            "C->, K C","C->",   //多声明 or 赋值
             "K->identifier B X",
             "X->= O","X->",
             "O->R","O->{ Y }", // array assignment
             "Y->R Z","Y->",
             "Z->, Y","Z->",
             "II->if ( L ) H D",    //if
-            "D->else H","D->", //else
-            "W->while ( L ) H",     //while , do-----------------undone
+            "D->else H","D->",     //else
+            "W->while ( L ) H",    //while , do-----------------undone
             "H->S","H->{ P }",
             "N->break ;","N->continue ;", //break & continue
             "L->R J",           //logic expression
@@ -72,7 +73,7 @@ public class CodeTable {
             "R->M Q",           //relation expresion
             "Q->== R", "Q-><> R", "Q->>= R", "Q-><= R", "Q->> R", "Q->< R", "Q->",
             "M->E V",
-            "V->+ M", "V->- M", "V->", //TODO att: 负号优先级-右结合
+            "V->+ M", "V->- M", "V->", //att: 负号优先级-右结合
             "E->F T",
             "T->* E", "T->/ E", "T->",
             "F->( R )", "F->identifier B", "F->G",
