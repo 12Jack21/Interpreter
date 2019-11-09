@@ -1,18 +1,22 @@
 package org.john.interpreter.Service.LLUtils;
 
-public class Node {
-    public char leftP;
-    public String rightP = "";
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-    Node(char leftP, String rightP) {
+public class Node {
+    public String leftP;
+    public List<String> rightP;
+
+    Node(String leftP, List<String> rightP) {
         this.leftP = leftP;
         this.rightP = rightP;
     }
     public static Node splitP(String p) {
         String[] array = p.split("->");
         if (array.length == 2)
-            return new Node(array[0].charAt(0), array[1]); //自动填充了逗号
+            return new Node(array[0], Arrays.asList(array[1].split(" "))); //自动填充了逗号
         else
-            return new Node(array[0].charAt(0), ""); //空产生式
+            return new Node(array[0], new ArrayList<>()); //空产生式
     }
 }

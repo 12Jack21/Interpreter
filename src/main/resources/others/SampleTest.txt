@@ -57,6 +57,5 @@ if (a>b==2+3<>repeat);
 if(a)
     b = 3;
 -----
-break;！
-continue;
-char a = 2;
+if(a==2)
+break;

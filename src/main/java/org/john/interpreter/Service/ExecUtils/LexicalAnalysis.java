@@ -80,15 +80,11 @@ public class LexicalAnalysis {
             if (!keyList.contains(String.valueOf(token).trim()))
                 special = "identifier";
 
-        } else if (isDigit(ch) || ch == '+' || ch == '-') { //数字的判定
+        } else if (isDigit(ch)) { //数字的判定
             boolean hasDot = false;
             boolean hasSign = false;
             boolean legal = true;
 
-//            if (ch == '+' || ch == '-') {
-//                //直接识别为加/减号
-//                return new LexiNode(String.valueOf(ch), str2Code.get(String.valueOf(ch)), row, col, p);
-//            }
             //跟着数字或者数字开头
             while (isDigit(ch) || ch == '.') {
                 if (ch == '.' && hasDot) //圆点数量超过规定
@@ -102,7 +98,7 @@ public class LexicalAnalysis {
             }
             p--;
             if (hasDot)
-                special = "rdigit"; //识别为小数
+                special = "r_digit"; //识别为小数
             else
                 special = "digit"; //识别为整数
 
@@ -138,9 +134,11 @@ public class LexicalAnalysis {
 
     // 完整的扫描一整个程序
     public static List<LexiNode> lexicalScan(String pro) {
+        if (pro == null)
+            return null;
         while (pro.endsWith("\n")) //除去最后的换行
             pro = pro.substring(0,pro.length() - 1);
-        pro += " "; //TODO 防止 indexOutOfBound ,但是又会出现将 \b 当成节点的问题
+        pro += " ";     //TODO 防止 indexOutOfBound ,但是又会出现将 \b 当成节点的问题
         List<LexiNode> nodes = new ArrayList<>();
         HashMap<String, Integer> str2Code = str2IntMap();
         //起始节点

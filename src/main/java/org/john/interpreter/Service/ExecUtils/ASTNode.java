@@ -9,8 +9,8 @@ public class ASTNode implements Serializable {
 
     private int maxChildNum;
     private int curIndex;
-    private char name;
-    private char value;
+    private String name;
+    private char value; // TODO can be defined as complex data structure
     private boolean isLeaf; //是否为叶子节点
     private boolean isLegal; //是否合法(正确解析)
     private ASTNode[] children;
@@ -18,7 +18,7 @@ public class ASTNode implements Serializable {
 
     public ASTNode(){}
 
-    public ASTNode(int maxChildNum, char name, boolean isLeaf,boolean isLegal) {
+    public ASTNode(int maxChildNum, String name, boolean isLeaf,boolean isLegal) {
         this.curIndex = 0;
         this.maxChildNum = maxChildNum;
         this.name = name;
@@ -80,7 +80,7 @@ public class ASTNode implements Serializable {
         return json.toString();
     }
 
-    public char getName() {
+    public String getName() {
         return name;
     }
 
@@ -89,8 +89,8 @@ public class ASTNode implements Serializable {
     }
 
     public static void  main(String[] args){
-        ASTNode node = new ASTNode(1,'P',false,true);
-        ASTNode node1 = new ASTNode(0,'s',true,false);
+        ASTNode node = new ASTNode(1,"P",false,true);
+        ASTNode node1 = new ASTNode(0,"S",true,false);
         node.addChild(node1);
         System.out.println(node.toJSON());
     }

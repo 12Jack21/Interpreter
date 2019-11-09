@@ -44,7 +44,7 @@ public class Executor {
         if (lexiResult.lastIndexOf("\n") == lexiResult.length() - 1)
             lexiResult.deleteCharAt(lexiResult.length() - 1);
 
-        Wrapper wrapper = new Wrapper(lexiResult.toString(),astNode,gramParser.errorStack);
+        Wrapper wrapper = new Wrapper(lexiResult.toString(),astNode,gramParser.getErrorStack());
         return wrapper;
     }
 
@@ -71,9 +71,6 @@ public class Executor {
                 for (LexiNode node : lexiNodes) {
                     out.write(node.toString());
                     out.write("\n");
-
-                    String s = node.toString();
-                    System.out.println(s);
                 }
             }
             out.flush(); // 把缓存区内容压入文件
