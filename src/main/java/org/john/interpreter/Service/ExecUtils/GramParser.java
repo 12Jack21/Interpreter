@@ -109,13 +109,13 @@ public class GramParser {
                         if (pos == -2){
                             /* 特殊情况下矛盾产生式的选择, 标识符作为 Select集矛盾的地方
                              * 扫描分号之前遇到的符号，遇到 逻辑符、关系符、运算符前遇到 赋值符号则选择 赋值语句的产生式，否则反之*/
-                            int t_index = index++;
-                            LexiNode temp = nodes.get(t_index);
-                            String[] p1 = {"||","&&","<","<=","<>",">",">=","==","+","-","*","/"};
+                            int t_index = index;
+                            LexiNode temp = nodes.get(t_index++);
+                            String[] p1 = {"||","&&","<","<=","<>",">",">=","==","+","-","*","/","(",")"};
                             String selection = null;
                             while (!temp.getSymbol().equals(";")){
                                 for (String p : p1){
-                                    if (p.equals(temp.getSymbol())){
+                                    if (p.equals(temp.getSymbol().trim())){
                                         selection = special_production[0];
                                         break;
                                     }
@@ -126,6 +126,7 @@ public class GramParser {
                                     selection = special_production[1];
                                     break;
                                 }
+                                temp = nodes.get(t_index++);
                             }
                             pos = Arrays.asList(productions).indexOf(selection);
                         }

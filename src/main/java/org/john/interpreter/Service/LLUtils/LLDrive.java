@@ -119,7 +119,8 @@ public class LLDrive {
                     if (!nullableList.contains(t))
                         break;
                 }
-                String follow = followMap.get(pNode.leftP);
+//                String follow = followMap.get(pNode.leftP);
+                String follow = followMap.get(t); //获得可以为空的非终结符的 Follow集
                 if (follow != null) {
                     if (sb.length() > 0)
                         sb.append(' ');

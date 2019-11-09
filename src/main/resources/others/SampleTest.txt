@@ -70,6 +70,8 @@ if(a)
         	else print    (b);
 
    }
-
+-----
+int sc(char a,real f){if(x)break;}
+sc(a,b);
 
 
