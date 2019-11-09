@@ -54,36 +54,45 @@ public class CodeTable {
     public static String[] production = {
             "Pro->Statement Pro", "Pro->{ Pro } Pro","Pro->",  // att: follow set of Pro should contains #
             "Statement->Declare ;", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE","Statement->Interrupt","Statement->;", //"S->L;"production versus "S->Declare"
-            "Declare->int Assignment Continuation", "Declare->real Assignment Continuation", "Declare->char Assignment Continuation",
+            "Declare->Type Assignment C", // Declaration
+            "Type->int","Type->real","Type->char","Type->void", // Type Specifier
             "Index->[ Relation ]", "Index->",  //下标允许关系表达式
-            "Continuation->, Assignment Continuation","Continuation->",   //多声明 or 赋值
-            "Assignment->identifier Index X",
+            "C->, Assignment C","C->",   //多声明 or 赋值
+            "Assignment->identifier F",
+            "F->( Parameter ) { Pro }","F->Index X",   // define function
+            "Parameter->Type identifier Index CC","Parameter->","Parameter->", //function parameters
+            "CC->, Parameter","CC->", // can replace CC with original non-terminal
             "X->= O","X->",
             "O->Relation","O->{ Y }", // array assignment
-            "Y->Relation Continuation'","Y->",
-            "Continuation'->, Y","Continuation'->",   // for array assignment {}
+            "Y->Relation C'","Y->",
+            "C'->, Y","C'->",   // for array assignment {}
             "IF->if ( Logic ) H ELSE",    //if
             "ELSE->else H","ELSE->",     //else
             "WHILE->while ( Logic ) H",    //while , do-----------------undone
             "H->Statement","H->{ P }",
             "Interrupt->break ;","Interrupt->continue ;", //break & continue
-            "Logic->Relation J",           //logic expression
-            "J->|| Logic", "J->&& Logic", "J->",
-            "Relation->Arithmetic Q",           //relation expresion
-            "Q->== Relation", "Q-><> Relation", "Q->>= Relation", "Q-><= Relation", "Q->> Relation", "Q->< Relation", "Q->",
+            "Logic->Relation L",           //logic expression
+            "L->|| Logic", "L->&& Logic", "L->",
+            "Relation->Arithmetic R",           //relation expresion
+            "R->== Relation", "R-><> Relation", "R->>= Relation", "R-><= Relation", "R->> Relation", "R->< Relation", "R->",
             "Arithmetic->Item V",
             "V->+ Arithmetic", "V->- Arithmetic", "V->", //att: 负号优先级-右结合
-            "Item->F Factor",
+            "Item->Variable Factor",
             "Factor->* Item", "Factor->/ Item", "Factor->",
-            "F->( Relation )", "F->identifier Index", "F->Digit",
+            "Variable->( Relation )", "Variable->identifier Index", "Variable->Digit",
             "Digit->Positive","Digit->- Positive","Digit->+ Positive", //选择正数或者负数
             "Positive->integer","Positive->fraction"  //整数、小数
     };
 
-    // 栈顶终结符不匹配时，可以报错为 缺少某终结符；
-    // 栈顶非终结符不匹配时(Select集不匹配)：
-    // 1.Follow集也不匹配
-    // 2.Follow集匹配
-
+    /*
+    * Thoughts: 允许某个产生式，但是该产生式是错误的，这样可以报出最精确的错误
+    *       ie. 函数中参数列表允许赋值的产生式被加入，但是本身不被允许
+    * */
+    /*
+     栈顶终结符不匹配时，可以报错为 缺少某终结符；
+     栈顶非终结符不匹配时(Select集不匹配)：
+     1.Follow集也不匹配
+     2.Follow集匹配
+    */
 
 }
