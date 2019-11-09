@@ -2,7 +2,9 @@ package org.john.interpreter.Service.ExecUtils;
 
 
 import org.john.interpreter.Service.LLUtils.LLDrive;
+import org.springframework.util.ResourceUtils;
 
+import java.io.FileWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -113,6 +115,7 @@ public class GramParser {
                             curNode.addChild(new ASTNode(childNum, top, false, true));
                         }
                     } else {
+                        //TODO  没有 "P"未进入栈时程序出错的情况
                         if (node.getCode() == -2) { // "#" 号
                             errorStack.add("缺少结束符！"); //TODO handle undone
 
@@ -124,7 +127,8 @@ public class GramParser {
 
                             // 1.栈的丢弃
                             while (!top.equals("#")) {
-                                curNode = curNode.findLefted(); // TODO Handle NullPointerException
+                                if (curNode != null)
+                                    curNode = curNode.findLefted(); // TODO Handle NullPointerException
                                 if (curNode != null)
                                     curNode.addChild(new ASTNode(0, top, false, false));
 
@@ -134,9 +138,9 @@ public class GramParser {
                             stack.addFirst("P");
 
                             // 2.词法分析节点的丢弃,找到 S的 first集中的词法单元
-                            List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get(" ").split(" "));
+                            List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get("S").split(" "));
 
-                            while (!stateStart.contains(symbol.toString())) {
+                            while (!stateStart.contains(symbol) && !symbol.equals("#")) {
                                 index++;
                                 if (index >= nodes.size())
                                     break;
@@ -165,10 +169,11 @@ public class GramParser {
             System.out.println(rootNode.toJSON());
 
             //写入文件
-//            FileWriter fileWriter = new FileWriter("./AST.txt");
-//            fileWriter.write(rootNode.toJSON());
-//            fileWriter.flush();
-//            fileWriter.close();
+            String prefix = ResourceUtils.getFile("classpath:others").getAbsolutePath();
+            FileWriter fileWriter = new FileWriter(prefix + "/GramOutput.txt");
+            fileWriter.write(rootNode.toJSON());
+            fileWriter.flush();
+            fileWriter.close();
 
             return rootNode;
 
@@ -200,14 +205,15 @@ public class GramParser {
     private String errorHandle(String top, String symbol) {
         List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get("S").split(" "));
 
-        if (matchStack.size() != 0) {
-            String src = matchStack.pop();
-            return "缺少 " + parMap(src);
+        // tune the priority
+        if (symbol.equals(",")) {
+            return "缺少 标识符";
         } else if (stateStart.contains(String.valueOf(symbol)) && !symbol.equals(";")) {
 //            if (top == 'B' || top == '') 更细致的划分
             return "缺少 ;";
-        } else if (symbol.equals(",")) {
-            return "缺少 标识符";
+        } else if (matchStack.size() != 0) {
+            String src = matchStack.pop();
+            return "缺少 " + parMap(src);
         } else if (symbol.equals(";"))
             return "缺少 表达式";
         else
