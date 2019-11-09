@@ -63,7 +63,7 @@ public class Nullable {
     }
 
     public static void main(String[] args) {
-        Nullable nullAble = new Nullable(CodeTable.production);
+        Nullable nullAble = new Nullable(CodeTable.productions);
         List<String> nullableList = nullAble.countNullable();
         System.out.println(nullableList);
     }

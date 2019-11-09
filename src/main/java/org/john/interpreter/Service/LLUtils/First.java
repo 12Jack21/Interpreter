@@ -86,8 +86,8 @@ public class First {
     }
 
     public static void main(String[] args) {
-        Nullable nullable = new Nullable(CodeTable.production);
-        First first = new First(CodeTable.production,nullable.countNullable());
+        Nullable nullable = new Nullable(CodeTable.productions);
+        First first = new First(CodeTable.productions,nullable.countNullable());
         first.countFirst();
         System.out.println(first);
     }

@@ -2,8 +2,6 @@ package org.john.interpreter.Service.LLUtils;
 
 import org.john.interpreter.Service.ExecUtils.CodeTable;
 
-import static org.john.interpreter.Service.ExecUtils.CodeTable.*;
-
 import java.util.*;
 
 public class Follow {
@@ -86,7 +84,7 @@ public class Follow {
     }
 
     public static void main(String[] args) {
-        String[] production = CodeTable.production;
+        String[] production = CodeTable.productions;
 
         Nullable nullAble = new Nullable(production);
         List<String> nullableList = nullAble.countNullable();

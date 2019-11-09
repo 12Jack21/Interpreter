@@ -50,23 +50,30 @@ public class CodeTable {
         return map;
     }
 
-    //产生式
-    public static String[] production = {
-            "Pro->Statement Pro", "Pro->{ Pro } Pro","Pro->; Pro","Pro->",  // att: follow set of Pro should contains #
-            "Statement->Declare", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE","Statement->Interrupt", //"S->L;"production versus "S->Declare"
+    // 当作特殊情况处理的矛盾产生式
+    public static String[] special_production = {
+            "Statement->Logic ;",
+            "Assignment->identifier Index X"
+    };
 
-            "Assignment->identifier Index X", // Assignment
-            "Declare->Type Assign",         // Declaration
+    //产生式
+    public static String[] productions = {
+            "Pro->Statement Pro", "Pro->{ Pro } Pro","Pro->; Pro","Pro->",  // att: follow set of Pro should contains #
+            "Statement->Declare", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE","Statement->Interrupt","Statement->Logic ;",
+            //TODO "S->Logic;" production versus "S->Declare"
+
+            "Assignment->identifier Index X", // Single Assignment
+            "Declare->Type Assign",           // Declaration
             "Type->int","Type->real","Type->char","Type->void", // Type Specifier
-            "Index->[ Relation ]", "Index->", // 下标允许关系表达式
-            "C->, Assignment C","C->",        //多声明 or 赋值
+            "Index->[ Relation ]", "Index->", // index allows expression
+            "C->, Assignment C","C->",        // Multiple declare or assign
 
             "Assign->identifier F",
-            "F->( Parameter ) { Pro }","F->Index X C ;",   // define function
-            "Parameter->Type identifier Index CC","Parameter->", //function parameters
+            "F->( Parameter ) { Pro }","F->Index X C ;",         // define function
+            "Parameter->Type identifier Index CC","Parameter->", //function parameters no.24
             "CC->, Parameter","CC->",     // can replace CC with original non-terminal
 
-            "X->= O","X->",
+            "X->= O","X->", //no.28
             "O->Relation","O->{ Y }",     // array assignment
             "Y->Relation C'","Y->",
             "C'->, Y","C'->",             // for array assignment {}
@@ -87,7 +94,11 @@ public class CodeTable {
             "V->+ Arithmetic", "V->- Arithmetic", "V->", //att: 右结合
             "Item->Variable Factor",
             "Factor->* Item", "Factor->/ Item", "Factor->",
-            "Variable->( Relation )", "Variable->identifier Index", "Variable->Digit",
+            "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->print ( Argument )","Variable->scan ( Argument )",
+
+            "Call->( Argument )","Call->Index",
+            "Argument->identifier Index CCC","Argument->", //function argument when call
+            "CCC->, Argument","CCC->", //no.73
 
             "Digit->Positive","Digit->- Positive","Digit->+ Positive", //选择正数或者负数
             "Positive->integer","Positive->fraction"  //整数、小数

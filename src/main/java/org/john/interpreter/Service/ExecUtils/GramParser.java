@@ -24,7 +24,7 @@ public class GramParser {
 
     public GramParser() {
         try {
-            llDrive = new LLDrive(production);
+            llDrive = new LLDrive(productions);
             llTable = llDrive.getTable();
         } catch (Exception e) {
             e.printStackTrace();
@@ -106,6 +106,29 @@ public class GramParser {
                     pos = llTable[y][x];
 
                     if (pos != -1) {
+                        if (pos == -2){
+                            /* 特殊情况下矛盾产生式的选择, 标识符作为 Select集矛盾的地方
+                             * 扫描分号之前遇到的符号，遇到 逻辑符、关系符、运算符前遇到 赋值符号则选择 赋值语句的产生式，否则反之*/
+                            int t_index = index++;
+                            LexiNode temp = nodes.get(t_index);
+                            String[] p1 = {"||","&&","<","<=","<>",">",">=","==","+","-","*","/"};
+                            String selection = null;
+                            while (!temp.getSymbol().equals(";")){
+                                for (String p : p1){
+                                    if (p.equals(temp.getSymbol())){
+                                        selection = special_production[0];
+                                        break;
+                                    }
+                                }
+                                if (selection != null)
+                                    break;
+                                if ("=".equals(temp.getSymbol())){
+                                    selection = special_production[1];
+                                    break;
+                                }
+                            }
+                            pos = Arrays.asList(productions).indexOf(selection);
+                        }
                         childNum = llDrive.addToStack(pos, stack);
                         if (rootNode == null) {
                             rootNode = new ASTNode(childNum, "Pro", false, true);
@@ -114,7 +137,7 @@ public class GramParser {
                             curNode = curNode.findLefted(); //找到还剩孩子节点没连上的节点
                             curNode.addChild(new ASTNode(childNum, top, false, true));
                         }
-                    } else {
+                    }  else {
                         //TODO  没有 "P"未进入栈时程序出错的情况
                         if (node.getCode() == -2) { // "#" 号
                             legal = false;
@@ -143,7 +166,7 @@ public class GramParser {
                             // 此时找到了 P，但由于返回循环时会再 pop一次，故需要回退
                             stack.addFirst("Pro");
                             // 2.词法分析节点的丢弃,找到 S的 first集中的词法单元
-                            List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get("Statement").split(" "));
+                            List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get("Pro").split(" ")); //改成了Pro的First集
                             while (!stateStart.contains(symbol) && !symbol.equals("#")) {
                                 index++;
                                 if (index >= nodes.size())
@@ -202,8 +225,10 @@ public class GramParser {
     public void updateMatch(String top) {
         if (top.equals("(") || top.equals("[") || top.equals("{"))
             matchStack.addFirst(top);
-        else if (top.equals(")") || top.equals("]") || top.equals("}"))
-            matchStack.pop(); // 似乎用不到 canMatch函数
+        else if (top.equals(")") || top.equals("]") || top.equals("}")) {
+            if (matchStack.size() != 0)
+                matchStack.pop(); // TODO Handle matchStack.size == 0 Error !!!
+        }
     }
 
     // 非终结符 -> 终结符 报错时进入，利用近似穷举的方法报错较具体的错误
@@ -218,6 +243,7 @@ public class GramParser {
             return "缺少 ;";
         } else if (matchStack.size() != 0) {
             String src = matchStack.pop();
+//            matchStack.addFirst(src); //重新加回来
             return "缺少 " + parMap(src);
         } else if (symbol.equals(";"))
             return "缺少 表达式";

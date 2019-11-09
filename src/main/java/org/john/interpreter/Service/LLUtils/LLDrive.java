@@ -1,10 +1,12 @@
 package org.john.interpreter.Service.LLUtils;
 
+import org.john.interpreter.Service.ExecUtils.CodeTable;
+
 import java.util.*;
 
 public class LLDrive {
     private int[][] table;
-    private String[] production;
+    private String[] productions;
     private Map<String, Integer> tMap;
     private Map<String, Integer> ntMap; // non-terminal
 
@@ -14,8 +16,8 @@ public class LLDrive {
 
     private List<String> selectList = new ArrayList<>(); // index对应的产生式的 Select集
 
-    public LLDrive(String[] production) throws Exception {
-        this.production = production;
+    public LLDrive(String[] productions) throws Exception {
+        this.productions = productions;
         init();
     }
 
@@ -33,17 +35,17 @@ public class LLDrive {
 
     private void init() throws Exception {
         //计算相应的 First集和 Follow集
-        Nullable nullAble = new Nullable(production);
+        Nullable nullAble = new Nullable(productions);
         nullableList = nullAble.countNullable();
-        First first = new First(production, nullableList);
+        First first = new First(productions, nullableList);
         firstMap = first.countFirst();
-        Follow follow = new Follow(production, nullableList, firstMap);
+        Follow follow = new Follow(productions, nullableList, firstMap);
         followMap = follow.countFollow();
 
         tMap = new HashMap<>(); //右边终结符 计数
         ntMap = new HashMap<>(); //左边非终结符 计数
         int num = 0;
-        for (String p : production) {
+        for (String p : productions) {
             String t = Node.splitP(p).leftP;
             if (ntMap.get(t) != null) {
                 continue;
@@ -51,7 +53,7 @@ public class LLDrive {
             ntMap.put(t, num++);
         }
         num = 0;
-        for (String p : production) {
+        for (String p : productions) {
             List<String> rp = Node.splitP(p).rightP;
             for (int i = 0; i < rp.size(); i++) {
                 String t = rp.get(i);
@@ -70,28 +72,36 @@ public class LLDrive {
         //计算所有产生式的 Select集
         countFirst_s();
 
+        List<String> special_production_list = Arrays.asList(CodeTable.special_production);
         table = new int[ntMap.size()][tMap.size()]; //构建 LL分析表,整数代表第几个产生式
 
         for (int[] aTable : table) {
             Arrays.fill(aTable, -1); // 代表 报错
         }
+        String production;
         for (int i = 0; i < selectList.size(); i++) {
             String list = selectList.get(i);
             for (String cStr : list.split(" ")) {
+                production = productions[i];
                 int x = tMap.get(cStr);
-                int y = ntMap.get(Node.splitP(production[i]).leftP);
+                int y = ntMap.get(Node.splitP(production).leftP);
                 if (manualProcess(table, cStr, i))
                     continue;
                 if (table[y][x] == -1)
                     table[y][x] = i;
-                else
+                else {
+                    if (special_production_list.contains(production)){
+                        table[y][x] = -2; // 特殊整数 -2 指代特殊处理
+                        continue;
+                    }
                     throw new Exception("请修改产生式，此非 LL(1) 文法！");
+                }
             }
         }
     }
 
     private void countFirst_s() { //计算 Select集
-        for (String p : production) {
+        for (String p : productions) {
             StringBuilder sb = new StringBuilder();
             Node pNode = Node.splitP(p);
             List<String> rightP = pNode.rightP;
@@ -133,8 +143,8 @@ public class LLDrive {
 
     //manual process the predict table (choose one of the contradict production to fill the table)
     private boolean manualProcess(int[][] table, String c, int index) {
-        String nt = Node.splitP(production[index]).leftP;
-        return nt.equals("ELSE") && c.equals("else") && production[index].equals("ELSE->");
+        String nt = Node.splitP(productions[index]).leftP;
+        return nt.equals("ELSE") && c.equals("else") && productions[index].equals("ELSE->");
     }
 
     public int[][] getTable() {
@@ -142,7 +152,7 @@ public class LLDrive {
     }
 
     public int addToStack(int pos, LinkedList<String> stack) {
-        List<String> rp = Node.splitP(production[pos]).rightP;
+        List<String> rp = Node.splitP(productions[pos]).rightP;
         for (int i = rp.size() - 1; i >= 0; i--) {
             String t = rp.get(i);
             stack.addFirst(t); //加到第一个位置
