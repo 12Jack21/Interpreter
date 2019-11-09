@@ -52,34 +52,43 @@ public class CodeTable {
 
     //产生式
     public static String[] production = {
-            "Pro->Statement Pro", "Pro->{ Pro } Pro","Pro->",  // att: follow set of Pro should contains #
-            "Statement->Declare ;", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE","Statement->Interrupt","Statement->;", //"S->L;"production versus "S->Declare"
-            "Declare->Type Assignment C", // Declaration
+            "Pro->Statement Pro", "Pro->{ Pro } Pro","Pro->; Pro","Pro->",  // att: follow set of Pro should contains #
+            "Statement->Declare", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE","Statement->Interrupt", //"S->L;"production versus "S->Declare"
+
+            "Assignment->identifier Index X", // Assignment
+            "Declare->Type Assign",         // Declaration
             "Type->int","Type->real","Type->char","Type->void", // Type Specifier
-            "Index->[ Relation ]", "Index->",  //下标允许关系表达式
-            "C->, Assignment C","C->",   //多声明 or 赋值
-            "Assignment->identifier F",
-            "F->( Parameter ) { Pro }","F->Index X",   // define function
-            "Parameter->Type identifier Index CC","Parameter->","Parameter->", //function parameters
-            "CC->, Parameter","CC->", // can replace CC with original non-terminal
+            "Index->[ Relation ]", "Index->", // 下标允许关系表达式
+            "C->, Assignment C","C->",        //多声明 or 赋值
+
+            "Assign->identifier F",
+            "F->( Parameter ) { Pro }","F->Index X C ;",   // define function
+            "Parameter->Type identifier Index CC","Parameter->", //function parameters
+            "CC->, Parameter","CC->",     // can replace CC with original non-terminal
+
             "X->= O","X->",
-            "O->Relation","O->{ Y }", // array assignment
+            "O->Relation","O->{ Y }",     // array assignment
             "Y->Relation C'","Y->",
-            "C'->, Y","C'->",   // for array assignment {}
+            "C'->, Y","C'->",             // for array assignment {}
+
             "IF->if ( Logic ) H ELSE",    //if
-            "ELSE->else H","ELSE->",     //else
-            "WHILE->while ( Logic ) H",    //while , do-----------------undone
-            "H->Statement","H->{ P }",
+            "ELSE->else H","ELSE->",      //else
+            "WHILE->while ( Logic ) H",   //while , do-----------undone---
+            "H->Statement","H->{ Pro }",
             "Interrupt->break ;","Interrupt->continue ;", //break & continue
-            "Logic->Relation L",           //logic expression
+
+            "Logic->Relation L",          //logic expression
             "L->|| Logic", "L->&& Logic", "L->",
-            "Relation->Arithmetic R",           //relation expresion
+
+            "Relation->Arithmetic R",     //relation expresion
             "R->== Relation", "R-><> Relation", "R->>= Relation", "R-><= Relation", "R->> Relation", "R->< Relation", "R->",
+
             "Arithmetic->Item V",
-            "V->+ Arithmetic", "V->- Arithmetic", "V->", //att: 负号优先级-右结合
+            "V->+ Arithmetic", "V->- Arithmetic", "V->", //att: 右结合
             "Item->Variable Factor",
             "Factor->* Item", "Factor->/ Item", "Factor->",
             "Variable->( Relation )", "Variable->identifier Index", "Variable->Digit",
+
             "Digit->Positive","Digit->- Positive","Digit->+ Positive", //选择正数或者负数
             "Positive->integer","Positive->fraction"  //整数、小数
     };

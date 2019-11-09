@@ -117,8 +117,9 @@ public class GramParser {
                     } else {
                         //TODO  没有 "P"未进入栈时程序出错的情况
                         if (node.getCode() == -2) { // "#" 号
-                            errorStack.add("缺少结束符！"); //TODO handle undone
-
+                            legal = false;
+                            if (!errorStack.contains("缺少结束符!"))
+                                errorStack.add("缺少结束符!"); //TODO handle undone
                         } else {
                             if (rootNode == null) {
                                 // manually handle stack
@@ -156,9 +157,10 @@ public class GramParser {
                 }
             }
             //分析完成后，栈中还有元素
-            if (stack.size() > 0)
-                errorStack.add("缺少结束符！");
-
+            if (stack.size() > 0) {
+                if (!errorStack.contains("缺少结束符!"))
+                    errorStack.add("缺少结束符!");
+            }
             if (legal)
                 System.out.println("\n语法分析成功！！！\n");
             else

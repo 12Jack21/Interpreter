@@ -21,7 +21,7 @@ public class Follow {
 
     public Map<String, String> countFollow() {
         followMap = new HashMap<>();
-        followMap.put("P","#"); // firstly manual add #
+        followMap.put("Pro","#"); // firstly manual add #
         boolean isChange = true;
         while (isChange) {
             isChange = false;
