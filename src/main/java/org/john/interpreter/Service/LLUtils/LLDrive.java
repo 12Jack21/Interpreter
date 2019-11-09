@@ -65,6 +65,7 @@ public class LLDrive {
         tMap.put("#", num); // add # to predict table column
         initTable();
     }
+
     private void initTable() throws Exception {
         //计算所有产生式的 Select集
         countFirst_s();
@@ -88,6 +89,7 @@ public class LLDrive {
             }
         }
     }
+
     private void countFirst_s() { //计算 Select集
         for (String p : production) {
             StringBuilder sb = new StringBuilder();
@@ -132,7 +134,7 @@ public class LLDrive {
     //manual process the predict table (choose one of the contradict production to fill the table)
     private boolean manualProcess(int[][] table, String c, int index) {
         String nt = Node.splitP(production[index]).leftP;
-        return nt.equals("D")&& c .equals("else") && production[index].equals("D->");
+        return nt.equals("ELSE") && c.equals("else") && production[index].equals("ELSE->");
     }
 
     public int[][] getTable() {

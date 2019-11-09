@@ -98,9 +98,9 @@ public class LexicalAnalysis {
             }
             p--;
             if (hasDot)
-                special = "r_digit"; //识别为小数
+                special = "fraction"; //识别为小数
             else
-                special = "digit"; //识别为整数
+                special = "integer"; //识别为整数
 
         } else {
             token[i] = ch;

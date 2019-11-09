@@ -16,7 +16,7 @@ public class CodeTable {
             "&&", "||", "=", "(", ")", "{", "}", "[", "]", "'", "\"", ";",
             ",", "\\n", "\\r", "\\t", "\n", "\r", "\t", "//", "/*", "*/"};
     // 特例
-    public static String[] specials = {"identifier", "digit", "r_digit"};
+    public static String[] specials = {"identifier", "integer", "fraction"};
 
     public static char[] invs = {'\n', '\r', '\t'};// TODO 转义字符，题目要求是哪种， '\n' or '\\n'
 
@@ -52,33 +52,32 @@ public class CodeTable {
 
     //产生式
     public static String[] production = {
-            "P->S P", "P->{ P } P","P->",  // att: follow set of P should contains #
-            "S->A ;", "S->K ;", "S->II", "S->W","S->N","S->;", //"S->L;"production versus "S->K"
-            "S'->{ S' }","S'->S","S'->",
-            "A->int K C", "A->real K C", "A->char K C",
-            "B->[ R ]", "B->",  //下标允许关系表达式
-            "C->, K C","C->",   //多声明 or 赋值
-            "K->identifier B X",
+            "Pro->Statement Pro", "Pro->{ Pro } Pro","Pro->",  // att: follow set of Pro should contains #
+            "Statement->Declare ;", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE","Statement->Interrupt","Statement->;", //"S->L;"production versus "S->Declare"
+            "Declare->int Assignment Continuation", "Declare->real Assignment Continuation", "Declare->char Assignment Continuation",
+            "Index->[ Relation ]", "Index->",  //下标允许关系表达式
+            "Continuation->, Assignment Continuation","Continuation->",   //多声明 or 赋值
+            "Assignment->identifier Index X",
             "X->= O","X->",
-            "O->R","O->{ Y }", // array assignment
-            "Y->R Z","Y->",
-            "Z->, Y","Z->",
-            "II->if ( L ) H D",    //if
-            "D->else H","D->",     //else
-            "W->while ( L ) H",    //while , do-----------------undone
-            "H->S","H->{ P }",
-            "N->break ;","N->continue ;", //break & continue
-            "L->R J",           //logic expression
-            "J->|| L", "J->&& L", "J->",
-            "R->M Q",           //relation expresion
-            "Q->== R", "Q-><> R", "Q->>= R", "Q-><= R", "Q->> R", "Q->< R", "Q->",
-            "M->E V",
-            "V->+ M", "V->- M", "V->", //att: 负号优先级-右结合
-            "E->F T",
-            "T->* E", "T->/ E", "T->",
-            "F->( R )", "F->identifier B", "F->G",
-            "G->U","G->- U","G->+ U", //选择正数或者负数
-            "U->digit","U->r_digit"  //整数、小数
+            "O->Relation","O->{ Y }", // array assignment
+            "Y->Relation Continuation'","Y->",
+            "Continuation'->, Y","Continuation'->",   // for array assignment {}
+            "IF->if ( Logic ) H ELSE",    //if
+            "ELSE->else H","ELSE->",     //else
+            "WHILE->while ( Logic ) H",    //while , do-----------------undone
+            "H->Statement","H->{ P }",
+            "Interrupt->break ;","Interrupt->continue ;", //break & continue
+            "Logic->Relation J",           //logic expression
+            "J->|| Logic", "J->&& Logic", "J->",
+            "Relation->Arithmetic Q",           //relation expresion
+            "Q->== Relation", "Q-><> Relation", "Q->>= Relation", "Q-><= Relation", "Q->> Relation", "Q->< Relation", "Q->",
+            "Arithmetic->Item V",
+            "V->+ Arithmetic", "V->- Arithmetic", "V->", //att: 负号优先级-右结合
+            "Item->F Factor",
+            "Factor->* Item", "Factor->/ Item", "Factor->",
+            "F->( Relation )", "F->identifier Index", "F->Digit",
+            "Digit->Positive","Digit->- Positive","Digit->+ Positive", //选择正数或者负数
+            "Positive->integer","Positive->fraction"  //整数、小数
     };
 
     // 栈顶终结符不匹配时，可以报错为 缺少某终结符；

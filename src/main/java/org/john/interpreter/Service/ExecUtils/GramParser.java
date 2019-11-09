@@ -44,7 +44,7 @@ public class GramParser {
             boolean legal = true;
 
             //初始化栈中有一个 开始符号 元素 + # 号
-            stack.addFirst("P");
+            stack.addFirst("Pro");
             stack.add("#");
 
             // 当前执行操作的语法树节点
@@ -108,7 +108,7 @@ public class GramParser {
                     if (pos != -1) {
                         childNum = llDrive.addToStack(pos, stack);
                         if (rootNode == null) {
-                            rootNode = new ASTNode(childNum, "P", false, true);
+                            rootNode = new ASTNode(childNum, "Pro", false, true);
                             curNode = rootNode;
                         } else {
                             curNode = curNode.findLefted(); //找到还剩孩子节点没连上的节点
@@ -122,27 +122,27 @@ public class GramParser {
                         } else {
                             if (rootNode == null) {
                                 // manually handle stack
-                                rootNode = new ASTNode(2, "P", false, true);
-                                stack.add("S");
-                                stack.add("P");
+                                rootNode = new ASTNode(2, "Pro", false, true);
+                                stack.add("Statement");
+                                stack.add("Pro");
                                 curNode = rootNode;
                             }
 
                             // 丢掉出错的语句 S，继续下一条语句的语法分析
-                            // 节点搜索到 S 的 First集，栈一直pop 直到遇到 p（下一条语句的开始）
+                            // 节点搜索到 S 的 First集，栈一直pop 直到遇到 Pro（下一条语句的开始）
                             legal = false;
                             errorStack.add("第" + node.getRow() + "行,第" + node.getCol() + "列处出现语法错误," + errorHandle(top, symbol));
 
                             // 1.栈的丢弃
-                            while (!top.equals("P")) {  // "#" 还是 "P" ?
+                            while (!top.equals("Pro")) {  // "#" 还是 "Pro" ?
                                 curNode = curNode.findLefted(); // TODO Handle NullPointerException
                                 curNode.addChild(new ASTNode(0, top, false, false));
                                 top = stack.pop();
                             }
                             // 此时找到了 P，但由于返回循环时会再 pop一次，故需要回退
-                            stack.addFirst("P");
+                            stack.addFirst("Pro");
                             // 2.词法分析节点的丢弃,找到 S的 first集中的词法单元
-                            List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get("S").split(" "));
+                            List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get("Statement").split(" "));
                             while (!stateStart.contains(symbol) && !symbol.equals("#")) {
                                 index++;
                                 if (index >= nodes.size())
@@ -206,12 +206,12 @@ public class GramParser {
 
     // 非终结符 -> 终结符 报错时进入，利用近似穷举的方法报错较具体的错误
     private String errorHandle(String top, String symbol) {
-        List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get("S").split(" "));
+        List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get("Statement").split(" "));
 
         // tune the priority
         if (symbol.equals(",")) {
             return "缺少 标识符";
-        } else if (stateStart.contains(String.valueOf(symbol)) && !symbol.equals(";")) {
+        } else if (stateStart.contains(symbol) && !symbol.equals(";")) {
 //            if (top == 'B' || top == '') 更细致的划分
             return "缺少 ;";
         } else if (matchStack.size() != 0) {
