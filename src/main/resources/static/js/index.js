@@ -56,12 +56,23 @@ $(document).ready(function () {
     * Lexical, Grammar, Semantic Result handle here
     * */
     $("#analyze").click(function (e) {
+        let index = $("#index-picker").val();
         let code = $("#code_area").val();
+        let code_seg = code.split("-----");
+        if (code_seg.length === undefined || code_seg.length === 0) {
+            alert("Please input the program!");
+            return;
+        }else if (code_seg.length - 1 < index) {
+            alert("Illegal index of program!");
+            return;
+        }
+
         $.ajax({
             type: 'Post',
             url: "analyze", //relative path
             data: {
-                codes: code
+                codes: code,
+                index: index
             },
             dataType: 'json', //expected return json format data
             cache: false,

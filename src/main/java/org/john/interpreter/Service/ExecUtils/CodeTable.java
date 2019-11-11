@@ -55,12 +55,15 @@ public class CodeTable {
             "Statement->Logic ;",
             "Assignment->identifier Index X"
     };
+    public static String[] value_contain_token = {
+            "identifier","integer","fraction"
+    };
 
+    //"S->Logic;" production versus "S->Declare"
     //²úÉúÊ½
     public static String[] productions = {
             "Pro->Statement Pro", "Pro->{ Pro } Pro","Pro->; Pro","Pro->",  // att: follow set of Pro should contains #
             "Statement->Declare", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE","Statement->Interrupt","Statement->Logic ;",
-            //TODO "S->Logic;" production versus "S->Declare"
 
             "Assignment->identifier Index X", // Single Assignment
             "Declare->Type Assign",           // Declaration

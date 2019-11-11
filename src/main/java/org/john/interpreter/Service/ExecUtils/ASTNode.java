@@ -1,7 +1,5 @@
 package org.john.interpreter.Service.ExecUtils;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -10,7 +8,7 @@ public class ASTNode implements Serializable {
     private int maxChildNum;
     private int curIndex;
     private String name;
-    private char value; // TODO can be defined as complex data structure
+    private String value = null; // TODO can be defined as complex data structure
     private boolean isLeaf; //是否为叶子节点
     private boolean isLegal; //是否合法(正确解析)
     private ASTNode[] children;
@@ -25,6 +23,16 @@ public class ASTNode implements Serializable {
         this.isLeaf = isLeaf;
         this.children = new ASTNode[maxChildNum];
         this.isLegal = isLegal;
+    }
+
+    public ASTNode(int maxChildNum, String name, String value, boolean isLeaf, boolean isLegal) {
+        this.maxChildNum = maxChildNum;
+        this.name = name;
+        this.value = value;
+        this.isLeaf = isLeaf;
+        this.isLegal = isLegal;
+        this.curIndex = 0;
+        this.children = new ASTNode[maxChildNum];
     }
 
     public void addChild(ASTNode child) {
@@ -78,6 +86,20 @@ public class ASTNode implements Serializable {
         }
         json.append("}");
         return json.toString();
+    }
+
+    public void addNullTips(){
+        // Pre-order traverse the tree
+        if (maxChildNum == 0 && value == null) {
+            if (name.charAt(0) > 'A' && name.charAt(0) < 'Z')
+                name += " (null)";
+        }
+        else if (value != null)
+            name += " (" + value + ")";
+        for (ASTNode child : children){
+            if (child != null)
+                child.addNullTips();
+        }
     }
 
     public String getName() {

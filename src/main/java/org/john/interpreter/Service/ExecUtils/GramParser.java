@@ -82,7 +82,11 @@ public class GramParser {
                         if (symbol.equals("#"))
                             continue;
                         curNode = curNode.findLefted();
-                        curNode.addChild(new ASTNode(0, top, true, true));
+
+                        if (Arrays.asList(value_contain_token).contains(top))
+                            curNode.addChild(new ASTNode(0, top, node.getSymbol(),true, true));
+                        else
+                            curNode.addChild(new ASTNode(0, top, true, true));
 
                     } else {
                         legal = false;
@@ -139,7 +143,7 @@ public class GramParser {
                             curNode.addChild(new ASTNode(childNum, top, false, true));
                         }
                     }  else {
-                        //TODO  没有 "P"未进入栈时程序出错的情况
+                        //TODO  没有 "P" 未进入栈时程序出错的情况
                         if (node.getCode() == -2) { // "#" 号
                             legal = false;
                             if (!errorStack.contains("缺少结束符!"))
