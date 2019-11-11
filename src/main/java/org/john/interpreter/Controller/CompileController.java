@@ -34,21 +34,20 @@ public class CompileController {
     public String displayFile(@RequestParam("code") MultipartFile file){
         String s;
         try {
-            String[] pros = Executor.readCodeFile(file.getInputStream());
-            s = pros[0];
+//            String[] pros = Executor.readCodeFile(file.getInputStream());
+//            s = pros[0];
+            s = Executor.readCodeFile(file.getInputStream());
         } catch (IOException e) {
             e.printStackTrace();
             s = e.getMessage();
         }
-
         return s;
     }
 
     @ResponseBody
     @RequestMapping(value = "/analyze",method = RequestMethod.POST)
-    public Wrapper analyzeResult(@RequestParam(value = "codes") String codes){
-        System.out.println(codes);
-        Wrapper wrapper = Executor.analyze(codes);
+    public Wrapper analyzeResult(@RequestParam(value = "codes") String codes,@RequestParam("index")int index){
+        Wrapper wrapper = Executor.analyze(codes.split("-----")[index - 1]);
         System.out.println(wrapper);
         return wrapper;
     }

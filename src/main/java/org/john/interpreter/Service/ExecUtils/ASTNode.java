@@ -92,7 +92,7 @@ public class ASTNode implements Serializable {
         // Pre-order traverse the tree
         if (maxChildNum == 0 && value == null) {
             if (name.charAt(0) > 'A' && name.charAt(0) < 'Z')
-                name += " (null)";
+                name += " -> null";
         }
         else if (value != null)
             name += " (" + value + ")";

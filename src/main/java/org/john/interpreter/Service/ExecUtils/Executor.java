@@ -11,7 +11,7 @@ public class Executor {
     private static LexicalAnalysis lexicalAnalysis;
     private static GramParser gramParser;
 
-    public static String[] readCodeFile(InputStream stream) throws IOException {
+    public static String readCodeFile(InputStream stream) throws IOException {
         StringBuffer sbuf = new StringBuffer();
         String line;
         BufferedReader br = new BufferedReader(new InputStreamReader(stream));
@@ -22,9 +22,9 @@ public class Executor {
         if (sbuf.indexOf("\n") != -1)
             sbuf.deleteCharAt(sbuf.lastIndexOf("\n"));//删除最后一个换行符
         // 程序文件的每个程序都用 "-----" 来分隔
-        String[] pros = sbuf.toString().split("-----\n");
+//        String[] pros = sbuf.toString().split("-----\n");
 
-        return pros;
+        return sbuf.toString();
     }
 
      /* all the analysis set here */
@@ -42,7 +42,8 @@ public class Executor {
         if (lexiResult.lastIndexOf("\n") == lexiResult.length() - 1)
             lexiResult.deleteCharAt(lexiResult.length() - 1);
 
-        astNode.addNullTips();
+        if (astNode != null)
+            astNode.addNullTips();
         Wrapper wrapper = new Wrapper(lexiResult.toString(),astNode,gramParser.getErrorStack());
         return wrapper;
     }
@@ -52,14 +53,14 @@ public class Executor {
             //获取文件路径
             String prefix = ResourceUtils.getFile("classpath:others").getAbsolutePath();
             System.out.println(prefix);
-            FileInputStream fis = new FileInputStream(prefix + "/SampleTest.txt");
+            FileInputStream fis = new FileInputStream(prefix + "/Grammar_Test.txt");
 
             /* 写入Txt文件 */
             File write = new File(prefix + "/MyOutput.txt"); // 相对路径，如果没有则要建立一个新的output.txt文件
             BufferedWriter out = new BufferedWriter(new FileWriter(write));
 
             // 程序文件的每个程序都用 "-----" 来分隔
-            String[] pros = readCodeFile(fis);
+            String[] pros = readCodeFile(fis).split("-----");
             int index = 0;
             List<LexiNode> lexiNodes = null;
             for (String pro : pros) {

@@ -62,7 +62,7 @@ $(document).ready(function () {
         if (code_seg.length === undefined || code_seg.length === 0) {
             alert("Please input the program!");
             return;
-        }else if (code_seg.length - 1 < index) {
+        } else if (code_seg.length - 1 < index) {
             alert("Illegal index of program!");
             return;
         }
@@ -79,15 +79,16 @@ $(document).ready(function () {
             /* contentType and processData should set to false or the data cannot pass to the server*/
             traditional: true,
         }).done(function (data) {
-            console.log("Wrapper: ",data);
+            console.log("Wrapper: ", data);
             // fill lexical result panel
             showLexiResult(data.lexiResult);
 
             let treeData = obj2treeview(data.astNode, columnStructure);
-            console.log("Column: ",treeData);
+            console.log("Column: ", treeData);
 
             // fill the tree with data
-            $('#menuTree').treeview({
+            let tree = $("#menuTree");
+            tree.treeview({
                 data: treeData,// 树形菜单数据
                 emptyIcon: "icon-circle",
                 enableLinks: false,
@@ -104,7 +105,7 @@ $(document).ready(function () {
                 },
                 selectedBackColor: "rgba(186,186,184,0.22)",// 选中时的背景色
                 selectedColor: '', //选中时的文本颜色
-                onhoverColor: "rgba(186,186,184,0.22)",// hover时的颜色
+                onHoverColor: "rgba(186,186,184,0.22)",// hover时的颜色
                 showBorder: false,
                 expandIcon: 'fa fa-angle-right',     // 展开图标
                 collapseIcon: 'fa fa-angle-down',  // 收缩图标
@@ -127,9 +128,13 @@ $(document).ready(function () {
                     }
                 }
             });
+            // expand all the nodes
+            tree.treeview('expandAll',{
+                silent: true
+            });
 
             let errorList = data.errors;
-            console.log("Errors:",errorList);
+            console.log("Errors:", errorList);
             alertGramError(errorList);
 
         }).fail(function () {
@@ -145,7 +150,7 @@ function showLexiResult(result) {
     let list = result.split("\n");
     let lexical = $("#lexical span");
     let inner = "";
-    $.each(list,function (key,token) {
+    $.each(list, function (key, token) {
         inner += token + "\n\r";
     });
     lexical.text(inner);
@@ -158,7 +163,7 @@ function alertGramError(errorList) {
         alert.addClass('alert-success').removeClass('alert-danger').text("Grammar parse succeed !");
     else {
         let inner = "";
-        $.each(errorList,function (key, value) {
+        $.each(errorList, function (key, value) {
             inner += value + "</br>";
         });
         alert.html(inner);
@@ -212,8 +217,3 @@ function preNumber() {
 }
 
 
-// // 设置初始化时展开的节点
-// $('#menuTree').treeview('expandNode', [0, {
-//     levels: 2,
-//     silent: true
-// }]);

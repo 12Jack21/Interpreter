@@ -9,7 +9,7 @@ public class CodeTable {
 
     //关键词表
     public static String[] keys = {"if", "else", "while", "do", "int",
-            "real", "char", "print", "scan", "break", "continue"};
+            "real", "char", "print", "scan", "break", "continue","return"};
 
     // 把 '.' 删去
     public static String[] signs = {"/", "+", "-", "*", "<", ">", "==", "<>", ">=", "<=",
@@ -52,8 +52,7 @@ public class CodeTable {
 
     // 当作特殊情况处理的矛盾产生式
     public static String[] special_production = {
-            "Statement->Logic ;",
-            "Assignment->identifier Index X"
+            "Statement->Logic ;","Assignment->identifier Index X",
     };
     public static String[] value_contain_token = {
             "identifier","integer","fraction"
@@ -62,8 +61,8 @@ public class CodeTable {
     //"S->Logic;" production versus "S->Declare"
     //产生式
     public static String[] productions = {
-            "Pro->Statement Pro", "Pro->{ Pro } Pro","Pro->; Pro","Pro->",  // att: follow set of Pro should contains #
-            "Statement->Declare", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE","Statement->Interrupt","Statement->Logic ;",
+            "Pro->Statement Pro", "Pro->{ Pro } Pro","Pro->",  // att: follow set of Pro should contains #
+            "Statement->Declare", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE","Statement->Interrupt","Statement->Logic ;","Statement->;",
 
             "Assignment->identifier Index X", // Single Assignment
             "Declare->Type Assign",           // Declaration
@@ -85,7 +84,8 @@ public class CodeTable {
             "ELSE->else H","ELSE->",      //else
             "WHILE->while ( Logic ) H",   //while , do-----------undone---
             "H->Statement","H->{ Pro }",
-            "Interrupt->break ;","Interrupt->continue ;", //break & continue
+            "Interrupt->break ;","Interrupt->continue ;","Interrupt->return Result ;", //break & continue
+            "Result->Logic","Result->",
 
             "Logic->Relation L",          //logic expression
             "L->|| Logic", "L->&& Logic", "L->",
@@ -100,7 +100,9 @@ public class CodeTable {
             "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->print ( Argument )","Variable->scan ( Argument )",
 
             "Call->( Argument )","Call->Index",
-            "Argument->identifier Index CCC","Argument->", //function argument when call
+//            "A->= Relation","A->",
+            //"Argument->identifier Index CCC","Argument->", //function argument when call TODO argument support expression
+            "Argument->Logic CCC","Argument->",
             "CCC->, Argument","CCC->", //no.73
 
             "Digit->Positive","Digit->- Positive","Digit->+ Positive", //选择正数或者负数

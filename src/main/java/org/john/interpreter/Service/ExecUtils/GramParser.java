@@ -5,10 +5,7 @@ import org.john.interpreter.Service.LLUtils.LLDrive;
 import org.springframework.util.ResourceUtils;
 
 import java.io.FileWriter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static org.john.interpreter.Service.ExecUtils.CodeTable.*;
 
@@ -84,7 +81,7 @@ public class GramParser {
                         curNode = curNode.findLefted();
 
                         if (Arrays.asList(value_contain_token).contains(top))
-                            curNode.addChild(new ASTNode(0, top, node.getSymbol(),true, true));
+                            curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
                         else
                             curNode.addChild(new ASTNode(0, top, true, true));
 
@@ -110,24 +107,25 @@ public class GramParser {
                     pos = llTable[y][x];
 
                     if (pos != -1) {
-                        if (pos == -2){
+                        if (pos == -2) {
                             /* 特殊情况下矛盾产生式的选择, 标识符作为 Select集矛盾的地方
                              * 扫描分号之前遇到的符号，遇到 逻辑符、关系符、运算符前遇到 赋值符号则选择 赋值语句的产生式，否则反之*/
                             int t_index = index;
                             LexiNode temp = nodes.get(t_index++);
-                            String[] p1 = {"||","&&","<","<=","<>",">",">=","==","+","-","*","/","(",")"};
+                            String[] p1 = {"||", "&&", "<", "<=", "<>", ">", ">=", "==", "+", "-", "*", "/", "(", ")"};
                             String selection = null;
-                            while (!temp.getSymbol().equals(";")){
-                                for (String p : p1){
-                                    if (p.equals(temp.getSymbol().trim())){
-                                        selection = special_production[0];
+                            int mode = top.equals("Statement") ? 0:1;
+                            while (!temp.getSymbol().equals(";")) {
+                                for (String p : p1) {
+                                    if (p.equals(temp.getSymbol().trim())) {
+                                        selection = special_production[mode * 2];
                                         break;
                                     }
                                 }
                                 if (selection != null)
                                     break;
-                                if ("=".equals(temp.getSymbol())){
-                                    selection = special_production[1];
+                                if ("=".equals(temp.getSymbol().trim())) {
+                                    selection = special_production[mode * 2 + 1];
                                     break;
                                 }
                                 temp = nodes.get(t_index++);
@@ -142,7 +140,7 @@ public class GramParser {
                             curNode = curNode.findLefted(); //找到还剩孩子节点没连上的节点
                             curNode.addChild(new ASTNode(childNum, top, false, true));
                         }
-                    }  else {
+                    } else {
                         //TODO  没有 "P" 未进入栈时程序出错的情况
                         if (node.getCode() == -2) { // "#" 号
                             legal = false;
@@ -186,13 +184,16 @@ public class GramParser {
             }
             //分析完成后，栈中还有元素
             if (stack.size() > 0) {
-                if (!errorStack.contains("缺少结束符!"))
-                    errorStack.add("缺少结束符!");
+                errorStack.add("缺少结束符!");
             }
             if (legal)
                 System.out.println("\n语法分析成功！！！\n");
             else
                 System.out.println("语法分析失败，错误如下：");
+
+            Set<String> set = new LinkedHashSet<>(errorStack);
+            errorStack = new LinkedList<>(set);
+
             //输出错误栈中的内容
             for (String error : errorStack) {
                 System.out.println(error);
