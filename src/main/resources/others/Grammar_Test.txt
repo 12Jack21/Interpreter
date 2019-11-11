@@ -29,11 +29,11 @@ while(-1+2*3/(4-3)+(+3)-(-2)/(4 * 4 + 2)/(4/4*3)/2.0);
 // no.4
 if(1){
   if(b)
-     if(c+1){
-       if(d==1)
-          if(((2==4))) a=6;
+     if(c){
+       if(d)
+          if(2) a=6;
           else break;
      }
-  else continue;
+     else continue;
 }
 
