@@ -68,7 +68,7 @@ public class CodeTable {
             "Assignment->identifier Index X", // Single Assignment
             "Declare->Type Assign",           // Declaration
             "Type->int","Type->real","Type->char","Type->void", // Type Specifier
-            "Index->[ Relation ]", "Index->", // index allows expression
+            "Index->[ Logic ]", "Index->", // index allows expression
             "C->, Assignment C","C->",        // Multiple declare or assign
 
             "Assign->identifier F",
@@ -77,8 +77,8 @@ public class CodeTable {
             "CC->, Parameter","CC->",     // can replace CC with original non-terminal
 
             "X->= O","X->", //no.28
-            "O->Relation","O->{ Y }",     // array assignment
-            "Y->Relation C'","Y->",
+            "O->Logic","O->{ Y }",     // array assignment
+            "Y->Logic C'","Y->",//TODO 删掉空数组初始化 ？
             "C'->, Y","C'->",             // for array assignment {}
 
             "IF->if ( Logic ) H ELSE",    //if

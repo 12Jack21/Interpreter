@@ -128,6 +128,7 @@ public class GramParser {
                                     selection = special_production[mode * 2 + 1];
                                     break;
                                 }
+
                                 temp = nodes.get(t_index++);
                             }
                             pos = Arrays.asList(productions).indexOf(selection);

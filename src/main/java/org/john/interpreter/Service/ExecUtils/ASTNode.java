@@ -35,6 +35,22 @@ public class ASTNode implements Serializable {
         this.children = new ASTNode[maxChildNum];
     }
 
+    public String getValue() {
+        return value;
+    }
+
+    public int getMaxChildNum() {
+        return maxChildNum;
+    }
+
+    public boolean isLeaf() {
+        return isLeaf;
+    }
+
+    public ASTNode getParent() {
+        return parent;
+    }
+
     public void addChild(ASTNode child) {
         children[curIndex++] = child;
         child.parent = this;
