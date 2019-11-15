@@ -61,7 +61,7 @@ public class GramParser {
 
                 while (node.getCode() == -1) {
                     legal = false;
-                    errorStack.add("第" + node.getRow() + "行，第" + node.getCol() + "列出现无法识别的 token");
+                    errorStack.add("第" + node.getRow() + "行，第" + node.getCol() + "列 " + node.getSymbol() +" 出现无法识别的 token");
                     index++;
                     if (index >= nodes.size())
                         break;
@@ -96,7 +96,7 @@ public class GramParser {
                         curNode = curNode.findLefted();
                         curNode.addChild(new ASTNode(0, top, true, false));
 
-                        errorStack.add("第" + node.getRow() + "行,第" + node.getCol() + "列处出现语法错误,缺少 " + top);
+                        errorStack.add("第" + node.getRow() + "行,第" + node.getCol() + "列处 " + node.getSymbol() +" 出现语法错误,缺少 " + top);
 
                     }
                     updateMatch(top); //更新匹配栈 TODO 丢掉一个语句的时候，该怎么处理这个栈---
@@ -158,7 +158,7 @@ public class GramParser {
                             // 丢掉出错的语句 S，继续下一条语句的语法分析
                             // 节点搜索到 S 的 First集，栈一直pop 直到遇到 Pro（下一条语句的开始）
                             legal = false;
-                            errorStack.add("第" + node.getRow() + "行,第" + node.getCol() + "列处出现语法错误," + errorHandle(top, symbol));
+                            errorStack.add("第" + node.getRow() + "行,第" + node.getCol() + "列处 " + node.getSymbol() + " 出现语法错误," + errorHandle(top, symbol));
 
                             // 1.栈的丢弃
                             while (!top.equals("Pro")) {  // "#" 还是 "Pro" ?
