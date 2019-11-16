@@ -24,6 +24,7 @@
 	2. 数组，数组表
 	3. 拿到 identifier的 value和 type
 	4. 输入输出语句
+	5. 逻辑表达式的短路求值，直接return
 - Extend
 	1. 字符串加法
 	2. 二维数组

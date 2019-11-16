@@ -80,10 +80,12 @@ public class GramParser {
                             continue;
                         curNode = curNode.findLefted();
 
-                        if (Arrays.asList(value_contain_token).contains(top))
-                            curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
-                        else
-                            curNode.addChild(new ASTNode(0, top, true, true));
+                        curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
+
+//                        if (Arrays.asList(value_contain_token).contains(top))
+//                            curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
+//                        else
+//                            curNode.addChild(new ASTNode(0, top, true, true));
 
                     } else {
                         legal = false;
