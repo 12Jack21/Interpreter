@@ -12,8 +12,8 @@ public class CodeTable {
             "real", "char", "print", "scan", "break", "continue","return"};
 
     // 把 '.' 删去
-    public static String[] signs = {"/", "+", "-", "*", "<", ">", "==", "<>", ">=", "<=",
-            "&&", "||", "=", "(", ")", "{", "}", "[", "]", "'", "\"", ";",
+    public static String[] signs = {"/", "+", "-", "*", "<", ">", "==", "<>", ">=",
+            "<=", "&&", "||", "=", "(", ")", "{", "}", "[", "]", "'", "\"", ";",
             ",", "\\n", "\\r", "\\t", "\n", "\r", "\t", "//", "/*", "*/"};
     // 特例
     public static String[] specials = {"identifier", "integer", "fraction"};
@@ -121,4 +121,23 @@ public class CodeTable {
      2.Follow集匹配
     */
 
+
+    // 各个运算符的优先级
+    public static HashMap<String,Integer> opPriority(){
+        HashMap<String,Integer> map = new HashMap<>();
+        map.put("||",1);
+        map.put("&&",2);
+        map.put("==",3);
+        map.put("<>",3);
+        map.put("<",4);
+        map.put("<=",4);
+        map.put(">",4);
+        map.put(">=",4);
+        map.put("+",5);
+        map.put("-",5);
+        map.put("*",6);
+        map.put("/",6);
+        map.put("(",10);
+        return map;
+    }
 }

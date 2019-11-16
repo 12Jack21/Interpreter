@@ -1,0 +1,38 @@
+/*冒泡排序*/
+/*
+啦啦啦
+*/
+int p[10];
+int a;
+a = 0;
+while(a < 10)
+{
+  read(p[a]);
+  a = a + 1;
+}
+int i, n, pos;
+n = 10;
+i = 0;
+while(i < n)
+{
+    pos = i + 1;
+    while(pos < n)
+    {
+        if(p[pos] > p[i])
+        {
+            a = p[pos];
+            p[pos] = p[i];
+            p[i] = a;
+        }
+        pos = pos + 1;
+    }
+    i = i + 1;
+}
+write("The array after sorting is:#n#");//#n#为换行符
+i = 0;
+while(i <= 9)
+{
+    write(p[i]);
+    write(" ");
+    i = i + 1;
+}
