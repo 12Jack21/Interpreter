@@ -118,6 +118,13 @@ public class ASTNode implements Serializable {
         }
     }
 
+    public void setParentNull(){
+        this.parent = null;
+        for (ASTNode child:children){
+            if (child != null)
+                child.setParentNull();
+        }
+    }
     public String getName() {
         return name;
     }

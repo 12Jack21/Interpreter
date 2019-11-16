@@ -127,7 +127,6 @@ public class Translator {
         if (C_.getMaxChildNum() != 0) {
             variables.addAll(translateY(C_.getChildren()[1]));
         }
-
         return variables;
     }
 
