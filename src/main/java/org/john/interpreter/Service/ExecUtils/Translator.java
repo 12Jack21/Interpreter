@@ -12,7 +12,7 @@ import java.util.List;
 public class Translator {
 
     private List<String> messages = new LinkedList<>();
-    private int level; // å½“å‰ä½œç”¨åŸŸ
+    private int level; // µ±Ç°×÷ÓÃÓò
     private SimpleTable simpleTable;
     private ArrayTable arrayTable;
     private String msg = "";
@@ -26,8 +26,8 @@ public class Translator {
 
     private String[] nonsenseNT = {"Pro"};
 
-    // å…ˆåºéå† ASTï¼Œé€’å½’è°ƒç”¨ï¼Œç›®çš„ï¼šè¾“å‡ºéå†è¿‡ç¨‹ä¸­åˆ†æå¾—å‡ºçš„ä¿¡æ¯ï¼Œå­˜åˆ°messagesä¸­
-    // å…ˆå‡è®¾è¯­æ³•åˆ†æå·²ç»å…¨éƒ¨é€šè¿‡
+    // ÏÈĞò±éÀú AST£¬µİ¹éµ÷ÓÃ£¬Ä¿µÄ£ºÊä³ö±éÀú¹ı³ÌÖĞ·ÖÎöµÃ³öµÄĞÅÏ¢£¬´æµ½messagesÖĞ
+    // ÏÈ¼ÙÉèÓï·¨·ÖÎöÒÑ¾­È«²¿Í¨¹ı
     public void translate(ASTNode root) {
         String name = root.getName();
         if (name.equals("Pro")) {
@@ -40,32 +40,32 @@ public class Translator {
             }
         } else if (name.equals("Declare")) {
             // int, real, char, void
-            String type = root.getChildren()[0].getChildren()[0].getName(); //å¯ä»¥ä½œä¸ºéå±€éƒ¨å˜é‡ä¿å­˜èµ·æ¥ï¼Œè¯­å¥ç»“æŸåæ¸…é™¤
+            String type = root.getChildren()[0].getChildren()[0].getName(); //¿ÉÒÔ×÷Îª·Ç¾Ö²¿±äÁ¿±£´æÆğÀ´£¬Óï¾ä½áÊøºóÇå³ı
             String identifier = root.getChildren()[1].getChildren()[0].getValue();
             ASTNode F = root.getChildren()[1].getChildren()[1];
             if (!F.getChildren()[0].getName().equals("(")) {
-                // ä¸æ˜¯å‡½æ•°å£°æ˜
+                // ²»ÊÇº¯ÊıÉùÃ÷
                 ASTNode index_node = F.getChildren()[0]; // Index
                 if (index_node.getMaxChildNum() == 0) {
-                    // å£°æ˜äº†ä¸€ä¸ªç®€å•å˜é‡
+                    // ÉùÃ÷ÁËÒ»¸ö¼òµ¥±äÁ¿
                     ASTNode X_node = F.getChildren()[1];
                     if (X_node.getMaxChildNum() == 0) {
-                        // æ·»åŠ å˜é‡åˆ° å˜é‡ç¬¦å·è¡¨ä¸­
+                        // Ìí¼Ó±äÁ¿µ½ ±äÁ¿·ûºÅ±íÖĞ
                         if (!simpleTable.addVariable(new SimpleVariable(identifier, type, null, level)))
-                            messages.add("å˜é‡" + identifier + "å·²è¢«å£°æ˜è¿‡ï¼");
+                            messages.add("±äÁ¿" + identifier + "ÒÑ±»ÉùÃ÷¹ı£¡");
                         else
-                            messages.add("å˜é‡" + identifier + "è¢«å£°æ˜ä¸º" + type + "å‹");
+                            messages.add("±äÁ¿" + identifier + "±»ÉùÃ÷Îª" + type + "ĞÍ");
                     } else {
                         // X ->= O
                         ASTNode O_node = X_node.getChildren()[1];
                         if (O_node.getChildren()[0].getName().equals("{")) {
-                            // æ•°ç»„åˆå§‹åŒ– O->{ Y }
+                            // Êı×é³õÊ¼»¯ O->{ Y }
                             ASTNode Y_node = O_node.getChildren()[1];
                             if (Y_node.getMaxChildNum() == 0) {
-                                // æ•°ç»„å£°æ˜ä¸ºç©º
+                                // Êı×éÉùÃ÷Îª¿Õ
 
                             } else {
-                                // æ•°ç»„é‡Œçš„å€¼
+                                // Êı×éÀïµÄÖµ
                                 ArrayList<SimpleVariable> array_values = translateY(Y_node);
                                 boolean matchType = true;
                                 for (SimpleVariable variable : array_values) {
@@ -78,36 +78,36 @@ public class Translator {
                                     ArrayVariable arrayVariable = new ArrayVariable(identifier, type,
                                             array_values.size(), convertArray(array_values, type), level);
                                     if (arrayTable.addVariable(arrayVariable))
-                                        messages.add("æ•°ç»„å˜é‡" + identifier + "è¢«å£°æ˜ä¸º" + type +
-                                                "å‹å¹¶è¢«åˆå§‹åŒ–ä¸º " + arrayVariable.getValues().toString());
+                                        messages.add("Êı×é±äÁ¿" + identifier + "±»ÉùÃ÷Îª" + type +
+                                                "ĞÍ²¢±»³õÊ¼»¯Îª " + arrayVariable.getValues().toString());
                                     else
-                                        messages.add("æ•°ç»„å˜é‡" + identifier + "å·²è¢«å£°æ˜è¿‡ï¼");
+                                        messages.add("Êı×é±äÁ¿" + identifier + "ÒÑ±»ÉùÃ÷¹ı£¡");
                                 } else
-                                    messages.add("æ•°ç»„ä¸­å€¼çš„ç±»å‹ä¸å£°æ˜çš„ç±»å‹" + type + "ä¸ä¸€è‡´ï¼Œæ— æ³•èµ‹å€¼ç»™å˜é‡");
+                                    messages.add("Êı×éÖĞÖµµÄÀàĞÍÓëÉùÃ÷µÄÀàĞÍ" + type + "²»Ò»ÖÂ£¬ÎŞ·¨¸³Öµ¸ø±äÁ¿");
                             }
                         } else {
                             // O->Relation
                             ASTNode relation = O_node.getChildren()[0];
-                            // æ­¤å¤„åªæœ‰ typeå’Œ valueæ˜¯æœ‰æ„ä¹‰çš„
+                            // ´Ë´¦Ö»ÓĞ typeºÍ valueÊÇÓĞÒâÒåµÄ
                             SimpleVariable relation_value = translateExp(relation);
                             if (!type.equals(relation_value.getType())) {
-                                messages.add("ç±»å‹ä¸åŒ¹é…ï¼Œæ— æ³•èµ‹å€¼ç»™å˜é‡ " + identifier);
+                                messages.add("ÀàĞÍ²»Æ¥Åä£¬ÎŞ·¨¸³Öµ¸ø±äÁ¿ " + identifier);
                             } else {
                                 relation_value.setName(identifier);
                                 if (!simpleTable.addVariable(relation_value))
-                                    messages.add("å˜é‡" + identifier + "å·²è¢«å£°æ˜è¿‡");
+                                    messages.add("±äÁ¿" + identifier + "ÒÑ±»ÉùÃ÷¹ı");
                                 else
-                                    messages.add("å˜é‡" + identifier + "è¢«å£°æ˜ä¸º" + type +
-                                            "å‹å¹¶åˆå§‹åŒ–ä¸º" + relation_value.getValue());
+                                    messages.add("±äÁ¿" + identifier + "±»ÉùÃ÷Îª" + type +
+                                            "ĞÍ²¢³õÊ¼»¯Îª" + relation_value.getValue());
                             }
                         }
                     }
                     ASTNode C_node = F.getChildren()[2];
-                    //TODO å¤šå˜é‡å£°æ˜å¦‚ä½•é€’å½’å¤„ç†
+                    //TODO ¶à±äÁ¿ÉùÃ÷ÈçºÎµİ¹é´¦Àí
 
 
                 } else {
-                    // å£°æ˜äº†ä¸€ä¸ªæ•°ç»„å˜é‡
+                    // ÉùÃ÷ÁËÒ»¸öÊı×é±äÁ¿
                     ASTNode relation = index_node.getChildren()[1];
                     SimpleVariable array_length = translateExp(relation);
                 }
@@ -130,7 +130,7 @@ public class Translator {
         return variables;
     }
 
-    // TODO å€ŸåŠ©ç¬¦å·æ ˆå’Œ æ•°å€¼ï¼ˆå˜é‡ï¼‰æ ˆè¿›è¡Œåˆ†æ,æœŸé—´å¯ä»¥ æŠ¥é”™ï¼Œè¿”å›åŒ¿åå˜é‡(type,value)
+    // TODO ½èÖú·ûºÅÕ»ºÍ ÊıÖµ£¨±äÁ¿£©Õ»½øĞĞ·ÖÎö,ÆÚ¼ä¿ÉÒÔ ±¨´í£¬·µ»ØÄäÃû±äÁ¿(type,value)
     private SimpleVariable translateExp(ASTNode exp) {
 
 
@@ -150,7 +150,7 @@ public class Translator {
 
         return relation_val;
     }
-    // ç¿»è¯‘ è¿ç®—è¡¨è¾¾å¼ Arithmetic
+    // ·­Òë ÔËËã±í´ïÊ½ Arithmetic
     private SimpleVariable translateArithmeticExp(ASTNode arithmetic) {
         SimpleVariable arith_val = null;
 
@@ -165,17 +165,17 @@ public class Translator {
             // "Variable->Digit"
             ASTNode digit_node = variable_node.getChildren()[0];
             ASTNode positive_node = digit_node.getChildren()[digit_node.getMaxChildNum() - 1];
-            //TODO try catchèƒ½å¦å¤„ç†ç±»å‹è½¬æ¢çš„é”™è¯¯
+            //TODO try catchÄÜ·ñ´¦ÀíÀàĞÍ×ª»»µÄ´íÎó
             if (positive_node.getChildren()[0].getName().equals("integer")) {
-                // æ­£æ•´æ•°
+                // ÕıÕûÊı
                 Integer value = Integer.valueOf(positive_node.getChildren()[0].getValue());
-                if (digit_node.getChildren()[0].getName().equals("-")) //è´Ÿæ•°
+                if (digit_node.getChildren()[0].getName().equals("-")) //¸ºÊı
                     value = -1 * value;
                 variable = new SimpleVariable(null, "int", value.toString(), level);
             } else {
-                // å°æ•°
+                // Ğ¡Êı
                 Double value = Double.valueOf(positive_node.getChildren()[0].getValue());
-                if (digit_node.getChildren()[0].getName().equals("-")) //è´Ÿæ•°
+                if (digit_node.getChildren()[0].getName().equals("-")) //¸ºÊı
                     value = -1.0 * value;
                 variable = new SimpleVariable(null, "real", value.toString(), level);
             }
@@ -188,53 +188,57 @@ public class Translator {
                 if (index_node.getMaxChildNum() == 0){
                     SimpleVariable id = simpleTable.getVar(identifier);
                     if (id == null)
-                        messages.add("å˜é‡ " + identifier + "æœªè¢«å£°æ˜ï¼Œæ— æ³•ä½¿ç”¨");
+                        messages.add("±äÁ¿ " + identifier + "Î´±»ÉùÃ÷£¬ÎŞ·¨Ê¹ÓÃ");
                     else {
                         if (id.getValue() == null)
-                            messages.add("å˜é‡ " +identifier+"æ²¡æœ‰è¢«åˆå§‹åŒ–ï¼Œæ— æ³•ä½¿ç”¨");
+                            messages.add("±äÁ¿ " +identifier+"Ã»ÓĞ±»³õÊ¼»¯£¬ÎŞ·¨Ê¹ÓÃ");
                         else
                             variable = id;
                     }
                 }else {
-                    // æ•°ç»„å–ä¸‹æ ‡çš„å€¼
-                    SimpleVariable index = translateLogicExp(index_node.getChildren()[1]);
+                    // Êı×éÈ¡ÏÂ±êµÄÖµ   ÔİÊ±ÏÈÓÃVariableÌæ´úLogicExpÀ´´ú±íÏÂ±ê
+//                    SimpleVariable index = translateLogicExp(index_node.getChildren()[1]);
+                    SimpleVariable index = translateVariable(index_node.getChildren()[1]);
+
                     if (index.getType().equals("real"))
-                        messages.add("æ•°ç»„ä¸‹æ ‡ " + index.getValue() +"ä¸èƒ½ä¸ºå°æ•°");
-                    else if (Integer.valueOf(index.getValue()) < 0)
-                        messages.add("æ•°ç»„ä¸‹æ ‡" + index.getValue()+"ä¸èƒ½ä¸ºè´Ÿæ•°");
+                        messages.add("Êı×éÏÂ±ê " + index.getValue() +"²»ÄÜÎªĞ¡Êı");
+                    else if (Integer.parseInt(index.getValue()) < 0)
+                        messages.add("Êı×éÏÂ±ê" + index.getValue()+"²»ÄÜÎª¸ºÊı");
                     else{
                         ArrayVariable arrayVariable = arrayTable.getArray(identifier);
                         if (arrayVariable == null)
-                            messages.add("æ•°ç»„å˜é‡" +identifier+"æœªå£°æ˜ï¼Œæ— æ³•ä½¿ç”¨");
+                            messages.add("Êı×é±äÁ¿" +identifier+"Î´ÉùÃ÷£¬ÎŞ·¨Ê¹ÓÃ");
                         else {
-                            //TODO æ£€æµ‹ä¸‹æ ‡è¶Šç•Œï¼Œæœªèµ‹å€¼ç­‰é—®é¢˜
+                            //TODO ¼ì²âÏÂ±êÔ½½ç£¬Î´¸³ÖµµÈÎÊÌâ
                             if (arrayVariable.getValues() == null || arrayVariable.getValues().size() == 0)
-                                messages.add("æ•°ç»„" + identifier + "æœªè¢«èµ‹å€¼ï¼Œæ— æ³•ä½¿ç”¨");
+                                messages.add("Êı×é" + identifier + "Î´±»¸³Öµ£¬ÎŞ·¨Ê¹ÓÃ");
                             else {
                                 Integer ix = Integer.valueOf(index.getValue());
                                 if (ix > arrayVariable.getLength() - 1)
-                                    messages.add("æ•°ç»„" +identifier+"ä¸‹æ ‡" + ix+"è¶Šç•Œ");
+                                    messages.add("Êı×é" +identifier+"ÏÂ±ê" + ix+"Ô½½ç");
                                 else {
                                     ArrayList<String> array = arrayVariable.getValues();
-                                    // å‡è®¾æ•°ç»„é‡Œä¸€å®šæœ‰å€¼
+                                    // ¼ÙÉèÊı×éÀïÒ»¶¨ÓĞÖµ
                                     variable = new SimpleVariable(null,arrayVariable.getType(),array.get(ix),level);
                                 }
-
                             }
                         }
                     }
                 }
             }else {
-                // å‡½æ•°è°ƒç”¨ï¼ŒCall->( Argument )
+                // º¯Êıµ÷ÓÃ£¬Call->( Argument )
             }
+        }else if (variable_node.getMaxChildNum() == 3){
+            // "Variable->( Relation )"
+            variable = translateRelationExp(variable_node.getChildren()[1]);
         }
 
         return variable;
     }
 
-    //TODO æŠŠå˜é‡åˆ—è¡¨è½¬æˆ Valueçš„ Stringåˆ—è¡¨ï¼Œå¯ä»¥æ£€æŸ¥å˜é‡ç±»å‹æ˜¯å¦åŒ¹é…ï¼Œèƒ½å¦è‡ªåŠ¨è½¬æ¢ï¼Œå¹¶è½¬æ¢åŸå§‹çš„å€¼
+    //TODO °Ñ±äÁ¿ÁĞ±í×ª³É ValueµÄ StringÁĞ±í£¬¿ÉÒÔ¼ì²é±äÁ¿ÀàĞÍÊÇ·ñÆ¥Åä£¬ÄÜ·ñ×Ô¶¯×ª»»£¬²¢×ª»»Ô­Ê¼µÄÖµ
     private ArrayList<String> convertArray(ArrayList<SimpleVariable> arrayList, String type) {
-        // è¿™é‡Œæ•°ç»„é‡Œå€¼çš„ç±»å‹éƒ½æ˜¯ match type çš„
+        // ÕâÀïÊı×éÀïÖµµÄÀàĞÍ¶¼ÊÇ match type µÄ
         ArrayList<String> list = new ArrayList<>();
         for (int i = 0; i < arrayList.size(); i++) {
             list.add(arrayList.get(i).getValue());
@@ -242,4 +246,52 @@ public class Translator {
         return list;
     }
 
+    private static ASTNode testIdArrayVariable(){
+        Translator translator = new Translator();
+
+        translator.simpleTable.addVariable(new SimpleVariable("pp","int",null,1));
+        ASTNode variable_node = new ASTNode(2,null,null);
+        ASTNode id_node = new ASTNode(0,"identifier","pp");
+        ASTNode call_node = new ASTNode(1,"Call",null);
+        ASTNode index_node = new ASTNode(0,"Index",null);
+        // test fetching value of simple variable
+        variable_node.addChild(id_node);
+        variable_node.addChild(call_node);
+        call_node.addChild(index_node);
+        SimpleVariable s = translator.translateVariable(variable_node);
+        System.out.println(translator.messages);
+
+        ASTNode var_node = testVariable();
+        index_node = new ASTNode(3,"Index",null);
+        call_node.getChildren()[0] = index_node;
+        // ¼Ù¶¨ indexÖ»ÄÜÎª variableÊ±²Å³ÉÁ¢
+        index_node.getChildren()[1] = var_node;
+        ArrayList<String> values = new ArrayList<>();
+        values.add("43");
+        values.add("90");
+        translator.arrayTable.addVariable(new ArrayVariable("pp","int",2,values,1));
+        SimpleVariable s1 = translator.translateVariable(variable_node);
+        System.out.println(translator.messages);
+
+        return variable_node;
+    }
+    private static ASTNode testVariable(){
+        ASTNode variable_node = new ASTNode(1,null,null);
+        ASTNode a1 = new ASTNode(2,"Digit",null);
+        ASTNode b0 = new ASTNode(0,"+",null);
+        ASTNode b1 = new ASTNode(1,"Positive",null);
+        ASTNode c0 = new ASTNode(0,"integer","0");
+        variable_node.addChild(a1);
+        a1.addChild(b0);
+        a1.addChild(b1);
+        b1.addChild(c0);
+        Translator translator = new Translator();
+        SimpleVariable s = translator.translateVariable(variable_node);
+        System.out.println(s);
+
+        return variable_node;
+    }
+    public static void main(String[] args){
+        testIdArrayVariable();
+    }
 }

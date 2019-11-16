@@ -16,7 +16,15 @@ public class ASTNode implements Serializable {
 
     public ASTNode(){}
 
-    public ASTNode(int maxChildNum, String name, boolean isLeaf,boolean isLegal) {
+    public ASTNode(int maxChildNum, String name, String value) {
+        this.curIndex = 0;
+        this.maxChildNum = maxChildNum;
+        this.name = name;
+        this.value = value;
+        this.children = new ASTNode[maxChildNum];
+    }
+
+    public ASTNode(int maxChildNum, String name, boolean isLeaf, boolean isLegal) {
         this.curIndex = 0;
         this.maxChildNum = maxChildNum;
         this.name = name;
