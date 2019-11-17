@@ -131,30 +131,8 @@ public class Translator {
         return variables;
     }
 
-    // TODO 借助符号栈和 数值（变量）栈进行分析,期间可以 报错，返回匿名变量(type,value)
-    private SimpleVariable translateExp(ASTNode exp) {
-
-
-        return null;
-    }
-
-
-    private SimpleVariable translateLogicExp(ASTNode logic) {
-        SimpleVariable logic_val = null;
-
-
-        return logic_val;
-    }
-
-    private SimpleVariable translateRelationExp(ASTNode relation) {
-        SimpleVariable relation_val = null;
-
-
-        return relation_val;
-    }
-
-    // 翻译 运算表达式 Arithmetic,处理类型错误和类型转换
-    private SimpleVariable translateArithmeticExp(ASTNode arithmetic) {
+    // 翻译 所有表达式 exp,处理类型错误和类型转换
+    private SimpleVariable translateExp(ASTNode arithmetic) {
         SimpleVariable arith_val = null;
         LinkedList<SimpleVariable> varStack = new LinkedList<>(); //变量栈
         LinkedList<String> symStack = new LinkedList<>(); //符号栈
@@ -168,29 +146,27 @@ public class Translator {
         // 没有下一个运算符号了 , 结束条件的选择，所有运算的token，数+符号+数+...+
         while ((sym = arithmetic.findNextNodeWithValueOrTip("symbol")) != null) {
             String sym_value = sym.getValue();
-            if (symStack.size() > 0 && prioMap.get(sym_value) <= prioMap.get(symStack.get(0))) {
+            // 连续判断优先级
+            while (symStack.size() > 0 && prioMap.get(sym_value) <= prioMap.get(symStack.get(0))) {
                 // 栈顶符号的优先级更高或相等（左结合）
                 SimpleVariable v2 = varStack.pop();
                 SimpleVariable v1 = varStack.pop();
                 String top = symStack.pop();
-                varStack.addFirst(calculate(v1,v2,top));
-                symStack.addFirst(sym_value);
-            } else {
-                // 栈顶符号的优先级更小,则新符号入栈
-                symStack.addFirst(sym_value);
+                varStack.addFirst(calculate(v1, v2, top));
             }
-
+            // 栈顶符号的优先级更小,则新符号入栈
+            symStack.addFirst(sym_value);
             variable = translateVariable(arithmetic.findNextNodeWithValueOrTip("Variable"));
             varStack.addFirst(variable);
         }
         // 到这里已经没有符号再进栈了
-        while (symStack.size() != 0){
+        while (symStack.size() != 0) {
             String top = symStack.pop();
             SimpleVariable v2 = varStack.pop();
             SimpleVariable v1 = varStack.pop();
-            varStack.addFirst(calculate(v1,v2,top));
+            varStack.addFirst(calculate(v1, v2, top));
         }
-        arithmetic.flushFindTag(); // 刷新find标志，以供之后使用
+//        arithmetic.flushFindTag(); // TODO 刷新find标志，以供之后使用,放在递归函数的外部
         arith_val = varStack.pop();
         if (varStack.size() == 0)
             System.out.println("运算过程进行成功！！！");
@@ -198,7 +174,7 @@ public class Translator {
     }
 
     // 两个数之间的运算，可以包括 算术、关系和逻辑运算
-    private SimpleVariable calculate(SimpleVariable v1,SimpleVariable v2,String top){
+    private SimpleVariable calculate(SimpleVariable v1, SimpleVariable v2, String top) {
         SimpleVariable reVar;
         if (v1.getType().equals(v2.getType()) && v1.getType().equals("int")) {
             // 都为 int型
@@ -210,26 +186,46 @@ public class Translator {
             } else if (top.equals("/")) {
                 if (a2 == 0) {
                     messages.add("发生除零错误，值自动变为0");
-                    reVar = new SimpleVariable(null,"int","0",level);
-                }else {
-                    messages.add(a1 + " / " +a2 + " = " + (a1 / a2));
-                    reVar = new SimpleVariable(null,"int",String.valueOf(a1/a2),level);
+                    reVar = new SimpleVariable(null, "int", "0", level);
+                } else {
+                    messages.add(a1 + " / " + a2 + " = " + (a1 / a2));
+                    reVar = new SimpleVariable(null, "int", String.valueOf(a1 / a2), level);
                 }
             } else if (top.equals("+")) {
                 messages.add(a1 + " + " + a2 + " = " + (a1 + a2));
                 reVar = new SimpleVariable(null, "int", String.valueOf(a1 + a2), level);
-            } else {
-                // 没有其他情况了
+            } else if (top.equals("-")) {
                 messages.add(a1 + " - " + a2 + " = " + (a1 - a2));
                 reVar = new SimpleVariable(null, "int", String.valueOf(a1 - a2), level);
+            } else {
+                int val = 0;
+                if (top.equals("=="))
+                    val = a1 == a2 ? 1 : 0;
+                else if (top.equals("<>"))
+                    val = a1 == a2 ? 0 : 1;
+                else if (top.equals("<"))
+                    val = a1 < a2 ? 1 : 0;
+                else if (top.equals("<="))
+                    val = a1 <= a2 ? 1 : 0;
+                else if (top.equals(">"))
+                    val = a1 > a2 ? 1 : 0;
+                else if (top.equals(">="))
+                    val = a1 >= a2 ? 1 : 0;
+                else if (top.equals("||"))
+                    val = ((a1 != 0) || (a2 != 0)) ? 1 : 0;
+                else if (top.equals("&&"))
+                    val = ((a1 != 0) && (a2 != 0)) ? 1 : 0;
+                else
+                    messages.add("运算出错！！！");
+                messages.add(a1 + top + a2 + " = " + val);
+                reVar = new SimpleVariable(null, "int", String.valueOf(val), level);
             }
-        }
-        else { // 有real型存在
+        } else { // 有real型存在
             if (!v1.getType().equals(v2.getType())) {
                 if (v1.getType().equals("real"))
-                    messages.add("类型" + v1.getType() + "与" + v2.getType() + "不匹配,自动对 " + v2.getValue() +"进行类型转换");
+                    messages.add("类型" + v1.getType() + "与" + v2.getType() + "不匹配,自动对 " + v2.getValue() + "进行类型转换");
                 else
-                    messages.add("类型" + v1.getType() + "与" + v2.getType() + "不匹配,自动对 " + v1.getValue() +"进行类型转换");
+                    messages.add("类型" + v1.getType() + "与" + v2.getType() + "不匹配,自动对 " + v1.getValue() + "进行类型转换");
             }
             double a1 = Double.parseDouble(v1.getValue());
             double a2 = Double.parseDouble(v2.getValue());
@@ -239,17 +235,40 @@ public class Translator {
             } else if (top.equals("/")) {
                 if (a2 == 0.0) {
                     messages.add("发生除零错误，值自动变为 0.0");
-                    reVar = new SimpleVariable(null,"real","0.0",level);
-                }else {
-                    messages.add(a1 + " / " +a2 + " = " + (a1 / a2));
-                    reVar = new SimpleVariable(null,"real",String.valueOf(a1/a2),level);
+                    reVar = new SimpleVariable(null, "real", "0.0", level);
+                } else {
+                    messages.add(a1 + " / " + a2 + " = " + (a1 / a2));
+                    reVar = new SimpleVariable(null, "real", String.valueOf(a1 / a2), level);
                 }
             } else if (top.equals("+")) {
                 messages.add(a1 + " + " + a2 + " = " + (a1 + a2));
                 reVar = new SimpleVariable(null, "real", String.valueOf(a1 + a2), level);
-            } else {
+            } else if (top.equals("-")) {
                 messages.add(a1 + " - " + a2 + " = " + (a1 - a2));
                 reVar = new SimpleVariable(null, "real", String.valueOf(a1 - a2), level);
+            } else {
+                //TODO 是否会有其他情况没有考虑到
+                int val = 0;
+                if (top.equals("=="))
+                    val = a1 == a2 ? 1 : 0;
+                else if (top.equals("<>"))
+                    val = a1 == a2 ? 0 : 1;
+                else if (top.equals("<"))
+                    val = a1 < a2 ? 1 : 0;
+                else if (top.equals("<="))
+                    val = a1 <= a2 ? 1 : 0;
+                else if (top.equals(">"))
+                    val = a1 > a2 ? 1 : 0;
+                else if (top.equals(">="))
+                    val = a1 >= a2 ? 1 : 0;
+                else if (top.equals("||"))
+                    val = ((a1 != 0.0) || (a2 != 0.0)) ? 1 : 0;
+                else if (top.equals("&&"))
+                    val = ((a1 != 0.0) && (a2 != 0.0)) ? 1 : 0;
+                else
+                    messages.add("运算出错！！！");
+                messages.add(a1 + top + a2 + " = " + val);
+                reVar = new SimpleVariable(null, "int", String.valueOf(val), level);
             }
         }
         return reVar;
@@ -276,11 +295,11 @@ public class Translator {
 
 //        ASTNode v_node1 = new ASTNode(0, "V", null); // 三个数的时候
         ASTNode v_node1 = new ASTNode(2, "V", null); // 四个数的时候
-        v_node1.addChild(new ASTNode(0,"symbol","-"));
-        ASTNode ar = new ASTNode(2,"Arithmetic",null);
-        ASTNode it = new ASTNode(2,"Item",null);
-        ASTNode v = new ASTNode(0,"V",null);
-        ASTNode f =new ASTNode(0,"Factor",null);
+        v_node1.addChild(new ASTNode(0, "symbol", "-"));
+        ASTNode ar = new ASTNode(2, "Arithmetic", null);
+        ASTNode it = new ASTNode(2, "Item", null);
+        ASTNode v = new ASTNode(0, "V", null);
+        ASTNode f = new ASTNode(0, "Factor", null);
         v_node1.addChild(ar);
         ar.addChild(it);
         ar.addChild(v);
@@ -303,8 +322,11 @@ public class Translator {
         item2.addChild(var2);
         item2.addChild(fac2);
         Translator t = new Translator();
-        SimpleVariable s = t.translateArithmeticExp(arith);
-        System.out.println("语义消息："  + t.messages);
+
+        ASTNode p = Executor.analyze("2 -1*9 && 0==12 >=12 <>100 || -99;").getAstNode();
+        ASTNode a = p.getChildren()[0].getChildren()[0];
+        SimpleVariable s = t.translateExp(a);
+        System.out.println("语义消息：" + t.messages);
         return arith;
     }
 
@@ -346,9 +368,8 @@ public class Translator {
                             variable = id;
                     }
                 } else {
-                    // 数组取下标的值   暂时先用Variable替代LogicExp来代表下标
-//                    SimpleVariable index = translateLogicExp(index_node.getChildren()[1]);
-                    SimpleVariable index = translateVariable(index_node.getChildren()[1]);
+                    // 数组取下标的值
+                    SimpleVariable index = translateExp(index_node.getChildren()[1]);
 
                     if (index.getType().equals("real"))
                         messages.add("数组下标 " + index.getValue() + "不能为小数");
@@ -380,7 +401,7 @@ public class Translator {
             }
         } else if (variable_node.getMaxChildNum() == 3) {
             // "Variable->( Relation )"
-            variable = translateRelationExp(variable_node.getChildren()[1]);
+            variable = translateExp(variable_node.getChildren()[1]);
         }
         return variable;
     }
