@@ -50,10 +50,21 @@ public class Translator {
                 ASTNode index_node = F.getChildren()[0]; // Index
                 ASTNode X_node = F.getChildren()[1]; // X
                 translateIndexWithX(index_node, X_node, identifier, type);
+
                 ASTNode C_node = F.getChildren()[2];
-                //TODO 多变量声明如何递归处理
-            }
+                while (C_node.getMaxChildNum() != 0) {
+                    translateAssignment(C_node.getChildren()[1], type); // 处理Assignment
+                    C_node = C_node.getChildren()[2];
+                }
+            }// TODO 函数定义
+        } else if (name.equals("Assignment")) {
+            translateAssignment(root, null);
         }
+    }
+
+    private void translateAssignment(ASTNode assignment, String type) {
+        String identifier = assignment.getChildren()[0].getValue();
+        translateIndexWithX(assignment.getChildren()[1], assignment.getChildren()[2], identifier, type);
     }
 
     // if type == null,则为 Assignment调用的，否则为 Declare调用
@@ -87,23 +98,22 @@ public class Translator {
                         if (v == null) {
                             messages.add("变量" + identifier + "未声明，无法赋值");
                             return;
-                        } else
-                            type = v.getType();
-                        if (!type.equals(logic_value.getType())) {
-                            if (type.equals("int")) {
+                        }
+                        if (!v.getType().equals(logic_value.getType())) {
+                            if (v.getType().equals("int")) {
                                 // 强制转换
                                 int val = (int) Double.parseDouble(logic_value.getValue());
                                 messages.add("类型不匹配，" + logic_value.getValue() + "强制转换为" + val);
                                 v.setValue(String.valueOf(val));
-                                messages.add("变量" +identifier+"被赋值为"+val);
-                            } else if (type.equals("real")) {
+                            } else if (v.getType().equals("real")) {
                                 double val = Double.parseDouble(logic_value.getValue());
                                 messages.add("类型不匹配，" + logic_value.getValue() + "自动类型转换为" + val);
                                 v.setValue(String.valueOf(val));
-                                messages.add("变量" +identifier+"被赋值为"+val);
                             }
-                        }
-                    }else {//声明过程
+                        } else
+                            v.setValue(logic_value.getValue());
+                        messages.add("变量" + identifier + "被赋值为" + v.getValue());
+                    } else {//声明过程
                         if (!type.equals(logic_value.getType())) {
                             if (type.equals("int")) {
                                 // 强制转换
@@ -131,14 +141,16 @@ public class Translator {
             SimpleVariable array_length = translateExp(logic);
 
             if (array_length.getType().equals("real")) {
-                messages.add("数组声明时下标不允许为 小数" + array_length.getValue() + " ，只能为正整数");
+                messages.add("数组下标不允许为 小数" + array_length.getValue() + " ，只能为正整数");
             } else {
                 int ix = Integer.parseInt(array_length.getValue());
                 if (ix < 0)
-                    messages.add("数组声明时下标不允许为负数" + array_length.getValue() + " ，只能为正整数");
+                    messages.add("数组时下标不允许为负数" + array_length.getValue() + " ，只能为正整数");
                 else {
                     // 下标已经满足了条件
                     if (X_node.getMaxChildNum() == 0) {
+                        if (type == null) //赋值时此语句无意义
+                            return;
                         // 只有声明没有初始化的情况
                         // 添加变量到 变量符号表中 TODO 未赋值的使用问题，联系 translateVariable(),下面同理
                         if (!arrayTable.addVariable(new ArrayVariable(identifier, type, ix, new ArrayList<>(ix), level)))
@@ -146,15 +158,48 @@ public class Translator {
                         else
                             messages.add("数组变量" + identifier + "被声明为" + type + "型,含" + ix + "个元素");
                     } else {
-                        // X ->= O，伴随着初始化的情况
+                        // X ->= O，伴随着初始化（赋值）的情况
                         ASTNode O_node = X_node.getChildren()[1];
                         if (O_node.getMaxChildNum() != 3) {
-                            messages.add("不能用单独的表达式来初始化数组" + identifier);
-                            if (!arrayTable.addVariable(new ArrayVariable(identifier, type, ix, new ArrayList<>(ix), level)))
-                                messages.add("数组变量" + identifier + "已被声明过！");
-                            else
-                                messages.add("数组变量" + identifier + "被声明为" + type + "型,含" + ix + "个元素");
+                            if (type != null) {
+                                messages.add("不能用单独的表达式来初始化数组" + identifier);
+                                if (!arrayTable.addVariable(new ArrayVariable(identifier, type, ix, new ArrayList<>(ix), level)))
+                                    messages.add("数组变量" + identifier + "已被声明过！");
+                                else
+                                    messages.add("数组变量" + identifier + "被声明为" + type + "型,含" + ix + "个元素");
+                            } else {
+                                // 数组下标位置 赋值的情况
+                                ArrayVariable v = arrayTable.getArray(identifier);
+                                if (v == null)
+                                    messages.add("数组变量未声明，无法赋值");
+                                else {
+                                    if (ix >= v.getLength())
+                                        messages.add("数组下标" + ix + " 越界");
+                                    else {
+                                        SimpleVariable log = translateExp(O_node.getChildren()[0]);
+                                        if (!v.getType().equals(log.getType())) {
+                                            if (v.getType().equals("int")) {
+                                                // 强制转换
+                                                int val = (int) Double.parseDouble(log.getValue());
+                                                messages.add("类型不匹配，" + log.getValue() + "强制转换为" + val);
+                                                v.getValues().set(ix, String.valueOf(val));
+                                            } else if (v.getType().equals("real")) {
+                                                double val = Double.parseDouble(log.getValue());
+                                                messages.add("类型不匹配，" + log.getValue() + "自动类型转换为" + val);
+                                                v.getValues().set(ix, String.valueOf(val));
+                                            }
+                                        } else
+                                            v.getValues().set(ix, log.getValue());
+                                        messages.add("数组变量" + identifier + "被赋值为" + v.getValues().get(ix));
+                                    }
+                                }
+                            }
                         } else {
+                            if (type == null) {
+                                //TODO 多维数组除外
+                                messages.add("不能用一个数组来赋值");
+                                return;
+                            }
                             // 数组初始化 O->{ Y }
                             ASTNode Y_node = O_node.getChildren()[1];
                             ArrayList<String> vals;
@@ -204,7 +249,6 @@ public class Translator {
                             else
                                 //TODO 考虑声明时全部初始化为 初始值
                                 messages.add("数组变量" + identifier + "已被声明过,无法初始化！");
-
                         }
                     }
                 }
@@ -369,17 +413,6 @@ public class Translator {
         return reVar;
     }
 
-    private static ASTNode testExp() {
-        List<ASTNode> nodes = testVariable();
-        Translator t = new Translator();
-
-        ASTNode p = Executor.analyze("2 -1*9 && 0==12 >=12 <>100 || -99;").getAstNode();
-        ASTNode logic = p.getChildren()[0].getChildren()[0];
-        SimpleVariable s = t.translateExp(logic);
-        System.out.println("语义消息：" + t.messages);
-        return logic;
-    }
-
     // "Variable-> ..."
     private SimpleVariable translateVariable(ASTNode variable_node) {
         SimpleVariable variable = null;
@@ -477,26 +510,35 @@ public class Translator {
         return list;
     }
 
+    private static void testDeclareAssign() {
+        Translator t = new Translator();
+        ASTNode p = Executor.analyze("p=2;").getAstNode();
+        ASTNode declare = p.getChildren()[0].getChildren()[0];
+
+        t.simpleTable.addVariable(new SimpleVariable("p", "int", null, 1));
+        ArrayList<String> values = new ArrayList<>();
+        values.add("43");
+        values.add("90");
+        t.arrayTable.addVariable(new ArrayVariable("pp2", "int", 2, values, 1));
+
+        t.translate(declare);
+        System.out.println(t.messages);
+    }
+
+    private static ASTNode testExp() {
+        List<ASTNode> nodes = testVariable();
+        Translator t = new Translator();
+
+        ASTNode p = Executor.analyze("2 -1*9 && 0==12 >=12 <>100 || -99;").getAstNode();
+        ASTNode logic = p.getChildren()[0].getChildren()[0];
+        SimpleVariable s = t.translateExp(logic);
+        System.out.println("语义消息：" + t.messages);
+        return logic;
+    }
+
     private static ASTNode testIdArrayVariable() {
         Translator translator = new Translator();
-
         translator.simpleTable.addVariable(new SimpleVariable("pp", "int", null, 1));
-        ASTNode variable_node = new ASTNode(2, null, null);
-        ASTNode id_node = new ASTNode(0, "identifier", "pp");
-        ASTNode call_node = new ASTNode(1, "Call", null);
-        ASTNode index_node = new ASTNode(0, "Index", null);
-        // test fetching value of simple variable
-        variable_node.addChild(id_node);
-        variable_node.addChild(call_node);
-        call_node.addChild(index_node);
-//        SimpleVariable s = translator.translateVariable(variable_node);
-//        System.out.println(translator.messages);
-
-        List<ASTNode> var_node = testVariable();
-        index_node = new ASTNode(3, "Index", null);
-        call_node.getChildren()[0] = index_node;
-        // 假定 index只能为 variable时才成立
-        index_node.getChildren()[1] = var_node.get(0);
         ArrayList<String> values = new ArrayList<>();
         values.add("43");
         values.add("90");
@@ -507,7 +549,7 @@ public class Translator {
         SimpleVariable s1 = translator.translateExp(logic);
         System.out.println("取数信息：" + translator.messages);
 
-        return variable_node;
+        return logic;
     }
 
     private static List<ASTNode> testVariable() {
@@ -562,6 +604,6 @@ public class Translator {
     }
 
     public static void main(String[] args) {
-        testIdArrayVariable();
+        testDeclareAssign();
     }
 }
