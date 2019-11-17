@@ -1,0 +1,6 @@
+//字符加法测试
+char a,b,c ;
+a ="I ";
+c ="Like ";
+b ="You";
+write(a+c+b);

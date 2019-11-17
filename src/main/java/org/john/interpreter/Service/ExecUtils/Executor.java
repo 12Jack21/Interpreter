@@ -42,8 +42,10 @@ public class Executor {
         if (lexiResult.lastIndexOf("\n") == lexiResult.length() - 1)
             lexiResult.deleteCharAt(lexiResult.length() - 1);
 
-        if (astNode != null)
-            astNode.addNullTips();
+//        if (astNode != null) {
+//            astNode.addNullTips();
+//            astNode.setParentNull();
+//        }
         Wrapper wrapper = new Wrapper(lexiResult.toString(),astNode,gramParser.getErrorStack());
         return wrapper;
     }

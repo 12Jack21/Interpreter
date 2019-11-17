@@ -62,7 +62,7 @@ $(document).ready(function () {
         if (code_seg.length === undefined || code_seg.length === 0) {
             alert("Please input the program!");
             return;
-        } else if (code_seg.length - 1 < index) {
+        } else if (code_seg.length  < index) {
             alert("Illegal index of program!");
             return;
         }

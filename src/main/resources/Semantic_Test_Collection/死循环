@@ -1,0 +1,5 @@
+boolean a;
+a =true;
+while(a){
+write(a);
+}

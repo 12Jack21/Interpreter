@@ -54,6 +54,7 @@ public class GramParser {
             int y, x, pos; //LL分析表的 行和列位置
             int index = 0; //扫描的索引
             LexiNode node;
+            List<String> symList = signList.subList(0,12);
             while (index < nodes.size()) {
 
                 node = nodes.get(index);
@@ -61,7 +62,7 @@ public class GramParser {
 
                 while (node.getCode() == -1) {
                     legal = false;
-                    errorStack.add("第" + node.getRow() + "行，第" + node.getCol() + "列出现无法识别的 token");
+                    errorStack.add("第" + node.getRow() + "行，第" + node.getCol() + "列 " + node.getSymbol() +" 出现无法识别的 token");
                     index++;
                     if (index >= nodes.size())
                         break;
@@ -80,10 +81,15 @@ public class GramParser {
                             continue;
                         curNode = curNode.findLefted();
 
-                        if (Arrays.asList(value_contain_token).contains(top))
-                            curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
+                        if (symList.contains(top) && !curNode.getName().equals("Digit")) // 为运算符
+                            curNode.addChild(new ASTNode(0,"symbol",top,true,true));
                         else
-                            curNode.addChild(new ASTNode(0, top, true, true));
+                            curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
+
+//                        if (Arrays.asList(value_contain_token).contains(top))
+//                            curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
+//                        else
+//                            curNode.addChild(new ASTNode(0, top, true, true));
 
                     } else {
                         legal = false;
@@ -96,7 +102,7 @@ public class GramParser {
                         curNode = curNode.findLefted();
                         curNode.addChild(new ASTNode(0, top, true, false));
 
-                        errorStack.add("第" + node.getRow() + "行,第" + node.getCol() + "列处出现语法错误,缺少 " + top);
+                        errorStack.add("第" + node.getRow() + "行,第" + node.getCol() + "列处 " + node.getSymbol() +" 出现语法错误,缺少 " + top);
 
                     }
                     updateMatch(top); //更新匹配栈 TODO 丢掉一个语句的时候，该怎么处理这个栈---
@@ -115,7 +121,7 @@ public class GramParser {
                             String[] p1 = {"||", "&&", "<", "<=", "<>", ">", ">=", "==", "+", "-", "*", "/", "(", ")"};
                             String selection = null;
                             int mode = top.equals("Statement") ? 0:1;
-                            while (!temp.getSymbol().equals(";")) {
+                            while (!temp.getSymbol().trim().equals(";")) {
                                 for (String p : p1) {
                                     if (p.equals(temp.getSymbol().trim())) {
                                         selection = special_production[mode * 2];
@@ -128,8 +134,11 @@ public class GramParser {
                                     selection = special_production[mode * 2 + 1];
                                     break;
                                 }
+
                                 temp = nodes.get(t_index++);
                             }
+                            if (selection == null)
+                                selection = special_production[mode * 2];
                             pos = Arrays.asList(productions).indexOf(selection);
                         }
                         childNum = llDrive.addToStack(pos, stack);
@@ -158,7 +167,7 @@ public class GramParser {
                             // 丢掉出错的语句 S，继续下一条语句的语法分析
                             // 节点搜索到 S 的 First集，栈一直pop 直到遇到 Pro（下一条语句的开始）
                             legal = false;
-                            errorStack.add("第" + node.getRow() + "行,第" + node.getCol() + "列处出现语法错误," + errorHandle(top, symbol));
+                            errorStack.add("第" + node.getRow() + "行,第" + node.getCol() + "列处 " + node.getSymbol() + " 出现语法错误," + errorHandle(top, symbol));
 
                             // 1.栈的丢弃
                             while (!top.equals("Pro")) {  // "#" 还是 "Pro" ?

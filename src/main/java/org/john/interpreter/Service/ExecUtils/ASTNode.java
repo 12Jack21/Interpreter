@@ -5,6 +5,8 @@ import java.util.Arrays;
 
 public class ASTNode implements Serializable {
 
+    private boolean find = false;
+
     private int maxChildNum;
     private int curIndex;
     private String name;
@@ -14,9 +16,18 @@ public class ASTNode implements Serializable {
     private ASTNode[] children;
     private ASTNode parent;
 
-    public ASTNode(){}
+    public ASTNode() {
+    }
 
-    public ASTNode(int maxChildNum, String name, boolean isLeaf,boolean isLegal) {
+    public ASTNode(int maxChildNum, String name, String value) {
+        this.curIndex = 0;
+        this.maxChildNum = maxChildNum;
+        this.name = name;
+        this.value = value;
+        this.children = new ASTNode[maxChildNum];
+    }
+
+    public ASTNode(int maxChildNum, String name, boolean isLeaf, boolean isLegal) {
         this.curIndex = 0;
         this.maxChildNum = maxChildNum;
         this.name = name;
@@ -35,6 +46,22 @@ public class ASTNode implements Serializable {
         this.children = new ASTNode[maxChildNum];
     }
 
+    public String getValue() {
+        return value;
+    }
+
+    public int getMaxChildNum() {
+        return maxChildNum;
+    }
+
+    public boolean isLeaf() {
+        return isLeaf;
+    }
+
+    public ASTNode getParent() {
+        return parent;
+    }
+
     public void addChild(ASTNode child) {
         children[curIndex++] = child;
         child.parent = this;
@@ -48,7 +75,7 @@ public class ASTNode implements Serializable {
 
     public ASTNode findLefted() {
         for (ASTNode ch : children) {
-            if (ch != null &&  ch.isLegal&&ch.hasChildLefted())
+            if (ch != null && ch.isLegal && ch.hasChildLefted())
                 return ch;
         }
         if (isLegal && hasChildLefted())
@@ -71,11 +98,11 @@ public class ASTNode implements Serializable {
         return str;
     }
 
-    public String toJSON(){
+    public String toJSON() {
         StringBuilder json = new StringBuilder("{\"Name\":\" " + name + "\"");
         if (maxChildNum != 0) {
             json.append(",\"children\": [");
-            for (ASTNode child:children) {
+            for (ASTNode child : children) {
                 if (child == null)
                     continue;
                 json.append(child.toJSON()).append(",");
@@ -88,17 +115,24 @@ public class ASTNode implements Serializable {
         return json.toString();
     }
 
-    public void addNullTips(){
+    public void addNullTips() {
         // Pre-order traverse the tree
         if (maxChildNum == 0 && value == null) {
             if (name.charAt(0) > 'A' && name.charAt(0) < 'Z')
                 name += " -> null";
-        }
-        else if (value != null)
+        } else if (value != null)
             name += " (" + value + ")";
-        for (ASTNode child : children){
+        for (ASTNode child : children) {
             if (child != null)
                 child.addNullTips();
+        }
+    }
+
+    public void setParentNull() {
+        this.parent = null;
+        for (ASTNode child : children) {
+            if (child != null)
+                child.setParentNull();
         }
     }
 
@@ -110,10 +144,75 @@ public class ASTNode implements Serializable {
         return children;
     }
 
-    public static void  main(String[] args){
-        ASTNode node = new ASTNode(1,"P",false,true);
-        ASTNode node1 = new ASTNode(0,"S",true,false);
-        node.addChild(node1);
-        System.out.println(node.toJSON());
+    // 找到先序遍历时 没找到过的最前叶子节点
+    public ASTNode findNextNodeWithValueOrTip(String tip) {
+        ASTNode re = null;
+        for (int i = 0; i < maxChildNum; i++) {
+            ASTNode child = children[i];
+
+            // 找 name = tip 的节点
+            if (child != null && child.name.equals(tip) && !child.find) {
+                re = child;
+                break;
+            } else if (child != null) {
+                re = child.findNextNodeWithValueOrTip(tip);
+                if (re != null) {
+                    re.find = true;
+                    break;
+                }
+            }
+
+        }
+        return re;
+    }
+
+    public void flushFindTag() {
+        find = false;
+        for (ASTNode child : children) {
+            if (child != null)
+                child.flushFindTag();
+        }
+    }
+
+    public static void main(String[] args) {
+        ASTNode arith = new ASTNode(2, "Arithmetic", null);
+        ASTNode item = new ASTNode(2, "Item", null);
+        ASTNode v_node = new ASTNode(2, "V", null);
+        ASTNode var_node = new ASTNode(0, "Variable", "1212");
+
+        ASTNode fact = new ASTNode(2, "Factor", null);
+        ASTNode mul = new ASTNode(0, "*", "*");
+        ASTNode item1 = new ASTNode(2, "Item", null);
+        ASTNode var1 = new ASTNode(0, "Variable", "90909012");
+        ASTNode fac1 = new ASTNode(0, "Factor", null);
+
+        ASTNode plus = new ASTNode(0, "+", "+");
+        ASTNode ari1 = new ASTNode(2, "Arithmetic", null);
+        ASTNode item2 = new ASTNode(2, "Item", null);
+        ASTNode var2 = new ASTNode(0, "Variable", "qe123");
+        ASTNode fac2 = new ASTNode(0, "Factor", null);
+        ASTNode v_node1 = new ASTNode(0, "V", null);
+
+        arith.addChild(item);
+        arith.addChild(v_node);
+        item.addChild(var_node);
+        item.addChild(fact);
+        fact.addChild(mul);
+        fact.addChild(item1);
+        item1.addChild(var1);
+        item1.addChild(fac1);
+
+        v_node.addChild(plus);
+        v_node.addChild(ari1);
+        ari1.addChild(item2);
+        ari1.addChild(v_node1);
+        item2.addChild(var2);
+        item2.addChild(fac2);
+
+        arith.findNextNodeWithValueOrTip("Variable");
+        arith.findNextNodeWithValueOrTip("Variable");
+        arith.findNextNodeWithValueOrTip("symbol");
+        ASTNode fi = arith.findNextNodeWithValueOrTip("symbol");
+        System.out.println(fi);
     }
 }
