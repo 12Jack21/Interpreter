@@ -11,8 +11,7 @@ public class FunctionTable {
         while(i < table.size()){
             FunctionVariable varInTable = table.get(i);
             // 考虑到了level
-            if(varInTable.getName().equals(var.getName())
-                    && varInTable.getLevel() == var.getLevel()){
+            if(varInTable.getName().equals(var.getName())){
                 return false;
             }
             i++;
@@ -40,13 +39,4 @@ public class FunctionTable {
         }
     }
 
-    /* delete all variables in any level TODO 不存在多层级的函数声明*/
-    public void deleteVariable(int level){
-        int i = 0;
-        while(i < table.size()){
-            if(table.get(i).getLevel() == level)
-                table.remove(i);
-            i++;
-        }
-    }
 }

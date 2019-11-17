@@ -1,6 +1,6 @@
 package org.john.interpreter.Service.SemanticUtils;
 
-public class FunctionVariable {
+public class SimpleVariable {
     private String name;
     private String type;
     private String value;
