@@ -33,7 +33,7 @@ public class Translator {
         String name = root.getName();
         if (name.equals("Pro")) {
             for (int i = 0; i < root.getMaxChildNum(); i++) {
-                //TODO 遇到 {} 时的 level变化问题
+                //遇到 {} 时的 level变化问题
                 if (root.getChildren()[i].getName().equals("{"))
                     level++;
                 else if (root.getChildren()[i].getName().equals("}")) {
@@ -62,7 +62,9 @@ public class Translator {
                     translateAssignment(C_node.getChildren()[1], type); // 处理Assignment
                     C_node = C_node.getChildren()[2];
                 }
-            }// TODO 函数定义
+            }else {// TODO 函数定义
+                // 保存 F_node 到函数表中
+            }
         } else if (name.equals("Assignment")) {
             translateAssignment(root, null);
         } else if (name.equals("IF")) {
@@ -86,7 +88,7 @@ public class Translator {
             else { // { Pro }
                 level++;
                 translate(root.getChildren()[1]);
-                simpleTable.deleteVariable(level); //TODO 正确否
+                simpleTable.deleteVariable(level); //TODO 正确否,考虑用 level的区分
                 arrayTable.deleteArrays(level);
                 level--;
             }
