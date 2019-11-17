@@ -10,8 +10,8 @@ real值极小的情况
 强制转换
 
 */
-boolean c;
-c = true;
+//boolean c;
+int c = true;
 int a;
 real b;
 a = 3/4;

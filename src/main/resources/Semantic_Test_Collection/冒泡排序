@@ -10,8 +10,9 @@ while(a < 10)
   read(p[a]);
   a = a + 1;
 }
-int i, n, pos;
-n = 10;
+int p[5] = {3,1,90,23,-9};
+int i, n, pos,a;
+n = 5;
 i = 0;
 while(i < n)
 {

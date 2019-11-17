@@ -20,15 +20,12 @@ public class Translator {
     private boolean toBreak = false;
     private boolean toContinue = false;
     private String msg = "";
-    private String result = ""; // unknown
 
     public Translator() {
         simpleTable = new SimpleTable();
         arrayTable = new ArrayTable();
         level = 1;
     }
-
-    private String[] nonsenseNT = {"Pro"};
 
     // 先序遍历 AST，递归调用，目的：输出遍历过程中分析得出的信息，存到messages中
     // 先假设语法分析已经全部通过
@@ -75,8 +72,7 @@ public class Translator {
             if (re) {
                 messages.add("满足 if条件，执行下条程序");
                 translate(root.getChildren()[4]);
-            }
-            else {
+            } else {
                 messages.add("不满足 if条件");
                 if (root.getChildren()[5].getMaxChildNum() != 0) {
                     // ELSE->else H
@@ -90,7 +86,7 @@ public class Translator {
             else { // { Pro }
                 level++;
                 translate(root.getChildren()[1]);
-                simpleTable.deleteVariable(level);
+                simpleTable.deleteVariable(level); //TODO 正确否
                 arrayTable.deleteArrays(level);
                 level--;
             }
@@ -100,7 +96,7 @@ public class Translator {
             SimpleVariable log = translateExp(logic);
             boolean re = (int) Double.parseDouble(log.getValue()) == 1;
             logic.flushFindTag();
-            while (re){
+            while (re) {
                 messages.add("满足while循环条件，执行循环体程序");
                 translate(root.getChildren()[4]); // H_node
                 if (toBreak)
@@ -115,13 +111,12 @@ public class Translator {
             else
                 messages.add("不满足while循环条件，循环退出");
             whileNum--;
-        }else if (name.equals("Interrupt")){
+        } else if (name.equals("Interrupt")) {
             String na = root.getChildren()[0].getName();
             if (na.equals("break") && whileNum > 0) {
                 toBreak = true;
                 messages.add("遇到 break,循环退出");
-            }
-            else if (na.equals("continue") && whileNum > 0) {
+            } else if (na.equals("continue") && whileNum > 0) {
                 toContinue = true;
                 messages.add("遇到 continue,跳到下一次循环");
             }
@@ -207,7 +202,7 @@ public class Translator {
             SimpleVariable array_length = translateExp(logic);
 
             if (array_length.getType().equals("real")) {
-                messages.add("数组下标不允许为 小数" + array_length.getValue() + " ，只能为正整数");
+                messages.add("数组下标不允许为小数" + array_length.getValue() + " ，只能为正整数");
             } else {
                 int ix = Integer.parseInt(array_length.getValue());
                 if (ix < 0)
@@ -219,10 +214,22 @@ public class Translator {
                             return;
                         // 只有声明没有初始化的情况
                         // 添加变量到 变量符号表中 TODO 未赋值的使用问题，联系 translateVariable(),下面同理
-                        if (!arrayTable.addVariable(new ArrayVariable(identifier, type, ix, new ArrayList<>(ix), level)))
+                        ArrayList<String> zeroValues = new ArrayList<>();
+                        int i = ix;
+                        if (type.equals("int")) {
+                            while (i-- > 0) {
+                                zeroValues.add(String.valueOf(0));
+                            }
+                        } else if (type.equals("real")) {
+                            while (i-- > 0) {
+                                zeroValues.add(String.valueOf(0.0));
+                            }
+                        }
+                        if (!arrayTable.addVariable(new ArrayVariable(identifier, type, ix, zeroValues, level)))
                             messages.add("数组变量" + identifier + "已被声明过！");
                         else
-                            messages.add("数组变量" + identifier + "被声明为" + type + "型,含" + ix + "个元素");
+                            messages.add("数组变量" + identifier + "被声明为" + type +
+                                    "型,含" + ix + "个元素，并自动初始化为" + zeroValues);
                     } else {
                         // X ->= O，伴随着初始化（赋值）的情况
                         ASTNode O_node = X_node.getChildren()[1];
@@ -243,21 +250,23 @@ public class Translator {
                                         messages.add("数组下标" + ix + " 越界");
                                     else {
                                         SimpleVariable log = translateExp(O_node.getChildren()[0]);
-                                        if (!v.getType().equals(log.getType())) {
-                                            if (v.getType().equals("int")) {
-                                                // 强制转换
-                                                int val = (int) Double.parseDouble(log.getValue());
-                                                messages.add("类型不匹配，" + log.getValue() + "强制转换为" + val);
-                                                v.getValues().set(ix, String.valueOf(val));
-                                            } else if (v.getType().equals("real")) {
-                                                double val = Double.parseDouble(log.getValue());
-                                                messages.add("类型不匹配，" + log.getValue() + "自动类型转换为" + val);
-                                                v.getValues().set(ix, String.valueOf(val));
-                                            }
-                                        } else
-                                            v.getValues().set(ix, log.getValue());
-                                        messages.add("数组变量" + identifier + "第" + ix + "个位置被赋值为" + v.getValues().get(ix)
-                                                + ",数组当前值为" + v.getValues());
+                                        if (log != null) {
+                                            if (!v.getType().equals(log.getType())) {
+                                                if (v.getType().equals("int")) {
+                                                    // 强制转换
+                                                    int val = (int) Double.parseDouble(log.getValue());
+                                                    messages.add("类型不匹配，" + log.getValue() + "强制转换为" + val);
+                                                    v.getValues().set(ix, String.valueOf(val));
+                                                } else if (v.getType().equals("real")) {
+                                                    double val = Double.parseDouble(log.getValue());
+                                                    messages.add("类型不匹配，" + log.getValue() + "自动类型转换为" + val);
+                                                    v.getValues().set(ix, String.valueOf(val));
+                                                }
+                                            } else
+                                                v.getValues().set(ix, log.getValue());
+                                            messages.add("数组变量" + identifier + "第" + ix + "个位置被赋值为" + v.getValues().get(ix)
+                                                    + ",数组当前值为" + v.getValues());
+                                        }
                                     }
                                 }
                             }
@@ -480,14 +489,13 @@ public class Translator {
         return reVar;
     }
 
-    // "Variable-> ..."
+    // "Variable-> ..." TODO 取值的时候没有，就返回默认值（考虑 Null 会给上层带来不便）
     private SimpleVariable translateVariable(ASTNode variable_node) {
         SimpleVariable variable = null;
         if (variable_node.getMaxChildNum() == 1) {
             // "Variable->Digit"
             ASTNode digit_node = variable_node.getChildren()[0];
             ASTNode positive_node = digit_node.getChildren()[digit_node.getMaxChildNum() - 1];
-            //TODO try catch能否处理类型转换的错误
             if (positive_node.getChildren()[0].getName().equals("integer")) {
                 // 正整数
                 Integer value = Integer.valueOf(positive_node.getChildren()[0].getValue());
@@ -509,11 +517,15 @@ public class Translator {
                 ASTNode index_node = call_node.getChildren()[0];
                 if (index_node.getMaxChildNum() == 0) {
                     SimpleVariable id = simpleTable.getVar(identifier);
-                    if (id == null)
-                        messages.add("变量 " + identifier + "未被声明，无法使用");
+                    if (id == null) {
+                        messages.add("变量 " + identifier + "未被声明，无法使用,自动返回默认值 0");
+                        variable = new SimpleVariable(null,"int","0",level);
+                    }
                     else {
-                        if (id.getValue() == null)
-                            messages.add("变量 " + identifier + "没有被初始化，无法使用");
+                        if (id.getValue() == null) {
+                            messages.add("变量 " + identifier + "没有被初始化，无法使用，自动返回默认值 0");
+                            variable = new SimpleVariable(null,"int","0",level);
+                        }
                         else
                             variable = id;
                     }
@@ -526,16 +538,22 @@ public class Translator {
                         messages.add("数组下标" + index.getValue() + "不能为负数");
                     else {
                         ArrayVariable arrayVariable = arrayTable.getArray(identifier);
-                        if (arrayVariable == null)
-                            messages.add("数组变量" + identifier + "未声明，无法使用");
+                        if (arrayVariable == null) {
+                            messages.add("数组变量" + identifier + "未声明，无法使用，自动返回默认值 0");
+                            variable = new SimpleVariable(null,"int","0",level);
+                        }
                         else {
                             //TODO 检测下标越界，未赋值等问题
-                            if (arrayVariable.getValues() == null || arrayVariable.getValues().size() == 0)
-                                messages.add("数组" + identifier + "未被赋值，无法使用");
+                            if (arrayVariable.getValues() == null || arrayVariable.getValues().size() == 0) {
+                                messages.add("数组" + identifier + "未被赋值，无法使用，自动返回默认值 0");
+                                variable = new SimpleVariable(null,"int","0",level);
+                            }
                             else {
                                 Integer ix = Integer.valueOf(index.getValue());
-                                if (ix > arrayVariable.getLength() - 1)
-                                    messages.add("数组" + identifier + "下标" + ix + "越界");
+                                if (ix > arrayVariable.getLength() - 1) {
+                                    messages.add("数组" + identifier + "下标" + ix + "越界,自动返回默认值 0");
+                                    variable = new SimpleVariable(null,"int","0",level);
+                                }
                                 else {
                                     ArrayList<String> array = arrayVariable.getValues();
                                     // 假设数组里一定有值
@@ -576,12 +594,23 @@ public class Translator {
         return list;
     }
 
-    private static void testWhileIf(){
+    private static void testWhileIf() {
         Translator t = new Translator();
-        ASTNode p = Executor.analyze("while(p < 10)if(p>=2)break;else p= p+ 1;int a =2.2;").getAstNode();
+        String pro = "int a ;\n" +
+                "int factorial;\n" +
+                "a =6;\n" +
+                "factorial =1;\n" +
+                "while( a <> 0 )\n" +
+                "{\n" +
+                "\tfactorial = factorial * a;\n" +
+                "\ta = a -1;\n" +
+                "}\n" +
+                "write( factorial );\n" +
+                "\n";
+        ASTNode p = Executor.analyze(pro).getAstNode();
         ASTNode whi = p.getChildren()[0].getChildren()[0];
 
-        t.simpleTable.addVariable(new SimpleVariable("p", "int", "1", 1));
+        t.simpleTable.addVariable(new SimpleVariable("p", "int", "0", 1));
         ArrayList<String> values = new ArrayList<>();
         values.add("43");
         values.add("90");
@@ -675,5 +704,6 @@ public class Translator {
 
     public static void main(String[] args) {
         testWhileIf();
+
     }
 }
