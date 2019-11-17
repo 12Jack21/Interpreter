@@ -150,31 +150,28 @@ public class ASTNode implements Serializable {
         for (int i = 0; i < maxChildNum; i++) {
             ASTNode child = children[i];
 
-            if (tip.equals("symbol")){
-                if (child != null && child.value != null && !child.find) {
-                    re = child;
-                    child.find = true;
+            // 找 name = tip 的节点
+            if (child != null && child.name.equals(tip) && !child.find) {
+                re = child;
+                break;
+            } else if (child != null) {
+                re = child.findNextNodeWithValueOrTip(tip);
+                if (re != null) {
+                    re.find = true;
                     break;
-                } else if (child != null) {
-                    re = child.findNextNodeWithValueOrTip("symbol");
-                    if (re != null)
-                        break;
-                }
-            }else {
-                // 找 name = tip 的节点
-                if (child != null && child.name.equals(tip) && !child.find) {
-                    re = child;
-                    break;
-                } else if (child != null) {
-                    re = child.findNextNodeWithValueOrTip(tip);
-                    if (re != null) {
-                        re.find = true;
-                        break;
-                    }
                 }
             }
+
         }
         return re;
+    }
+
+    public void flushFindTag() {
+        find = false;
+        for (ASTNode child : children) {
+            if (child != null)
+                child.flushFindTag();
+        }
     }
 
     public static void main(String[] args) {
@@ -185,16 +182,16 @@ public class ASTNode implements Serializable {
 
         ASTNode fact = new ASTNode(2, "Factor", null);
         ASTNode mul = new ASTNode(0, "*", "*");
-        ASTNode item1 = new ASTNode(2,"Item",null);
-        ASTNode var1 = new ASTNode(0,"Variable","90909012");
-        ASTNode fac1 = new ASTNode(0,"Factor",null);
+        ASTNode item1 = new ASTNode(2, "Item", null);
+        ASTNode var1 = new ASTNode(0, "Variable", "90909012");
+        ASTNode fac1 = new ASTNode(0, "Factor", null);
 
-        ASTNode plus = new ASTNode(0,"+","+");
-        ASTNode ari1 = new ASTNode(2,"Arithmetic",null);
-        ASTNode item2 = new ASTNode(2,"Item",null);
-        ASTNode var2 = new ASTNode(0,"Variable","qe123");
-        ASTNode fac2 = new ASTNode(0,"Factor",null);
-        ASTNode v_node1 = new ASTNode(0,"V",null);
+        ASTNode plus = new ASTNode(0, "+", "+");
+        ASTNode ari1 = new ASTNode(2, "Arithmetic", null);
+        ASTNode item2 = new ASTNode(2, "Item", null);
+        ASTNode var2 = new ASTNode(0, "Variable", "qe123");
+        ASTNode fac2 = new ASTNode(0, "Factor", null);
+        ASTNode v_node1 = new ASTNode(0, "V", null);
 
         arith.addChild(item);
         arith.addChild(v_node);

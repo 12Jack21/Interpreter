@@ -165,7 +165,7 @@ public class Translator {
         SimpleVariable variable = translateVariable(var);
         varStack.addFirst(variable);
         ASTNode sym;
-        // 没有下一个运算符号了 TODO 结束条件的选择，所有运算的token，数+符号+数+...+
+        // 没有下一个运算符号了 , 结束条件的选择，所有运算的token，数+符号+数+...+
         while ((sym = arithmetic.findNextNodeWithValueOrTip("symbol")) != null) {
             String sym_value = sym.getValue();
             if (symStack.size() > 0 && prioMap.get(sym_value) <= prioMap.get(symStack.get(0))) {
@@ -174,6 +174,7 @@ public class Translator {
                 SimpleVariable v1 = varStack.pop();
                 String top = symStack.pop();
                 varStack.addFirst(calculate(v1,v2,top));
+                symStack.addFirst(sym_value);
             } else {
                 // 栈顶符号的优先级更小,则新符号入栈
                 symStack.addFirst(sym_value);
@@ -189,16 +190,16 @@ public class Translator {
             SimpleVariable v1 = varStack.pop();
             varStack.addFirst(calculate(v1,v2,top));
         }
-
+        arithmetic.flushFindTag(); // 刷新find标志，以供之后使用
         arith_val = varStack.pop();
         if (varStack.size() == 0)
-            System.out.println("运算过程成功！！！");
+            System.out.println("运算过程进行成功！！！");
         return arith_val;
     }
 
     // 两个数之间的运算，可以包括 算术、关系和逻辑运算
     private SimpleVariable calculate(SimpleVariable v1,SimpleVariable v2,String top){
-        SimpleVariable reVar = null;
+        SimpleVariable reVar;
         if (v1.getType().equals(v2.getType()) && v1.getType().equals("int")) {
             // 都为 int型
             int a1 = Integer.parseInt(v1.getValue());
@@ -207,7 +208,6 @@ public class Translator {
                 messages.add(a1 + " * " + a2 + " = " + (a1 * a2));
                 reVar = new SimpleVariable(null, "int", String.valueOf(a1 * a2), level);
             } else if (top.equals("/")) {
-                //TODO 除零错误
                 if (a2 == 0) {
                     messages.add("发生除零错误，值自动变为0");
                     reVar = new SimpleVariable(null,"int","0",level);
@@ -224,7 +224,7 @@ public class Translator {
                 reVar = new SimpleVariable(null, "int", String.valueOf(a1 - a2), level);
             }
         }
-        else {
+        else { // 有real型存在
             if (!v1.getType().equals(v2.getType())) {
                 if (v1.getType().equals("real"))
                     messages.add("类型" + v1.getType() + "与" + v2.getType() + "不匹配,自动对 " + v2.getValue() +"进行类型转换");
@@ -237,7 +237,6 @@ public class Translator {
                 messages.add(a1 + " * " + a2 + " = " + (a1 * a2));
                 reVar = new SimpleVariable(null, "real", String.valueOf(a1 * a2), level);
             } else if (top.equals("/")) {
-                //TODO 除零错误
                 if (a2 == 0.0) {
                     messages.add("发生除零错误，值自动变为 0.0");
                     reVar = new SimpleVariable(null,"real","0.0",level);
@@ -256,24 +255,37 @@ public class Translator {
         return reVar;
     }
 
-    private ASTNode testArithmeticExp() {
+    private static ASTNode testArithmeticExp() {
+        List<ASTNode> nodes = testVariable();
         ASTNode arith = new ASTNode(2, "Arithmetic", null);
         ASTNode item = new ASTNode(2, "Item", null);
         ASTNode v_node = new ASTNode(2, "V", null);
-        ASTNode var_node = new ASTNode(0, "Variable", "1212");
+        ASTNode var_node = nodes.get(0);
 
         ASTNode fact = new ASTNode(2, "Factor", null);
-        ASTNode mul = new ASTNode(0, "*", "*");
+        ASTNode mul = new ASTNode(0, "symbol", "*");
         ASTNode item1 = new ASTNode(2, "Item", null);
-        ASTNode var1 = new ASTNode(0, "Variable", "90909012");
+        ASTNode var1 = nodes.get(1);
         ASTNode fac1 = new ASTNode(0, "Factor", null);
 
-        ASTNode plus = new ASTNode(0, "+", "+");
+        ASTNode plus = new ASTNode(0, "symbol", "-");
         ASTNode ari1 = new ASTNode(2, "Arithmetic", null);
         ASTNode item2 = new ASTNode(2, "Item", null);
-        ASTNode var2 = new ASTNode(0, "Variable", "qe123");
+        ASTNode var2 = nodes.get(2);
         ASTNode fac2 = new ASTNode(0, "Factor", null);
-        ASTNode v_node1 = new ASTNode(0, "V", null);
+
+//        ASTNode v_node1 = new ASTNode(0, "V", null); // 三个数的时候
+        ASTNode v_node1 = new ASTNode(2, "V", null); // 四个数的时候
+        v_node1.addChild(new ASTNode(0,"symbol","-"));
+        ASTNode ar = new ASTNode(2,"Arithmetic",null);
+        ASTNode it = new ASTNode(2,"Item",null);
+        ASTNode v = new ASTNode(0,"V",null);
+        ASTNode f =new ASTNode(0,"Factor",null);
+        v_node1.addChild(ar);
+        ar.addChild(it);
+        ar.addChild(v);
+        it.addChild(nodes.get(3));
+        it.addChild(f);
 
         arith.addChild(item);
         arith.addChild(v_node);
@@ -290,6 +302,9 @@ public class Translator {
         ari1.addChild(v_node1);
         item2.addChild(var2);
         item2.addChild(fac2);
+        Translator t = new Translator();
+        SimpleVariable s = t.translateArithmeticExp(arith);
+        System.out.println("语义消息："  + t.messages);
         return arith;
     }
 
@@ -367,7 +382,6 @@ public class Translator {
             // "Variable->( Relation )"
             variable = translateRelationExp(variable_node.getChildren()[1]);
         }
-
         return variable;
     }
 
@@ -396,11 +410,11 @@ public class Translator {
         SimpleVariable s = translator.translateVariable(variable_node);
         System.out.println(translator.messages);
 
-        ASTNode var_node = testVariable();
+        List<ASTNode> var_node = testVariable();
         index_node = new ASTNode(3, "Index", null);
         call_node.getChildren()[0] = index_node;
         // 假定 index只能为 variable时才成立
-        index_node.getChildren()[1] = var_node;
+        index_node.getChildren()[1] = var_node.get(0);
         ArrayList<String> values = new ArrayList<>();
         values.add("43");
         values.add("90");
@@ -411,24 +425,58 @@ public class Translator {
         return variable_node;
     }
 
-    private static ASTNode testVariable() {
-        ASTNode variable_node = new ASTNode(1, null, null);
+    private static List<ASTNode> testVariable() {
+        ASTNode variable_node1 = new ASTNode(1, "Variable", null);
         ASTNode a1 = new ASTNode(2, "Digit", null);
-        ASTNode b0 = new ASTNode(0, "+", null);
+        ASTNode b0 = new ASTNode(0, "+", "+");
         ASTNode b1 = new ASTNode(1, "Positive", null);
-        ASTNode c0 = new ASTNode(0, "integer", "0");
-        variable_node.addChild(a1);
+        ASTNode c0 = new ASTNode(0, "fraction", "2.00");
+        variable_node1.addChild(a1);
         a1.addChild(b0);
         a1.addChild(b1);
         b1.addChild(c0);
         Translator translator = new Translator();
-        SimpleVariable s = translator.translateVariable(variable_node);
-        System.out.println(s);
+        SimpleVariable s = translator.translateVariable(variable_node1);
 
-        return variable_node;
+        ASTNode variable_node2 = new ASTNode(1, "Variable", null);
+        ASTNode a11 = new ASTNode(2, "Digit", null);
+        ASTNode b00 = new ASTNode(0, "+", "+");
+        ASTNode b11 = new ASTNode(1, "Positive", null);
+        ASTNode c00 = new ASTNode(0, "integer", "1");
+        variable_node2.addChild(a11);
+        a11.addChild(b00);
+        a11.addChild(b11);
+        b11.addChild(c00);
+
+        ASTNode variable_node3 = new ASTNode(1, "Variable", null);
+        ASTNode a111 = new ASTNode(2, "Digit", null);
+        ASTNode b000 = new ASTNode(0, "+", "+");
+        ASTNode b111 = new ASTNode(1, "Positive", null);
+        ASTNode c000 = new ASTNode(0, "integer", "1");
+        variable_node3.addChild(a111);
+        a111.addChild(b000);
+        a111.addChild(b111);
+        b111.addChild(c000);
+
+        ASTNode variable_node4 = new ASTNode(1, "Variable", null);
+        ASTNode a1111 = new ASTNode(2, "Digit", null);
+        ASTNode b0000 = new ASTNode(0, "+", "+");
+        ASTNode b1111 = new ASTNode(1, "Positive", null);
+        ASTNode c0000 = new ASTNode(0, "integer", "1");
+        variable_node4.addChild(a1111);
+        a1111.addChild(b0000);
+        a1111.addChild(b1111);
+        b1111.addChild(c0000);
+
+        List<ASTNode> nodes = new LinkedList<>();
+        nodes.add(variable_node1);
+        nodes.add(variable_node2);
+        nodes.add(variable_node3);
+        nodes.add(variable_node4);
+        return nodes;
     }
 
     public static void main(String[] args) {
-        testIdArrayVariable();
+        testArithmeticExp();
     }
 }

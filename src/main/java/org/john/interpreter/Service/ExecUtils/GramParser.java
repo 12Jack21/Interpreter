@@ -54,6 +54,7 @@ public class GramParser {
             int y, x, pos; //LL分析表的 行和列位置
             int index = 0; //扫描的索引
             LexiNode node;
+            List<String> symList = signList.subList(0,12);
             while (index < nodes.size()) {
 
                 node = nodes.get(index);
@@ -80,7 +81,10 @@ public class GramParser {
                             continue;
                         curNode = curNode.findLefted();
 
-                        curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
+                        if (symList.contains(top) && !curNode.getName().equals("Digit")) // 为运算符
+                            curNode.addChild(new ASTNode(0,"symbol",top,true,true));
+                        else
+                            curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
 
 //                        if (Arrays.asList(value_contain_token).contains(top))
 //                            curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
