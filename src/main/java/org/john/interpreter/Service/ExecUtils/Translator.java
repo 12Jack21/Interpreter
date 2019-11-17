@@ -16,6 +16,9 @@ public class Translator {
     private int level; // 当前作用域
     private SimpleTable simpleTable;
     private ArrayTable arrayTable;
+    private int whileNum = 0;
+    private boolean toBreak = false;
+    private boolean toContinue = false;
     private String msg = "";
     private String result = ""; // unknown
 
@@ -34,12 +37,18 @@ public class Translator {
         if (name.equals("Pro")) {
             for (int i = 0; i < root.getMaxChildNum(); i++) {
                 //TODO 遇到 {} 时的 level变化问题
-                translate(root.getChildren()[i]);
+                if (root.getChildren()[i].getName().equals("{"))
+                    level++;
+                else if (root.getChildren()[i].getName().equals("}")) {
+                    simpleTable.deleteVariable(level);
+                    arrayTable.deleteArrays(level);
+                    level--;
+                } else
+                    translate(root.getChildren()[i]);
             }
         } else if (name.equals("Statement")) {
-            for (int i = 0; i < root.getMaxChildNum(); i++) {
-                translate(root.getChildren()[i]);
-            }
+            if (whileNum <= 0 || (!toBreak && !toContinue))
+                translate(root.getChildren()[0]);
         } else if (name.equals("Declare")) {
             // int, real, char, void
             String type = root.getChildren()[0].getChildren()[0].getName(); //可以作为非局部变量保存起来，语句结束后清除
@@ -59,6 +68,63 @@ public class Translator {
             }// TODO 函数定义
         } else if (name.equals("Assignment")) {
             translateAssignment(root, null);
+        } else if (name.equals("IF")) {
+            ASTNode logic = root.getChildren()[2];
+            SimpleVariable log = translateExp(logic);
+            boolean re = (int) Double.parseDouble(log.getValue()) == 1;
+            if (re) {
+                messages.add("满足 if条件，执行下条程序");
+                translate(root.getChildren()[4]);
+            }
+            else {
+                messages.add("不满足 if条件");
+                if (root.getChildren()[5].getMaxChildNum() != 0) {
+                    // ELSE->else H
+                    messages.add("执行 else里的程序");
+                    translate(root.getChildren()[5].getChildren()[1]);
+                }
+            }
+        } else if (name.equals("H")) {
+            if (root.getMaxChildNum() == 1)
+                translate(root.getChildren()[0]); // Statement
+            else { // { Pro }
+                level++;
+                translate(root.getChildren()[1]);
+                simpleTable.deleteVariable(level);
+                arrayTable.deleteArrays(level);
+                level--;
+            }
+        } else if (name.equals("WHILE")) {
+            whileNum++;
+            ASTNode logic = root.getChildren()[2];
+            SimpleVariable log = translateExp(logic);
+            boolean re = (int) Double.parseDouble(log.getValue()) == 1;
+            logic.flushFindTag();
+            while (re){
+                messages.add("满足while循环条件，执行循环体程序");
+                translate(root.getChildren()[4]); // H_node
+                if (toBreak)
+                    break;
+                re = (int) Double.parseDouble(translateExp(logic).getValue()) == 1;
+                logic.flushFindTag();
+                toContinue = false;
+                root.getChildren()[4].flushFindTag();
+            }
+            if (toBreak)
+                toBreak = false;
+            else
+                messages.add("不满足while循环条件，循环退出");
+            whileNum--;
+        }else if (name.equals("Interrupt")){
+            String na = root.getChildren()[0].getName();
+            if (na.equals("break") && whileNum > 0) {
+                toBreak = true;
+                messages.add("遇到 break,循环退出");
+            }
+            else if (na.equals("continue") && whileNum > 0) {
+                toContinue = true;
+                messages.add("遇到 continue,跳到下一次循环");
+            }
         }
     }
 
@@ -190,7 +256,8 @@ public class Translator {
                                             }
                                         } else
                                             v.getValues().set(ix, log.getValue());
-                                        messages.add("数组变量" + identifier + "被赋值为" + v.getValues().get(ix));
+                                        messages.add("数组变量" + identifier + "第" + ix + "个位置被赋值为" + v.getValues().get(ix)
+                                                + ",数组当前值为" + v.getValues());
                                     }
                                 }
                             }
@@ -453,7 +520,6 @@ public class Translator {
                 } else {
                     // 数组取下标的值
                     SimpleVariable index = translateExp(index_node.getChildren()[1]); //Logical expression
-
                     if (index.getType().equals("real"))
                         messages.add("数组下标 " + index.getValue() + "不能为小数");
                     else if (Integer.parseInt(index.getValue()) < 0)
@@ -510,30 +576,34 @@ public class Translator {
         return list;
     }
 
-    private static void testDeclareAssign() {
+    private static void testWhileIf(){
         Translator t = new Translator();
-        ASTNode p = Executor.analyze("p=2;").getAstNode();
-        ASTNode declare = p.getChildren()[0].getChildren()[0];
+        ASTNode p = Executor.analyze("while(p < 10)if(p>=2)break;else p= p+ 1;int a =2.2;").getAstNode();
+        ASTNode whi = p.getChildren()[0].getChildren()[0];
 
-        t.simpleTable.addVariable(new SimpleVariable("p", "int", null, 1));
+        t.simpleTable.addVariable(new SimpleVariable("p", "int", "1", 1));
         ArrayList<String> values = new ArrayList<>();
         values.add("43");
         values.add("90");
-        t.arrayTable.addVariable(new ArrayVariable("pp2", "int", 2, values, 1));
+        t.arrayTable.addVariable(new ArrayVariable("p2", "int", 2, values, 1));
 
-        t.translate(declare);
+        t.translate(p);
         System.out.println(t.messages);
     }
 
-    private static ASTNode testExp() {
-        List<ASTNode> nodes = testVariable();
+    private static void testDeclareAssign() {
         Translator t = new Translator();
+        ASTNode p = Executor.analyze("p = p2[2 -1*9 && 0==12 >=12 <>100 || -99]-1.2;").getAstNode();
+        ASTNode declare = p.getChildren()[0].getChildren()[0];
 
-        ASTNode p = Executor.analyze("2 -1*9 && 0==12 >=12 <>100 || -99;").getAstNode();
-        ASTNode logic = p.getChildren()[0].getChildren()[0];
-        SimpleVariable s = t.translateExp(logic);
-        System.out.println("语义消息：" + t.messages);
-        return logic;
+        t.simpleTable.addVariable(new SimpleVariable("p", "real", "12.3", 1));
+        ArrayList<String> values = new ArrayList<>();
+        values.add("43");
+        values.add("90");
+        t.arrayTable.addVariable(new ArrayVariable("p2", "int", 2, values, 1));
+
+        t.translate(declare);
+        System.out.println(t.messages);
     }
 
     private static ASTNode testIdArrayVariable() {
@@ -604,6 +674,6 @@ public class Translator {
     }
 
     public static void main(String[] args) {
-        testDeclareAssign();
+        testWhileIf();
     }
 }

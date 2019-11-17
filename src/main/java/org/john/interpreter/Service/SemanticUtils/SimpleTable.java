@@ -6,7 +6,7 @@ import java.util.ArrayList;
 // 变量符号表
 public class SimpleTable {
     private String errorMessage = "";
-    private ArrayList<SimpleVariable> table = new ArrayList<SimpleVariable>();
+    private ArrayList<SimpleVariable> table = new ArrayList<>();
     public SimpleTable(){}
     public String getErrorMessage(){
         return errorMessage;
