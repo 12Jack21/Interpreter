@@ -83,8 +83,10 @@ public class Translator {
                                                 "型并被初始化为 " + arrayVariable.getValues().toString());
                                     else
                                         messages.add("数组变量" + identifier + "已被声明过！");
-                                } else
-                                    messages.add("数组中值的类型与声明的类型" + type + "不一致，无法赋值给变量");
+                                } else {
+                                    messages.add("数组中值的类型与声明的类型" + type + "不一致，无法初始化？");
+                                    //TODO 自动初始化为0或者0.0
+                                }
                             }
                         } else {
                             // O->Relation
@@ -108,7 +110,7 @@ public class Translator {
 
 
                 } else {
-                    // 声明了一个数组变量
+                    // TODO 声明了一个数组变量
                     ASTNode relation = index_node.getChildren()[1];
                     SimpleVariable array_length = translateExp(relation);
                 }
@@ -274,60 +276,15 @@ public class Translator {
         return reVar;
     }
 
-    private static ASTNode testArithmeticExp() {
+    private static ASTNode testExp() {
         List<ASTNode> nodes = testVariable();
-        ASTNode arith = new ASTNode(2, "Arithmetic", null);
-        ASTNode item = new ASTNode(2, "Item", null);
-        ASTNode v_node = new ASTNode(2, "V", null);
-        ASTNode var_node = nodes.get(0);
-
-        ASTNode fact = new ASTNode(2, "Factor", null);
-        ASTNode mul = new ASTNode(0, "symbol", "*");
-        ASTNode item1 = new ASTNode(2, "Item", null);
-        ASTNode var1 = nodes.get(1);
-        ASTNode fac1 = new ASTNode(0, "Factor", null);
-
-        ASTNode plus = new ASTNode(0, "symbol", "-");
-        ASTNode ari1 = new ASTNode(2, "Arithmetic", null);
-        ASTNode item2 = new ASTNode(2, "Item", null);
-        ASTNode var2 = nodes.get(2);
-        ASTNode fac2 = new ASTNode(0, "Factor", null);
-
-//        ASTNode v_node1 = new ASTNode(0, "V", null); // 三个数的时候
-        ASTNode v_node1 = new ASTNode(2, "V", null); // 四个数的时候
-        v_node1.addChild(new ASTNode(0, "symbol", "-"));
-        ASTNode ar = new ASTNode(2, "Arithmetic", null);
-        ASTNode it = new ASTNode(2, "Item", null);
-        ASTNode v = new ASTNode(0, "V", null);
-        ASTNode f = new ASTNode(0, "Factor", null);
-        v_node1.addChild(ar);
-        ar.addChild(it);
-        ar.addChild(v);
-        it.addChild(nodes.get(3));
-        it.addChild(f);
-
-        arith.addChild(item);
-        arith.addChild(v_node);
-        item.addChild(var_node);
-        item.addChild(fact);
-        fact.addChild(mul);
-        fact.addChild(item1);
-        item1.addChild(var1);
-        item1.addChild(fac1);
-
-        v_node.addChild(plus);
-        v_node.addChild(ari1);
-        ari1.addChild(item2);
-        ari1.addChild(v_node1);
-        item2.addChild(var2);
-        item2.addChild(fac2);
         Translator t = new Translator();
 
         ASTNode p = Executor.analyze("2 -1*9 && 0==12 >=12 <>100 || -99;").getAstNode();
-        ASTNode a = p.getChildren()[0].getChildren()[0];
-        SimpleVariable s = t.translateExp(a);
+        ASTNode logic = p.getChildren()[0].getChildren()[0];
+        SimpleVariable s = t.translateExp(logic);
         System.out.println("语义消息：" + t.messages);
-        return arith;
+        return logic;
     }
 
     // "Variable-> ..."
@@ -369,7 +326,7 @@ public class Translator {
                     }
                 } else {
                     // 数组取下标的值
-                    SimpleVariable index = translateExp(index_node.getChildren()[1]);
+                    SimpleVariable index = translateExp(index_node.getChildren()[1]); //Logical expression
 
                     if (index.getType().equals("real"))
                         messages.add("数组下标 " + index.getValue() + "不能为小数");
@@ -397,7 +354,7 @@ public class Translator {
                     }
                 }
             } else {
-                // 函数调用，Call->( Argument )
+                // TODO 函数调用，Call->( Argument )
             }
         } else if (variable_node.getMaxChildNum() == 3) {
             // "Variable->( Relation )"
@@ -428,8 +385,8 @@ public class Translator {
         variable_node.addChild(id_node);
         variable_node.addChild(call_node);
         call_node.addChild(index_node);
-        SimpleVariable s = translator.translateVariable(variable_node);
-        System.out.println(translator.messages);
+//        SimpleVariable s = translator.translateVariable(variable_node);
+//        System.out.println(translator.messages);
 
         List<ASTNode> var_node = testVariable();
         index_node = new ASTNode(3, "Index", null);
@@ -440,8 +397,11 @@ public class Translator {
         values.add("43");
         values.add("90");
         translator.arrayTable.addVariable(new ArrayVariable("pp", "int", 2, values, 1));
-        SimpleVariable s1 = translator.translateVariable(variable_node);
-        System.out.println(translator.messages);
+
+        ASTNode p= Executor.analyze("pp[2 -1*9 && 0==12 >=12 <>100 && 0];").getAstNode();
+        ASTNode logic = p.getChildren()[0].getChildren()[0];
+        SimpleVariable s1 = translator.translateExp(logic);
+        System.out.println("取数信息：" + translator.messages);
 
         return variable_node;
     }
@@ -498,6 +458,6 @@ public class Translator {
     }
 
     public static void main(String[] args) {
-        testArithmeticExp();
+        testIdArrayVariable();
     }
 }

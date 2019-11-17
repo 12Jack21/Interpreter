@@ -121,7 +121,7 @@ public class GramParser {
                             String[] p1 = {"||", "&&", "<", "<=", "<>", ">", ">=", "==", "+", "-", "*", "/", "(", ")"};
                             String selection = null;
                             int mode = top.equals("Statement") ? 0:1;
-                            while (!temp.getSymbol().equals(";")) {
+                            while (!temp.getSymbol().trim().equals(";")) {
                                 for (String p : p1) {
                                     if (p.equals(temp.getSymbol().trim())) {
                                         selection = special_production[mode * 2];
@@ -137,6 +137,8 @@ public class GramParser {
 
                                 temp = nodes.get(t_index++);
                             }
+                            if (selection == null)
+                                selection = special_production[mode * 2];
                             pos = Arrays.asList(productions).indexOf(selection);
                         }
                         childNum = llDrive.addToStack(pos, stack);
