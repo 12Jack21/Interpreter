@@ -17,8 +17,11 @@ public class Translator {
     private ArrayTable arrayTable;
     private FunctionTable functionTable;
     private int whileNum = 0;
+    private int proNum = 0;
     private boolean toBreak = false;
     private boolean toContinue = false;
+    private boolean toReturn = false;
+//    private
     private String msg = "";
     private SimpleVariable returnVal = null;// 用于传递函数返回值，为空则置默认值 0（int）
 
@@ -68,14 +71,14 @@ public class Translator {
                 // 保存 pro_node 到函数表中
                 try {
                     ArrayList<Object> parameters = translateParameter(F.getChildren()[1]);
-                    FunctionVariable v = new FunctionVariable(type,identifier,parameters,F.getChildren()[4]);
+                    FunctionVariable v = new FunctionVariable(type, identifier, parameters, F.getChildren()[4]);
                     functionTable.addVariable(v);
                     String msg = "声明了函数" + identifier + ",";
                     if (parameters.size() == 0)
                         msg += "没有参数";
                     else {
                         msg += "参数列表为(";
-                        for (Object param:parameters){
+                        for (Object param : parameters) {
                             if (param instanceof SimpleVariable)
                                 msg += ((SimpleVariable) param).getType() + " " + ((SimpleVariable) param).getName();
                             else if (param instanceof ArrayVariable)
@@ -84,13 +87,13 @@ public class Translator {
                             msg += ",";
                         }
                         if (msg.endsWith(","))
-                            msg = msg.substring(0,msg.length() - 1);
+                            msg = msg.substring(0, msg.length() - 1);
                         msg += ")";
                     }
                     msg += ",返回类型为 " + v.getType();
                     messages.add(msg);
-                }catch (Exception e){
-                    messages.add("函数" + identifier +"声明失败！");
+                } catch (Exception e) {
+                    messages.add("函数" + identifier + "声明失败！");
                 }
             }
         } else if (name.equals("Assignment")) {
@@ -149,13 +152,17 @@ public class Translator {
             } else if (na.equals("continue") && whileNum > 0) {
                 toContinue = true;
                 messages.add("遇到 continue,跳到下一次循环");
-            }else if (na.equals("return")){
-                //TODO 程序 return 后会截断后面代码的执行--------------------------------
+            } else if (na.equals("return")) {
+                //TODO 程序 return 后会截断后面代码的执行---
                 ASTNode result_node = root.getChildren()[1];
                 if (result_node.getMaxChildNum() != 0) {
                     SimpleVariable log = translateExp(result_node.getChildren()[0]);
                     returnVal = log; //返回值置入 returnVal中
                 }// 没有返回值则不加理会
+                if (proNum > 0) {
+                    toReturn = true;
+                    messages.add("遇到return,程序退出");
+                }
             }
         }
     }
@@ -636,30 +643,29 @@ public class Translator {
                 // TODO 函数调用，Call->( Argument ),注意 return语句对 returnVal的更新
                 ArrayList<SimpleVariable> arguments = translateArgument(call_node.getChildren()[1]);
                 FunctionVariable func = functionTable.getVar(identifier);
-                if (func == null){
-                    messages.add("函数" + identifier +"未声明无法调用，自动返回默认值 0");
-                    variable = new SimpleVariable(null,"int","0",level);
-                }else {
+                if (func == null) {
+                    messages.add("函数" + identifier + "未声明无法调用，自动返回默认值 0");
+                    variable = new SimpleVariable(null, "int", "0", level);
+                } else {
                     ArrayList<Object> parameters = func.getParameters();
-                    if (parameters.size() != arguments.size()){
-                        messages.add("函数" +identifier +"调用时参数个数不匹配，自动返回默认值 0");
-                        variable = new SimpleVariable(null,"int","0",level);
-                    }else {
-                        level++;
+                    if (parameters.size() != arguments.size()) {
+                        messages.add("函数" + identifier + "调用时参数个数不匹配，自动返回默认值 0");
+                        variable = new SimpleVariable(null, "int", "0", level);
+                    } else {
                         boolean canExecute = true;
-                        for (int i=0;i<arguments.size();i++){
-                            if (parameters.get(i) instanceof ArrayVariable){
-                                messages.add("函数" + identifier +"的第" +i+"个参数"
-                                        +((ArrayVariable) parameters.get(i)).getArrayName() +"声明为数组变量，与调用参数类型不匹配，自动返回默认值 0");
+                        for (int i = 0; i < arguments.size(); i++) {
+                            if (parameters.get(i) instanceof ArrayVariable) {
+                                messages.add("函数" + identifier + "的第" + i + "个参数"
+                                        + ((ArrayVariable) parameters.get(i)).getArrayName() + "声明为数组变量，与调用参数类型不匹配，自动返回默认值 0");
                                 canExecute = false;
-                                variable = new SimpleVariable(null,"int","0",level - 1);
+                                variable = new SimpleVariable(null, "int", "0", level);
                                 break;
                             }
-                            SimpleVariable par = (SimpleVariable)parameters.get(i);
+                            SimpleVariable par = (SimpleVariable) parameters.get(i);
                             SimpleVariable arg = arguments.get(i);
                             // 函数里的局部变量，与参数的名称相同
-                            SimpleVariable local = new SimpleVariable(par.getName(),par.getType(),null,level);
-                            if (!par.getType().equals(arg.getType())){
+                            SimpleVariable local = new SimpleVariable(par.getName(), par.getType(), null, level + 1);
+                            if (!par.getType().equals(arg.getType())) {
                                 if (par.getType().equals("int")) {
                                     // 强制转换
                                     int val = (int) Double.parseDouble(arg.getValue());
@@ -670,26 +676,33 @@ public class Translator {
                                     messages.add("调用类型不匹配，" + arg.getValue() + "自动类型转换为" + val);
                                     local.setValue(String.valueOf(val));
                                 }
-                            }else
+                            } else
                                 local.setValue(arg.getValue());
                             simpleTable.addVariable(local); // 添加进变量表中，当前的高 level
                         }
                         if (canExecute) {
                             // 执行函数中的程序
+                            level++;
+                            proNum++; //子程序个数加一
+                            messages.add("正在调用函数" + identifier);
+                            func.getPro_node().flushFindTag(); // 调用之前就得flush
                             translate(func.getPro_node());
-
-                            //TODO 把返回值置入 variable变量中
-                            if (returnVal == null){
+                            proNum--;
+                            // 把返回值置入 variable变量中
+                            if (returnVal == null) {
                                 messages.add("函数调用后没有返回值，自动返回默认值 0");
-                                variable = new SimpleVariable(null,"int","0",level - 1);
-                            }else {
+                                variable = new SimpleVariable(null, "int", "0", level - 1);
+                            } else {
                                 messages.add("函数调用后返回了值：" + returnVal.getValue());
                                 variable = returnVal;
                             }
+                            simpleTable.deleteVariable(level);
+                            arrayTable.deleteArrays(level);
+                            level--;
+                        }else {
+                            simpleTable.deleteVariable(level + 1);
+                            arrayTable.deleteArrays(level + 1);
                         }
-                        simpleTable.deleteVariable(level);
-                        arrayTable.deleteArrays(level);
-                        level--;
                     }
                 }
 
@@ -704,7 +717,7 @@ public class Translator {
     // TODO 如果要传数组参数的话，就需要文法中实现 指针功能，这里暂定传入的参数为简单变量
     private ArrayList<SimpleVariable> translateArgument(ASTNode argument) {
         ArrayList<SimpleVariable> args = new ArrayList<>();
-        if (argument.getMaxChildNum() != 0){
+        if (argument.getMaxChildNum() != 0) {
             ASTNode logic = argument.getChildren()[0];
             SimpleVariable log = translateExp(logic);
             args.add(log);
@@ -713,6 +726,7 @@ public class Translator {
         }
         return args;
     }
+
     //把变量列表转成 Value的 String列表，可以检查变量类型是否匹配，进行自动转换和强制转换，并转换原始的值
     private ArrayList<String> convertArray(ArrayList<SimpleVariable> arrayList, String type) {
         // 这里数组里值的类型都是 match type 的
@@ -736,10 +750,13 @@ public class Translator {
 
     private static void testWhileIf() {
         Translator t = new Translator();
-        String pro = "int a(int c,real b[10]){\n" +
-                "    int b =2;\n" +
-                "    b = b -2;\n" +
-                "}";
+        String pro = "int a(int b,int c,int d,int e){\n" +
+                "if(b > 9)\n" +
+                "    return b + c / d || e;\n" +
+                "else\n" +
+                "    return a(10,1,1,0);\n" +
+                "}\n" +
+                "int io = a(1,2,6,0);";
         ASTNode p = Executor.analyze(pro).getAstNode();
         ASTNode whi = p.getChildren()[0].getChildren()[0];
 
