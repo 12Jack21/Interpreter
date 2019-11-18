@@ -55,12 +55,18 @@ public class SimpleTable {
 
     /* delete all variables in any level*/
     public void deleteVariable(int level){
-        int i = 0;
-        while(i < table.size()){
-            if(table.get(i).getLevel() == level)
-                table.remove(i);
-            i++;
+        // 遍历过程中删除有副作用
+        SimpleVariable[] variables = table.toArray(new SimpleVariable[table.size()]);
+        for (SimpleVariable var:variables){
+            if (var.getLevel() == level)
+                table.remove(var);
         }
+//        int i = 0;
+//        while(i < table.size()){
+//            if(table.get(i).getLevel() == level)
+//                table.remove(i);
+//            i++;
+//        }
     }
 
 

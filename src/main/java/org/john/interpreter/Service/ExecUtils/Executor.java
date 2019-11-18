@@ -42,11 +42,14 @@ public class Executor {
         if (lexiResult.lastIndexOf("\n") == lexiResult.length() - 1)
             lexiResult.deleteCharAt(lexiResult.length() - 1);
 
-//        if (astNode != null) {
-//            astNode.addNullTips();
-//            astNode.setParentNull();
-//        }
-        Wrapper wrapper = new Wrapper(lexiResult.toString(),astNode,gramParser.getErrorStack());
+        Translator t = new Translator();
+        t.translate(astNode);
+        if (astNode != null) {
+            // 语义分析里不能执行
+            astNode.addNullTips();
+            astNode.setParentNull();
+        }
+        Wrapper wrapper = new Wrapper(lexiResult.toString(),astNode,gramParser.getErrorStack(),t.getMessages());
         return wrapper;
     }
 

@@ -134,8 +134,11 @@ $(document).ready(function () {
             });
 
             let errorList = data.errors;
-            console.log("Errors:", errorList);
+            // 语法错误消息展示
             alertGramError(errorList);
+            // 语义消息填充
+            showSemanticMsg(data.messages);
+            console.log("Messages:", data.messages);
 
         }).fail(function () {
             alert("upload code failed!");
@@ -146,6 +149,14 @@ $(document).ready(function () {
 
 });
 
+function showSemanticMsg(msgList) {
+    let semantic_span = $("#semantic span");
+    let inner = "";
+    $.each(msgList,function (key,value) {
+        inner += value + "\n\r";
+    });
+    semantic_span.text(inner);
+}
 function showLexiResult(result) {
     let list = result.split("\n");
     let lexical = $("#lexical span");
@@ -157,11 +168,11 @@ function showLexiResult(result) {
 }
 
 function alertGramError(errorList) {
-
     let alert = $("#gramAlert");
-    if (errorList.length === 0)
+    if (errorList.length === 0) {
         alert.addClass('alert-success').removeClass('alert-danger').text("Grammar parse succeed !");
-    else {
+    } else {
+        let alert = $("#gramAlert");
         let inner = "";
         $.each(errorList, function (key, value) {
             inner += value + "</br>";

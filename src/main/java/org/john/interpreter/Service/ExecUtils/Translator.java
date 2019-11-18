@@ -1,6 +1,7 @@
 package org.john.interpreter.Service.ExecUtils;
 
 import org.john.interpreter.Service.SemanticUtils.*;
+import org.john.interpreter.dto.Wrapper;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class Translator {
     private boolean toBreak = false;
     private boolean toContinue = false;
     private boolean toReturn = false;
-//    private
+    private LinkedList<String> returnTypeStack;
     private String msg = "";
     private SimpleVariable returnVal = null;// 用于传递函数返回值，为空则置默认值 0（int）
 
@@ -29,7 +30,12 @@ public class Translator {
         simpleTable = new SimpleTable();
         arrayTable = new ArrayTable();
         functionTable = new FunctionTable();
+        returnTypeStack = new LinkedList<>();
         level = 1;
+    }
+
+    public List<String> getMessages() {
+        return messages;
     }
 
     // 先序遍历 AST，递归调用，目的：输出遍历过程中分析得出的信息，存到messages中
@@ -157,8 +163,26 @@ public class Translator {
                 ASTNode result_node = root.getChildren()[1];
                 if (result_node.getMaxChildNum() != 0) {
                     SimpleVariable log = translateExp(result_node.getChildren()[0]);
-                    returnVal = log; //返回值置入 returnVal中
-                }// 没有返回值则不加理会
+
+                    String type = returnTypeStack.pop();
+                    //返回值置入 returnVal中
+                    SimpleVariable tmp = new SimpleVariable(null,type,null,level);
+                    if (!type.equals(log.getType())) {
+                        if (type.equals("int")) {
+                            // 强制转换
+                            int val = (int) Double.parseDouble(log.getValue());
+                            messages.add("值类型与返回类型不匹配，" + log.getValue() + "强制转换为" + val + "并返回");
+                            tmp.setValue(String.valueOf(val));
+                        } else if (type.equals("real")) {
+                            double val = Double.parseDouble(log.getValue());
+                            messages.add("值类型与返回类型不匹配，" + log.getValue() + "自动类型转换为" + val + "并返回");
+                            tmp.setValue(String.valueOf(val));
+                        }
+                    }else
+                        tmp.setValue(log.getValue());
+                    returnVal = tmp;
+                }
+                // 没有返回值则不加理会
                 if (proNum > 0) {
                     toReturn = true;
                     messages.add("遇到return,程序退出");
@@ -685,6 +709,9 @@ public class Translator {
                             level++;
                             proNum++; //子程序个数加一
                             messages.add("正在调用函数" + identifier);
+                            // 返回类型入栈
+                            returnTypeStack.addFirst(func.getType());
+
                             func.getPro_node().flushFindTag(); // 调用之前就得flush
                             translate(func.getPro_node());
                             proNum--;
@@ -699,7 +726,7 @@ public class Translator {
                             simpleTable.deleteVariable(level);
                             arrayTable.deleteArrays(level);
                             level--;
-                        }else {
+                        } else {
                             simpleTable.deleteVariable(level + 1);
                             arrayTable.deleteArrays(level + 1);
                         }
@@ -750,15 +777,12 @@ public class Translator {
 
     private static void testWhileIf() {
         Translator t = new Translator();
-        String pro = "int a(int b,int c,int d,int e){\n" +
-                "if(b > 9)\n" +
-                "    return b + c / d || e;\n" +
-                "else\n" +
-                "    return a(10,1,1,0);\n" +
+        String pro = "real a(int c){\n" +
+                "    int b =3;\n" +
+                "    return b;\n" +
                 "}\n" +
-                "int io = a(1,2,6,0);";
-        ASTNode p = Executor.analyze(pro).getAstNode();
-        ASTNode whi = p.getChildren()[0].getChildren()[0];
+                "int k = a(2);";
+        Wrapper w = Executor.analyze(pro);
 
         t.simpleTable.addVariable(new SimpleVariable("p", "int", "0", 1));
         ArrayList<String> values = new ArrayList<>();
@@ -766,8 +790,9 @@ public class Translator {
         values.add("90");
         t.arrayTable.addVariable(new ArrayVariable("p2", "int", 2, values, 1));
 
-        t.translate(p);
-        System.out.println(t.messages);
+        List<String> msg = w.getMessages();
+        for (String m : msg)
+            System.out.println(m);
     }
 
     private static void testDeclareAssign() {
