@@ -46,10 +46,10 @@ public class Executor {
         t.translate(astNode);
         if (astNode != null) {
             // 语义分析里不能执行
-            astNode.addNullTips();
+//            astNode.addNullTips();
             astNode.setParentNull();
         }
-        Wrapper wrapper = new Wrapper(lexiResult.toString(),astNode,gramParser.getErrorStack(),t.getMessages());
+        Wrapper wrapper = new Wrapper(lexiResult.toString(),astNode,gramParser.getErrorStack(),t.getMessages(),t.getPrintList());
         return wrapper;
     }
 
@@ -61,28 +61,38 @@ public class Executor {
             FileInputStream fis = new FileInputStream(prefix + "/Grammar_Test.txt");
 
             /* 写入Txt文件 */
-            File write = new File(prefix + "/MyOutput.txt"); // 相对路径，如果没有则要建立一个新的output.txt文件
+            File write = new File(prefix + "/My.txt"); // 相对路径，如果没有则要建立一个新的output.txt文件
             BufferedWriter out = new BufferedWriter(new FileWriter(write));
 
             // 程序文件的每个程序都用 "-----" 来分隔
             String[] pros = readCodeFile(fis).split("-----");
             int index = 0;
             List<LexiNode> lexiNodes = null;
-            for (String pro : pros) {
-                out.write("\n--- " + index++ + " ---\n");
-                //进行词法分析得到分析节点集合
-                lexiNodes = LexicalAnalysis.lexicalScan(pro + "\0");
+//            for (String pro : pros) {
+//                out.write("\n--- " + index++ + " ---\n");
+//                //进行词法分析得到分析节点集合
+//                lexiNodes = LexicalAnalysis.lexicalScan(pro + "\0");
+//
+//                for (LexiNode node : lexiNodes) {
+//                    out.write(node.toString());
+//                    out.write("\n");
+//                }
+//            }
+            Wrapper w = analyze(pros[0]);
+            for (String msg:w.getMessages()){
+                out.write(msg + "\n");
+                System.out.println(msg);
+            }
 
-                for (LexiNode node : lexiNodes) {
-                    out.write(node.toString());
-                    out.write("\n");
-                }
+            System.out.println("\nprint 输出信息如下：");
+            for (String m:w.getPrintList()){
+                System.out.println(m);
             }
             out.flush(); // 把缓存区内容压入文件
             out.close(); // 最后记得关闭文件
 
-            GramParser gramParser = new GramParser();
-            gramParser.LLParse(LexicalAnalysis.preprocess(lexiNodes));
+//            GramParser gramParser = new GramParser();
+//            gramParser.LLParse(LexicalAnalysis.preprocess(lexiNodes));
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -25,7 +25,7 @@ public class LexicalAnalysis {
     private static LexiNode oneScan(char[] pro, LexiNode node) {
         HashMap<String, Integer> str2Code = str2IntMap();
         int p = node.getP(), i = 0;
-        char[] token = new char[20];
+        char[] token = new char[1000];
         char ch = pro[p++];
         String special = null;
 

@@ -11,16 +11,26 @@ public class Wrapper {
     private ASTNode astNode;
     private List<String> errors;
     private List<String> messages;
+    private List<String> printList;
 
     public Wrapper() {
     }
 
 
-    public Wrapper(String lexiResult, ASTNode astNode, List<String> errors, List<String> messages) {
+    public Wrapper(String lexiResult, ASTNode astNode, List<String> errors, List<String> messages, List<String> printList) {
         this.lexiResult = lexiResult;
         this.astNode = astNode;
         this.errors = errors;
         this.messages = messages;
+        this.printList = printList;
+    }
+
+    public List<String> getPrintList() {
+        return printList;
+    }
+
+    public void setPrintList(List<String> printList) {
+        this.printList = printList;
     }
 
     public String getLexiResult() {
