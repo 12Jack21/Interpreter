@@ -500,10 +500,7 @@ public class Translator {
             SimpleVariable v1 = varStack.pop();
             varStack.addFirst(calculate(v1, v2, top));
         }
-//        arithmetic.flushFindTag(); // TODO 刷新find标志，以供之后使用,放在递归函数的外部
         arith_val = varStack.pop();
-        if (varStack.size() == 0)
-            System.out.println("运算过程进行成功！！！");
         return arith_val;
     }
 
@@ -772,6 +769,7 @@ public class Translator {
                 SimpleVariable log = translateExp(logic);
                 messages.add("调用了 print函数，在屏幕上输出" + log.getValue()+",返回默认值 1");
                 printList.add(log.getValue()); // 存入输出栈
+                System.out.println(log.getValue()); //输出到屏幕上
                 variable = new SimpleVariable(null,"int","1",level);
             }
             // scan函数调用
@@ -791,7 +789,7 @@ public class Translator {
                         vvv.setValue(String.valueOf(i));
                     }else
                         vvv.setValue(String.valueOf(inp));
-                    messages.add("变量接受并被赋值为" + String.valueOf(inp) +",返回默认值 1");
+                    messages.add("变量" + var.getName()+ "接受并被赋值为" + String.valueOf(inp) +",返回默认值 1");
                     variable = new SimpleVariable(null,"int","1",level);
                 }else {
                     messages.add("变量" + var.getName() + "未声明，无法scan得到值，返回默认值 0");
