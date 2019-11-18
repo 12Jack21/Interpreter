@@ -98,7 +98,7 @@ public class CodeTable {
             "V->+ Arithmetic", "V->- Arithmetic", "V->", //att: ср╫А╨о
             "Item->Variable Factor",
             "Factor->* Item", "Factor->/ Item", "Factor->",
-            "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->print ( Argument )","Variable->scan ( Argument )",
+            "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->print ( Logic )","Variable->scan ( Logic )",
 
             "Call->( Argument )","Call->Index",
 //            "A->= Relation","A->",

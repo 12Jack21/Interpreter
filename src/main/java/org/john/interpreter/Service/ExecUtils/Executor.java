@@ -68,6 +68,7 @@ public class Executor {
             String[] pros = readCodeFile(fis).split("-----");
             int index = 0;
             List<LexiNode> lexiNodes = null;
+
 //            for (String pro : pros) {
 //                out.write("\n--- " + index++ + " ---\n");
 //                //进行词法分析得到分析节点集合
@@ -78,11 +79,11 @@ public class Executor {
 //                    out.write("\n");
 //                }
 //            }
+
             Wrapper w = analyze(pros[0]);
             for (String msg:w.getMessages()){
                 out.write(msg + "\n");
-                System.out.println(msg);
-            }
+                System.out.println(msg);            }
 
             System.out.println("\nprint 输出信息如下：");
             for (String m:w.getPrintList()){

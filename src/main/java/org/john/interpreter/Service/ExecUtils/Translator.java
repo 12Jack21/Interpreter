@@ -647,11 +647,12 @@ public class Translator {
                     SimpleVariable id = simpleTable.getVar(identifier);
                     if (id == null) {
                         messages.add("变量 " + identifier + "未被声明，无法使用,自动返回默认值 0");
-                        variable = new SimpleVariable(null, "int", "0", level);
+                        //TODO 这些变量是否应该都有名字
+                        variable = new SimpleVariable(identifier, "int", "0", level);
                     } else {
                         if (id.getValue() == null) {
                             messages.add("变量 " + identifier + "没有被初始化，无法使用，自动返回默认值 0");
-                            variable = new SimpleVariable(null, "int", "0", level);
+                            variable = new SimpleVariable(identifier, "int", "0", level);
                         } else
                             variable = id;
                     }
@@ -767,7 +768,7 @@ public class Translator {
             ASTNode id = variable_node.getChildren()[0];
             // print函数调用
             if (id.getValue().equals("print")){
-                ASTNode logic = variable_node.getChildren()[2].getChildren()[0];
+                ASTNode logic = variable_node.getChildren()[2];
                 SimpleVariable log = translateExp(logic);
                 messages.add("调用了 print函数，在屏幕上输出" + log.getValue()+",返回默认值 1");
                 printList.add(log.getValue()); // 存入输出栈
@@ -776,16 +777,20 @@ public class Translator {
             // scan函数调用
             else if (id.getValue().equals("scan")){
                 Scanner scanner = new Scanner(System.in);
-                // 拿到要赋值的变量
-                SimpleVariable var = translateExp(variable_node.getChildren()[2].getChildren()[0]);
+                // 拿到要赋值的变量 logic expression
+                SimpleVariable var = translateExp(variable_node.getChildren()[2]);
 
                 SimpleVariable vvv = simpleTable.getVar(var.getName()); // 拿到表里已经声明的变量
                 // TODO
                 if (vvv != null){
                     System.out.println("正在执行 scan，开始接受值给变量" + var.getName());
                     Double inp = scanner.nextDouble();
-
-                    vvv.setValue(String.valueOf(inp));
+                    if (vvv.getType().equals("int")){
+                        messages.add("scan时强制转换");
+                        int i = (int)inp.doubleValue();
+                        vvv.setValue(String.valueOf(i));
+                    }else
+                        vvv.setValue(String.valueOf(inp));
                     messages.add("变量接受并被赋值为" + String.valueOf(inp) +",返回默认值 1");
                     variable = new SimpleVariable(null,"int","1",level);
                 }else {
