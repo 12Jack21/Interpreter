@@ -33,7 +33,7 @@ while(operand <> 0){
     }
     print(a[head]);
     head = (head + 1) - ((head + 1) / n ) * n;
-  }else {
+  }else if(operand == 0.5){
     // print length
     int len = tail - head + l - (tail + l - head) / n * n;
     print(len);
@@ -45,3 +45,35 @@ while(operand <> 0){
   scan(operand);
   scan(op);
  }
+
+  if(operand > 1){
+    // push
+    int isFull = (tail + 1) - (tail + 1) / n * n  == head;
+    if(isFull){
+      print(err);
+      break;
+    }
+    a[tail] = op;
+    tail = (tail + 1) - ((tail + 1) / n) * n;
+  }else if(operand < -1){
+    // pop
+    int isEmpty = tail == head;
+    if(isEmpty){
+      print(err * -1);
+      break;
+    }
+    print(a[head]);
+    head = (head + 1) - ((head + 1) / n ) * n;
+  }else if(1+1){
+    // print length
+    int len = tail - head + l - (tail + l - head) / n * n;
+    print(len);
+  }else if (2)
+    print(111110000);
+/*
+  if (1)
+    a = 1;
+    else
+        if(2)
+         c ={1,2};
+         */

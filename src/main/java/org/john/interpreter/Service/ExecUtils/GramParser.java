@@ -54,7 +54,7 @@ public class GramParser {
             int y, x, pos; //LL分析表的 行和列位置
             int index = 0; //扫描的索引
             LexiNode node;
-            List<String> symList = signList.subList(0,12);
+            List<String> symList = signList.subList(0, 12);
             while (index < nodes.size()) {
 
                 node = nodes.get(index);
@@ -62,7 +62,7 @@ public class GramParser {
 
                 while (node.getCode() == -1) {
                     legal = false;
-                    errorStack.add("第" + node.getRow() + "行，第" + node.getCol() + "列 " + node.getSymbol() +" 出现无法识别的 token");
+                    errorStack.add("第" + node.getRow() + "行，第" + node.getCol() + "列 " + node.getSymbol() + " 出现无法识别的 token");
                     index++;
                     if (index >= nodes.size())
                         break;
@@ -82,7 +82,7 @@ public class GramParser {
                         curNode = curNode.findLefted();
 
                         if (symList.contains(top) && !curNode.getName().equals("Digit")) // 为运算符
-                            curNode.addChild(new ASTNode(0,"symbol",top,true,true));
+                            curNode.addChild(new ASTNode(0, "symbol", top, true, true));
                         else
                             curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
 
@@ -102,7 +102,7 @@ public class GramParser {
                         curNode = curNode.findLefted();
                         curNode.addChild(new ASTNode(0, top, true, false));
 
-                        errorStack.add("第" + node.getRow() + "行,第" + node.getCol() + "列处 " + node.getSymbol() +" 出现语法错误,缺少 " + top);
+                        errorStack.add("第" + node.getRow() + "行,第" + node.getCol() + "列处 " + node.getSymbol() + " 出现语法错误,缺少 " + top);
 
                     }
                     updateMatch(top); //更新匹配栈 TODO 丢掉一个语句的时候，该怎么处理这个栈---
@@ -120,22 +120,33 @@ public class GramParser {
                             LexiNode temp = nodes.get(t_index++);
                             String[] p1 = {"||", "&&", "<", "<=", "<>", ">", ">=", "==", "+", "-", "*", "/", "(", ")"};
                             String selection = null;
-                            int mode = top.equals("Statement") ? 0:1;
-                            while (!temp.getSymbol().trim().equals(";")) {
-                                for (String p : p1) {
-                                    if (p.equals(temp.getSymbol().trim())) {
-                                        selection = special_production[mode * 2];
+                            int mode = top.equals("Statement") ? 0 : 1;
+
+                            if (mode == 1) {
+                                // else if 产生式 判断下一个符号是否是 if 即可
+                                temp = nodes.get(t_index);
+                                if (temp.getSymbol().equals("if"))
+                                    selection = special_production[mode * 2];
+                                else
+                                    selection = special_production[mode * 2 + 1];
+                            } else {
+                                // statement 产生式
+                                while (!temp.getSymbol().trim().equals(";")) {
+                                    for (String p : p1) {
+                                        if (p.equals(temp.getSymbol().trim())) {
+                                            selection = special_production[mode * 2];
+                                            break;
+                                        }
+                                    }
+                                    if (selection != null)
+                                        break;
+                                    if ("=".equals(temp.getSymbol().trim())) {
+                                        selection = special_production[mode * 2 + 1];
                                         break;
                                     }
-                                }
-                                if (selection != null)
-                                    break;
-                                if ("=".equals(temp.getSymbol().trim())) {
-                                    selection = special_production[mode * 2 + 1];
-                                    break;
-                                }
 
-                                temp = nodes.get(t_index++);
+                                    temp = nodes.get(t_index++);
+                                }
                             }
                             if (selection == null)
                                 selection = special_production[mode * 2];

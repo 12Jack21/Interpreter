@@ -53,7 +53,7 @@ public class CodeTable {
     // 当作特殊情况处理的矛盾产生式
     public static String[] special_production = {
             "Statement->Logic ;","Statement->Assignment ;",
-//            "Assignment->identifier Index X",
+            "ELSEIF->else if ( Logic ) H ELSEIF","ELSEIF->",
     };
     public static String[] value_contain_token = {
             "identifier","integer","fraction"
@@ -81,7 +81,8 @@ public class CodeTable {
             "Y->Logic C'","Y->",//TODO 删掉空数组初始化 ？
             "C'->, Y","C'->",             // for array assignment {}
 
-            "IF->if ( Logic ) H ELSE",    //if
+            "IF->if ( Logic ) H ELSEIF ELSE",    //if
+            "ELSEIF->else if ( Logic ) H ELSEIF","ELSEIF->",          //else if
             "ELSE->else H","ELSE->",      //else
             "WHILE->while ( Logic ) H",   //while , do-----------undone---
             "H->Statement","H->{ Pro }",

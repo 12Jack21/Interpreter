@@ -23,7 +23,7 @@ public class Translator {
     private String msg = "";
     private SimpleVariable returnVal = null;// 用于传递函数返回值，为空则置默认值 0（int）
 
-    private LinkedList<String > printList;
+    private LinkedList<String> printList;
 
     public Translator() {
         simpleTable = new SimpleTable();
@@ -110,17 +110,46 @@ public class Translator {
             translateAssignment(root, null);
         } else if (name.equals("IF")) {
             ASTNode logic = root.getChildren()[2];
+
             SimpleVariable log = translateExp(logic);
             boolean re = (int) Double.parseDouble(log.getValue()) == 1;
             if (re) {
                 messages.add("满足 if条件，执行下条程序");
                 translate(root.getChildren()[4]);
             } else {
-                messages.add("不满足 if条件");
-                if (root.getChildren()[5].getMaxChildNum() != 0) {
-                    // ELSE->else H
-                    messages.add("执行 else里的程序");
-                    translate(root.getChildren()[5].getChildren()[1]);
+                boolean exeELSEIF = false;
+                ASTNode ELSEIF = root.getChildren()[5];
+                //TODO 判断是否有else if
+                if (ELSEIF.getMaxChildNum() != 0) {
+                    ArrayList<ASTNode> logics = translateELSEIF(ELSEIF);
+                    int num = 0;
+                    while (num < logics.size()) {
+                        // 一个一个地判断 else if 的条件
+                        re = (int) Double.parseDouble(translateExp(logics.get(num)).getValue()) == 1;
+                        if (re) {
+                            messages.add("满足第" + (num + 1) + "个 else if 语句，执行该块的程序");
+                            exeELSEIF = true;
+                            break;
+                        }
+                        num++;
+                    }
+                    if (exeELSEIF) {
+                        // 找到执行的 else if 块
+                        while (num-- > 0) {
+                            ELSEIF = ELSEIF.getChildren()[6];
+                        }
+                        ASTNode H_node = ELSEIF.getChildren()[5];
+                        translate(H_node); // 执行 H_node
+                    }
+                }
+
+                // else if 里的条件都不满足时
+                if (!exeELSEIF) {
+                    if (root.getChildren()[6].getMaxChildNum() != 0) {
+                        // ELSE->else H
+                        messages.add("执行 else里的程序");
+                        translate(root.getChildren()[5].getChildren()[1]);
+                    }
                 }
             }
         } else if (name.equals("H")) {
@@ -154,7 +183,7 @@ public class Translator {
             else
                 messages.add("不满足while循环条件，循环退出");
             whileNum--;
-        } else if (name.equals("Logic")){
+        } else if (name.equals("Logic")) {
             SimpleVariable s = translateExp(root);
         } else if (name.equals("Interrupt")) {
             String na = root.getChildren()[0].getName();
@@ -195,6 +224,15 @@ public class Translator {
                 }
             }
         }
+    }
+
+    private ArrayList<ASTNode> translateELSEIF(ASTNode ELSEIF) {
+        ArrayList<ASTNode> logics = new ArrayList<>();
+        logics.add(ELSEIF.getChildren()[3]);
+        if (ELSEIF.getChildren()[6].getMaxChildNum() != 0) {
+            logics.addAll(translateELSEIF(ELSEIF.getChildren()[6]));
+        }
+        return logics;
     }
 
     // when CC->, Parameter, like translateY
@@ -761,39 +799,39 @@ public class Translator {
         } else if (variable_node.getMaxChildNum() == 3) {
             // "Variable->( Relation )"
             variable = translateExp(variable_node.getChildren()[1]);
-        } else if (variable_node.getMaxChildNum() == 4){
+        } else if (variable_node.getMaxChildNum() == 4) {
             ASTNode id = variable_node.getChildren()[0];
             // print函数调用
-            if (id.getValue().equals("print")){
+            if (id.getValue().equals("print")) {
                 ASTNode logic = variable_node.getChildren()[2];
                 SimpleVariable log = translateExp(logic);
-                messages.add("调用了 print函数，在屏幕上输出" + log.getValue()+",返回默认值 1");
+                messages.add("调用了 print函数，在屏幕上输出" + log.getValue() + ",返回默认值 1");
                 printList.add(log.getValue()); // 存入输出栈
                 System.out.println(log.getValue()); //输出到屏幕上
-                variable = new SimpleVariable(null,"int","1",level);
+                variable = new SimpleVariable(null, "int", "1", level);
             }
             // scan函数调用
-            else if (id.getValue().equals("scan")){
+            else if (id.getValue().equals("scan")) {
                 Scanner scanner = new Scanner(System.in);
                 // 拿到要赋值的变量 logic expression
                 SimpleVariable var = translateExp(variable_node.getChildren()[2]);
 
                 SimpleVariable vvv = simpleTable.getVar(var.getName()); // 拿到表里已经声明的变量
                 // TODO
-                if (vvv != null){
+                if (vvv != null) {
                     System.out.println("正在执行 scan，开始接受值给变量" + var.getName());
                     Double inp = scanner.nextDouble();
-                    if (vvv.getType().equals("int")){
+                    if (vvv.getType().equals("int")) {
                         messages.add("scan时强制转换");
-                        int i = (int)inp.doubleValue();
+                        int i = (int) inp.doubleValue();
                         vvv.setValue(String.valueOf(i));
-                    }else
+                    } else
                         vvv.setValue(String.valueOf(inp));
-                    messages.add("变量" + var.getName()+ "接受并被赋值为" + String.valueOf(inp) +",返回默认值 1");
-                    variable = new SimpleVariable(null,"int","1",level);
-                }else {
+                    messages.add("变量" + var.getName() + "接受并被赋值为" + String.valueOf(inp) + ",返回默认值 1");
+                    variable = new SimpleVariable(null, "int", "1", level);
+                } else {
                     messages.add("变量" + var.getName() + "未声明，无法scan得到值，返回默认值 0");
-                    variable = new SimpleVariable(null,"int","0",level);
+                    variable = new SimpleVariable(null, "int", "0", level);
                 }
             }
         }
