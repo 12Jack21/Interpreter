@@ -119,7 +119,7 @@ public class Translator {
             } else {
                 boolean exeELSEIF = false;
                 ASTNode ELSEIF = root.getChildren()[5];
-                //TODO 判断是否有else if
+                // 判断是否有else if
                 if (ELSEIF.getMaxChildNum() != 0) {
                     ArrayList<ASTNode> logics = translateELSEIF(ELSEIF);
                     int num = 0;
@@ -235,7 +235,7 @@ public class Translator {
         return logics;
     }
 
-    // when CC->, Parameter, like translateY
+    // when CC->, Parameter, like translateY， just accept simple variable
     private ArrayList<Object> translateParameter(ASTNode parameter) throws Exception {
         ArrayList<Object> parameters = new ArrayList<>();
 
@@ -275,6 +275,16 @@ public class Translator {
     private void translateAssignment(ASTNode assignment, String type) {
         String identifier = assignment.getChildren()[0].getValue();
         translateIndexWithX(assignment.getChildren()[1], assignment.getChildren()[2], identifier, type);
+    }
+
+    // 翻译 Index 节点判断为几维数组
+    private ArrayList<SimpleVariable> translateIndex(ASTNode index) {
+        ArrayList<SimpleVariable> indexs = new ArrayList<>();
+        if (index.getMaxChildNum() != 0) {
+            indexs.add(translateExp(index.getChildren()[1]));
+            indexs.addAll(translateIndex(index.getChildren()[3]));
+        }
+        return indexs;
     }
 
     // if type == null,则为 Assignment调用的，否则为 Declare调用
@@ -347,137 +357,186 @@ public class Translator {
             }
         } else {
             // 声明数组，或给数组下标的位置赋值
+            ArrayList<SimpleVariable> dimension_logics = translateIndex(index_node);
+            int index_type_tag = 0;
+            ArrayList<Integer> dimension_index = new ArrayList<>();// 下标列表
+            // 检查下标是否合法,不合法则自动退出
+            for (SimpleVariable s : dimension_logics) {
+                if (s.getType().equals("real")) {
+                    messages.add("数组下标不允许为小数" + s.getValue() + " ，只能为正整数");
+                    return;
+                } else {
+                    int ix = Integer.parseInt(s.getValue());
+                    if (ix < 0) {
+                        messages.add("数组时下标不允许为负数" + s.getValue() + " ，只能为正整数");
+                        return;
+                    } else
+                        dimension_index.add(ix);
+                }
+            }
             ASTNode logic = index_node.getChildren()[1];
             SimpleVariable array_length = translateExp(logic);
 
-            if (array_length.getType().equals("real")) {
-                messages.add("数组下标不允许为小数" + array_length.getValue() + " ，只能为正整数");
-            } else {
-                int ix = Integer.parseInt(array_length.getValue());
-                if (ix < 0)
-                    messages.add("数组时下标不允许为负数" + array_length.getValue() + " ，只能为正整数");
+            // 下标已经满足了条件
+            if (X_node.getMaxChildNum() == 0) {
+                // 只有声明没有初始化的情况
+                if (type == null) //赋值时此语句无意义
+                    return;
+                // 添加变量到 变量符号表中 TODO 未赋值的使用问题，联系 translateVariable(),下面同理
+                ArrayList<String> zeroValues = new ArrayList<>();
+                int total = 1; //总的数组内元素数量
+                for (Integer ix : dimension_index)
+                    total *= ix;
+                if (type.equals("int")) {
+                    while (total-- > 0) {
+                        zeroValues.add(String.valueOf(0));
+                    }
+                } else if (type.equals("real")) {
+                    while (total-- > 0) {
+                        zeroValues.add(String.valueOf(0.0));
+                    }
+                }
+                if (!arrayTable.addVariable(new ArrayVariable(identifier, type, dimension_index, zeroValues, level)))
+                    messages.add("数组变量" + identifier + "已被声明过！");
                 else {
-                    // 下标已经满足了条件
-                    if (X_node.getMaxChildNum() == 0) {
-                        if (type == null) //赋值时此语句无意义
-                            return;
-                        // 只有声明没有初始化的情况
-                        // 添加变量到 变量符号表中 TODO 未赋值的使用问题，联系 translateVariable(),下面同理
+                    String msg = "数组变量" + identifier + "被声明为" + type + "型,维度为 " + dimension_index.toString();
+                    msg += " ,含" + total + "个元素，并自动初始化为" + zeroValues;
+                    messages.add(msg);
+                }
+            } else {
+                // X ->= O，伴随着初始化（赋值）的情况
+                ASTNode O_node = X_node.getChildren()[1];
+                if (O_node.getMaxChildNum() != 3) {
+                    if (type != null) {
+                        messages.add("不能用单独的表达式来初始化数组" + identifier);
+                        // 不能初始化，就自动声明
                         ArrayList<String> zeroValues = new ArrayList<>();
-                        int i = ix;
+                        int total = 1; //总的数组内元素数量
+                        for (Integer ix : dimension_index)
+                            total *= ix;
                         if (type.equals("int")) {
-                            while (i-- > 0) {
+                            while (total-- > 0) {
                                 zeroValues.add(String.valueOf(0));
                             }
                         } else if (type.equals("real")) {
-                            while (i-- > 0) {
+                            while (total-- > 0) {
                                 zeroValues.add(String.valueOf(0.0));
                             }
                         }
-                        if (!arrayTable.addVariable(new ArrayVariable(identifier, type, ix, zeroValues, level)))
+                        if (!arrayTable.addVariable(new ArrayVariable(identifier, type, dimension_index, zeroValues, level)))
                             messages.add("数组变量" + identifier + "已被声明过！");
-                        else
-                            messages.add("数组变量" + identifier + "被声明为" + type +
-                                    "型,含" + ix + "个元素，并自动初始化为" + zeroValues);
+                        else {
+                            String msg = "数组变量" + identifier + "被声明为" + type + "型,维度为 " + dimension_index.toString();
+                            msg += " ,含" + total + "个元素，并自动初始化为" + zeroValues;
+                            messages.add(msg);
+                        }
+
                     } else {
-                        // X ->= O，伴随着初始化（赋值）的情况
-                        ASTNode O_node = X_node.getChildren()[1];
-                        if (O_node.getMaxChildNum() != 3) {
-                            if (type != null) {
-                                messages.add("不能用单独的表达式来初始化数组" + identifier);
-                                if (!arrayTable.addVariable(new ArrayVariable(identifier, type, ix, new ArrayList<>(ix), level)))
-                                    messages.add("数组变量" + identifier + "已被声明过！");
-                                else
-                                    messages.add("数组变量" + identifier + "被声明为" + type + "型,含" + ix + "个元素");
-                            } else {
-                                // 数组下标位置 赋值的情况
-                                ArrayVariable v = arrayTable.getArray(identifier);
-                                if (v == null)
-                                    messages.add("数组变量未声明，无法赋值");
-                                else {
-                                    if (ix >= v.getLength())
-                                        messages.add("数组下标" + ix + " 越界");
-                                    else {
-                                        SimpleVariable log = translateExp(O_node.getChildren()[0]);
-                                        if (log != null) {
-                                            if (!v.getType().equals(log.getType())) {
-                                                if (v.getType().equals("int")) {
-                                                    // 强制转换
-                                                    int val = (int) Double.parseDouble(log.getValue());
-                                                    messages.add("类型不匹配，" + log.getValue() + "强制转换为" + val);
-                                                    v.getValues().set(ix, String.valueOf(val));
-                                                } else if (v.getType().equals("real")) {
-                                                    double val = Double.parseDouble(log.getValue());
-                                                    messages.add("类型不匹配，" + log.getValue() + "自动类型转换为" + val);
-                                                    v.getValues().set(ix, String.valueOf(val));
-                                                }
-                                            } else
-                                                v.getValues().set(ix, log.getValue());
-                                            messages.add("数组变量" + identifier + "第" + ix + "个位置被赋值为" + v.getValues().get(ix)
-                                                    + ",数组当前值为" + v.getValues());
-                                        }
+                        // 数组下标位置 赋值的情况
+                        ArrayVariable v = arrayTable.getArray(identifier);
+                        if (v == null)
+                            messages.add("数组变量未声明，无法赋值");
+                        else {
+                            // 判断下标是否过多
+                            if (dimension_index.size() != v.getDimensionList().size()) {
+                                messages.add("数组下标数量不匹配，无法赋值");
+                                return;
+                            }
+                            ArrayList<Integer> dimensionList = v.getDimensionList();
+                            // 判断下标是否越界， 同时计算"物理"存储的下标
+                            int real_index = 0;
+                            for (int i = 0; i < dimensionList.size(); i++) {
+                                if (dimension_index.get(i) >= dimensionList.get(i)) {
+                                    messages.add("第 " + i + " 个数组下标越界!");
+                                    return;
+                                } else
+                                    real_index += dimension_index.get(i) * dimensionList.get(i);
+                            }
+
+                            SimpleVariable log = translateExp(O_node.getChildren()[0]);
+                            if (log != null) {
+                                if (!v.getType().equals(log.getType())) {
+                                    if (v.getType().equals("int")) {
+                                        // 强制转换
+                                        int val = (int) Double.parseDouble(log.getValue());
+                                        messages.add("类型不匹配，" + log.getValue() + "强制转换为" + val);
+                                        v.getValues().set(real_index, String.valueOf(val));
+                                    } else if (v.getType().equals("real")) {
+                                        double val = Double.parseDouble(log.getValue());
+                                        messages.add("类型不匹配，" + log.getValue() + "自动类型转换为" + val);
+                                        v.getValues().set(real_index, String.valueOf(val));
                                     }
+                                } else
+                                    v.getValues().set(real_index, log.getValue());
+                                messages.add("数组变量" + identifier + "第" + real_index + "个‘物理’位置被赋值为" + v.getValues().get(real_index)
+                                        + ",数组当前值为" + v.getValues()); //TODO 修改多维数据的显示方式
+                            }
+
+
+                        }
+                    }
+                } else {
+                    if (type == null) {
+                        //TODO 多维数组除外
+                        messages.add("不能用一个数组来赋值");
+                        return;
+                    }
+                    // 数组初始化 O->{ Y }, 多维的也转成一维的
+                    ASTNode Y_node = O_node.getChildren()[1];
+                    ArrayList<String> vals;
+                    int total = 1; //总的数组内元素数量
+                    for (Integer ix : dimension_index)
+                        total *= ix;
+                    int i = total;
+                    if (Y_node.getMaxChildNum() == 0) {
+                        vals = new ArrayList<>();
+                        // 数组声明为空时，全部赋给初始值
+                        if (type.equals("int")) {
+                            while (i-- > 0) {
+                                vals.add(String.valueOf(0));
+                            }
+                        } else if (type.equals("real")) {
+                            while (i-- > 0) {
+                                vals.add(String.valueOf(0.0));
+                            }
+                        }
+                    } else {
+                        // 数组里的值
+                        ArrayList<SimpleVariable> array_values = translateY(Y_node);
+                        vals = convertArray(array_values, type);
+                        if (vals.size() > total) {
+                            messages.add("用于初始化的数组内元素过多，自动全部赋了初值");
+                            vals = new ArrayList<>();
+                            if (type.equals("int")) {
+                                while (i-- > 0) {
+                                    vals.add(String.valueOf(0));
+                                }
+                            } else if (type.equals("real")) {
+                                while (i-- > 0) {
+                                    vals.add(String.valueOf(0.0));
                                 }
                             }
                         } else {
-                            if (type == null) {
-                                //TODO 多维数组除外
-                                messages.add("不能用一个数组来赋值");
-                                return;
+                            // 数组元素不足时，自动填充初始值
+                            messages.add("用于初始化的数组内元素过少，自动用初值填充了剩下的元素");
+                            i = vals.size();
+                            while (i < total) {
+                                vals.add(type.equals("int") ? String.valueOf(0) : String.valueOf(0.0));
+                                i++;
                             }
-                            // 数组初始化 O->{ Y }
-                            ASTNode Y_node = O_node.getChildren()[1];
-                            ArrayList<String> vals;
-                            int i = ix;
-                            if (Y_node.getMaxChildNum() == 0) {
-                                vals = new ArrayList<>();
-                                // 数组声明为空时，全部赋给初始值
-                                if (type.equals("int")) {
-                                    while (i-- > 0) {
-                                        vals.add(String.valueOf(0));
-                                    }
-                                } else if (type.equals("real")) {
-                                    while (i-- > 0) {
-                                        vals.add(String.valueOf(0.0));
-                                    }
-                                }
-                            } else {
-                                // 数组里的值
-                                ArrayList<SimpleVariable> array_values = translateY(Y_node);
-                                vals = convertArray(array_values, type);
-                                if (vals.size() > ix) {
-                                    messages.add("用于初始化的数组内元素过多，自动全部赋了初值");
-                                    vals = new ArrayList<>();
-                                    if (type.equals("int")) {
-                                        while (i-- > 0) {
-                                            vals.add(String.valueOf(0));
-                                        }
-                                    } else if (type.equals("real")) {
-                                        while (i-- > 0) {
-                                            vals.add(String.valueOf(0.0));
-                                        }
-                                    }
-                                } else {
-                                    //数组元素不足时，自动填充初始值
-                                    i = vals.size();
-                                    while (i < ix) {
-                                        vals.add(type.equals("int") ? String.valueOf(0) : String.valueOf(0.0));
-                                        i++;
-                                    }
-                                }
-                            }
-                            ArrayVariable arrayVariable = new ArrayVariable(identifier, type,
-                                    vals.size(), vals, level);
-                            if (arrayTable.addVariable(arrayVariable))
-                                messages.add("数组变量" + identifier + "被声明为" + type +
-                                        "型并被初始化为 " + arrayVariable.getValues().toString());
-                            else
-                                //TODO 考虑声明时全部初始化为 初始值
-                                messages.add("数组变量" + identifier + "已被声明过,无法初始化！");
                         }
                     }
+                    ArrayVariable arrayVariable = new ArrayVariable(identifier, type,
+                            dimension_index, vals, level);
+                    if (arrayTable.addVariable(arrayVariable))
+                        messages.add("数组变量" + identifier + "被声明为" + type +
+                                "型并被初始化为 " + arrayVariable.getValues().toString());
+                    else
+                        //TODO 考虑声明时全部初始化为 初始值
+                        messages.add("数组变量" + identifier + "已被声明过,无法进行初始化！");
                 }
             }
+
         }
     }
 
@@ -495,7 +554,7 @@ public class Translator {
         return variables;
     }
 
-    // 需要进行短路求值
+    // TODO logical expression 需要进行短路求值
 //    private SimpleVariable translateLogic(ASTNode logic){
 //        SimpleVariable log = null;
 //
@@ -693,35 +752,64 @@ public class Translator {
                     }
                 } else {
                     // 数组取下标的值 TODO 不正确则返回 默认值 0
-                    SimpleVariable index = translateExp(index_node.getChildren()[1]); //Logical expression
-                    if (index.getType().equals("real")) {
-                        messages.add("数组下标 " + index.getValue() + "不能为小数，自动返回默认值 0");
-                        new SimpleVariable(null, "int", "0", level);
-                    } else if (Integer.parseInt(index.getValue()) < 0) {
-                        messages.add("数组下标" + index.getValue() + "不能为负数,自动返回默认值 0");
+//                    SimpleVariable index = translateExp(index_node.getChildren()[1]); //Logical expression
+                    ArrayList<SimpleVariable> dimension_logics = translateIndex(index_node);
+                    ArrayList<Integer> dimension_index = new ArrayList<>();// 下标列表
+                    // 检查下标是否合法,不合法则自动退出
+                    for (SimpleVariable s : dimension_logics) {
+                        if (s.getType().equals("real")) {
+                            messages.add("取值时数组下标不允许为小数" + s.getValue() + " ，只能为正整数,自动返回默认值 0");
+                            variable = new SimpleVariable(null, "int", "0", level);
+                            return variable;
+                        } else {
+                            int ix = Integer.parseInt(s.getValue());
+                            if (ix < 0) {
+                                messages.add("取值时数组时下标不允许为负数" + s.getValue() + " ，只能为正整数，自动返回默认值 0");
+                                variable = new SimpleVariable(null, "int", "0", level);
+                                return variable;
+                            } else
+                                dimension_index.add(ix);
+                        }
+                    }
+
+                    ArrayVariable arrayVariable = arrayTable.getArray(identifier);
+                    if (arrayVariable == null) {
+                        messages.add("数组变量" + identifier + "未声明，无法使用，自动返回默认值 0");
                         variable = new SimpleVariable(null, "int", "0", level);
                     } else {
-                        ArrayVariable arrayVariable = arrayTable.getArray(identifier);
-                        if (arrayVariable == null) {
-                            messages.add("数组变量" + identifier + "未声明，无法使用，自动返回默认值 0");
+                        // 检测下标越界，未赋值等问题
+                        if (arrayVariable.getValues() == null || arrayVariable.getValues().size() == 0) {
+                            messages.add("数组" + identifier + "未被赋值，无法使用，自动返回默认值 0");
                             variable = new SimpleVariable(null, "int", "0", level);
                         } else {
-                            // 检测下标越界，未赋值等问题
-                            if (arrayVariable.getValues() == null || arrayVariable.getValues().size() == 0) {
-                                messages.add("数组" + identifier + "未被赋值，无法使用，自动返回默认值 0");
+
+                            // 判断下标是否过多
+                            if (dimension_index.size() != arrayVariable.getDimensionList().size()) {
+                                messages.add("数组下标数量不匹配,无法取数组中的值，自动返回默认值 0");
+                                return new SimpleVariable(null, "int", "0", level);
+                            }
+                            ArrayList<Integer> dimensionList = arrayVariable.getDimensionList();
+                            // 判断下标是否越界， 同时计算"物理"存储的下标
+                            int real_index = 0;
+                            for (int i = 0; i < dimensionList.size(); i++) {
+                                if (dimension_index.get(i) >= dimensionList.get(i)) {
+                                    messages.add("第 " + i + " 个数组下标越界!自动返回默认值 0");
+                                    return new SimpleVariable(null, "int", "0", level);
+                                } else
+                                    real_index += dimension_index.get(i) * dimensionList.get(i);
+                            }
+
+                            Integer ix = Integer.valueOf(index.getValue());
+                            if (ix > arrayVariable.getLength() - 1) {
+                                messages.add("数组" + identifier + "下标" + ix + "越界,自动返回默认值 0");
                                 variable = new SimpleVariable(null, "int", "0", level);
                             } else {
-                                Integer ix = Integer.valueOf(index.getValue());
-                                if (ix > arrayVariable.getLength() - 1) {
-                                    messages.add("数组" + identifier + "下标" + ix + "越界,自动返回默认值 0");
-                                    variable = new SimpleVariable(null, "int", "0", level);
-                                } else {
-                                    ArrayList<String> array = arrayVariable.getValues();
-                                    // 假设数组里一定有值
-                                    variable = new SimpleVariable(null, arrayVariable.getType(), array.get(ix), level);
-                                }
+                                ArrayList<String> array = arrayVariable.getValues();
+                                // 假设数组里一定有值
+                                variable = new SimpleVariable(null, arrayVariable.getType(), array.get(ix), level);
                             }
                         }
+
                     }
                 }
             } else {

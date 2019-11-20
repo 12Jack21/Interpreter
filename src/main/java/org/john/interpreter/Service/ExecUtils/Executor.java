@@ -126,7 +126,7 @@ public class Executor {
     }
 
     public static void main(String[] args) {
-        testProgram();
-//        testOnBack();
+//        testProgram();
+        testOnBack();
     }
 }

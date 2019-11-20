@@ -68,7 +68,7 @@ public class CodeTable {
             "Assignment->identifier Index X", // Single Assignment
             "Declare->Type Assign",           // Declaration
             "Type->int","Type->real","Type->char","Type->void", // Type Specifier
-            "Index->[ Logic ]", "Index->", // index allows expression
+            "Index->[ Logic ] Index", "Index->", //TODO index allows expression
             "C->, Assignment C","C->",        // Multiple declare or assign
 
             "Assign->identifier F",

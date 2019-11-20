@@ -6,6 +6,7 @@ public class ArrayVariable {
     private String arrayName;
     private String type;
     private int length; // 数组长度
+    private ArrayList<Integer> dimensionList; // 多维数组的维度表
     private ArrayList<String> values;
     private int level; // 作用域
 
@@ -17,6 +18,14 @@ public class ArrayVariable {
         this.values = values;
         this.level = level;
     }
+    public ArrayVariable(String arrayName, String type, ArrayList<Integer> dimensionList, ArrayList<String> values,int level){
+        this.arrayName = arrayName;
+        this.type = type;
+        this.dimensionList = dimensionList;
+        this.values = values;
+        this.level = level;
+    }
+
     public void setArrayName(String arrayName){
         this.arrayName = arrayName;
     }
@@ -46,5 +55,18 @@ public class ArrayVariable {
     }
     public int getLevel(){
         return level;
+    }
+
+    public ArrayList<Integer> getDimensionList() {
+        return dimensionList;
+    }
+
+    public void setDimensionList(ArrayList<Integer> dimensionList) {
+        this.dimensionList = dimensionList;
+    }
+
+    public Integer getMaxLengthByDimension(int dimension){
+        // 从第0维开始
+        return dimensionList.get(dimension);
     }
 }
