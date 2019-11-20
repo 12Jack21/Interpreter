@@ -1,2 +1,3 @@
-char c ='f';
-char c[10] = "wqeqweqwe";
+for(int i=0;i<200;i= i+1){
+    char c ='\t';
+}

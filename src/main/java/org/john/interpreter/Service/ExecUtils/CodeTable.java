@@ -9,14 +9,14 @@ public class CodeTable {
 
     //关键词表
     public static String[] keys = {"if", "else", "while", "do", "int",
-            "real", "char", "print", "scan", "break", "continue","return"};
+            "real", "char", "for","print", "scan", "break", "continue", "return"};
 
     // 把 '.' 删去
     public static String[] signs = {"/", "+", "-", "*", "<", ">", "==", "<>", ">=",
             "<=", "&&", "||", "=", "(", ")", "{", "}", "[", "]", "'", "\"", ";",
             ",", "\\n", "\\r", "\\t", "\n", "\r", "\t", "//", "/*", "*/"};
     // 特例
-    public static String[] specials = {"identifier", "integer", "fraction","character","string"};
+    public static String[] specials = {"identifier", "integer", "fraction", "character", "string"};
 
     public static char[] invs = {'\n', '\r', '\t'};// TODO 转义字符，题目要求是哪种， '\n' or '\\n'
 
@@ -38,58 +38,62 @@ public class CodeTable {
             map.put(specials[i - 1], i + keys.length + signs.length);
 
         map.put("error", -1); // error
-        map.put("#",-2);
+        map.put("#", -2);
 
         return map;
     }
 
-    public static HashMap<Integer,String> int2StrMap(){
-        HashMap<Integer,String> map = new HashMap<>();
-        for (Map.Entry<String,Integer> entry:str2IntMap().entrySet()){
-            map.put(entry.getValue(),entry.getKey());
+    public static HashMap<Integer, String> int2StrMap() {
+        HashMap<Integer, String> map = new HashMap<>();
+        for (Map.Entry<String, Integer> entry : str2IntMap().entrySet()) {
+            map.put(entry.getValue(), entry.getKey());
         }
         return map;
     }
 
     // 当作特殊情况处理的矛盾产生式
     public static String[] special_production = {
-            "Statement->Logic ;","Statement->Assignment ;",
-            "ELSEIF->else if ( Logic ) H ELSEIF","ELSEIF->",
+            "Statement->Logic ;", "Statement->Assignment ;",
+            "ELSEIF->else if ( Logic ) H ELSEIF", "ELSEIF->",
     };
     public static String[] value_contain_token = {
-            "identifier","integer","fraction"
+            "identifier", "integer", "fraction"
     };
 
     //"S->Logic;" production versus "S->Declare"
     //产生式
     public static String[] productions = {
-            "Pro->Statement Pro", "Pro->{ Pro } Pro","Pro->",  // att: follow set of Pro should contains #
+            "Pro->Statement Pro", "Pro->{ Pro } Pro", "Pro->",  // att: follow set of Pro should contains #
             "Statement->Declare", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE",
-            "Statement->Interrupt","Statement->Logic ;","Statement->;",
+            "Statement->Interrupt", "Statement->Logic ;","Statement->FOR","Statement->;",
 
             "Assignment->identifier Index X", // Single Assignment
             "Declare->Type Assign",           // Declaration
-            "Type->int","Type->real","Type->char","Type->void", // Type Specifier
+            "Type->int", "Type->real", "Type->char", "Type->void", // Type Specifier
             "Index->[ Logic ] Index", "Index->", //TODO index allows expression
-            "C->, Assignment C","C->",        // Multiple declare or assign
+            "C->, Assignment C", "C->",        // Multiple declare or assign
 
             "Assign->identifier F",
-            "F->( Parameter ) { Pro }","F->Index X C ;",         // define function
-            "Parameter->Type identifier Index CC","Parameter->", //function parameters no.24
-            "CC->, Parameter","CC->",     // can replace CC with original non-terminal
+            "F->( Parameter ) { Pro }", "F->Index X C ;",         // define function
+            "Parameter->Type identifier Index CC", "Parameter->", //function parameters no.24
+            "CC->, Parameter", "CC->",     // can replace CC with original non-terminal
 
-            "X->= O","X->", //no.28
-            "O->Logic","O->{ Y }",     // array assignment
-            "Y->Logic C'","Y->",//TODO 删掉空数组初始化 ？
-            "C'->, Y","C'->",             // for array assignment {}
+            "X->= O", "X->", //no.28
+            "O->Logic", "O->{ Y }",     // array assignment
+            "Y->Logic C'", "Y->",//TODO 删掉空数组初始化 ？
+            "C'->, Y", "C'->",             // for array assignment {}
 
             "IF->if ( Logic ) H ELSEIF ELSE",    //if
-            "ELSEIF->else if ( Logic ) H ELSEIF","ELSEIF->",          //else if
-            "ELSE->else H","ELSE->",      //else
-            "WHILE->while ( Logic ) H",   //while , do-----------undone---
-            "H->Statement","H->{ Pro }",
-            "Interrupt->break ;","Interrupt->continue ;","Interrupt->return Result ;", //break & continue
-            "Result->Logic","Result->",
+            "ELSEIF->else if ( Logic ) H ELSEIF", "ELSEIF->",          //else if
+            "ELSE->else H", "ELSE->",      //else
+            "WHILE->while ( Logic ) H",    //while , do-----------undone---
+            "H->Statement", "H->{ Pro }",
+            "FOR->for ( DA LO ; AS ) H",   //for loop,can be null in any position
+            "DA->Declare","DA->;", //for the reason that Declare takes ;
+            "LO->Logic","LO->",
+            "AS->Assignment","AS->", //TODO 多赋值语句
+            "Interrupt->break ;", "Interrupt->continue ;", "Interrupt->return Result ;", //break & continue
+            "Result->Logic", "Result->",
 
             "Logic->Relation L",          //logic expression
             "L->|| Logic", "L->&& Logic", "L->",
@@ -101,22 +105,23 @@ public class CodeTable {
             "V->+ Arithmetic", "V->- Arithmetic", "V->", //att: 右结合
             "Item->Variable Factor",
             "Factor->* Item", "Factor->/ Item", "Factor->",
-            "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->print ( Logic )","Variable->scan ( Logic )",
+            "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit",
+            "Variable->print ( Logic )", "Variable->scan ( Logic )","Variable->character","Variable->string",
 
-            "Call->( Argument )","Call->Index",
+            "Call->( Argument )", "Call->Index",
 //            "A->= Relation","A->",
             //"Argument->identifier Index CCC","Argument->", //function argument when call TODO argument support expression
-            "Argument->Logic CCC","Argument->",
-            "CCC->, Argument","CCC->", //no.73
+            "Argument->Logic CCC", "Argument->",
+            "CCC->, Argument", "CCC->", //no.73
 
-            "Digit->Positive","Digit->- Positive","Digit->+ Positive", //选择正数或者负数
-            "Positive->integer","Positive->fraction"  //整数、小数
+            "Digit->Positive", "Digit->- Positive", "Digit->+ Positive", //选择正数或者负数
+            "Positive->integer", "Positive->fraction"  //整数、小数
     };
 
     /*
-    * Thoughts: 允许某个产生式，但是该产生式是错误的，这样可以报出最精确的错误
-    *       ie. 函数中参数列表允许赋值的产生式被加入，但是本身不被允许
-    * */
+     * Thoughts: 允许某个产生式，但是该产生式是错误的，这样可以报出最精确的错误
+     *       ie. 函数中参数列表允许赋值的产生式被加入，但是本身不被允许
+     * */
     /*
      栈顶终结符不匹配时，可以报错为 缺少某终结符；
      栈顶非终结符不匹配时(Select集不匹配)：
@@ -126,21 +131,21 @@ public class CodeTable {
 
 
     // 各个运算符的优先级
-    public static HashMap<String,Integer> opPriority(){
-        HashMap<String,Integer> map = new HashMap<>();
-        map.put("||",1);
-        map.put("&&",2);
-        map.put("==",3);
-        map.put("<>",3);
-        map.put("<",4);
-        map.put("<=",4);
-        map.put(">",4);
-        map.put(">=",4);
-        map.put("+",5);
-        map.put("-",5);
-        map.put("*",6);
-        map.put("/",6);
-        map.put("(",10);
+    public static HashMap<String, Integer> opPriority() {
+        HashMap<String, Integer> map = new HashMap<>();
+        map.put("||", 1);
+        map.put("&&", 2);
+        map.put("==", 3);
+        map.put("<>", 3);
+        map.put("<", 4);
+        map.put("<=", 4);
+        map.put(">", 4);
+        map.put(">=", 4);
+        map.put("+", 5);
+        map.put("-", 5);
+        map.put("*", 6);
+        map.put("/", 6);
+        map.put("(", 10);
         return map;
     }
 }
