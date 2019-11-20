@@ -374,8 +374,6 @@ public class Translator {
                         dimension_index.add(ix);
                 }
             }
-            ASTNode logic = index_node.getChildren()[1];
-            SimpleVariable array_length = translateExp(logic);
 
             // 下标已经满足了条件
             if (X_node.getMaxChildNum() == 0) {
@@ -400,7 +398,7 @@ public class Translator {
                     messages.add("数组变量" + identifier + "已被声明过！");
                 else {
                     String msg = "数组变量" + identifier + "被声明为" + type + "型,维度为 " + dimension_index.toString();
-                    msg += " ,含" + total + "个元素，并自动初始化为" + zeroValues;
+                    msg += " ,并自动初始化为" + zeroValues;
                     messages.add(msg);
                 }
             } else {
@@ -427,7 +425,7 @@ public class Translator {
                             messages.add("数组变量" + identifier + "已被声明过！");
                         else {
                             String msg = "数组变量" + identifier + "被声明为" + type + "型,维度为 " + dimension_index.toString();
-                            msg += " ,含" + total + "个元素，并自动初始化为" + zeroValues;
+                            msg += " ,并自动初始化为" + zeroValues;
                             messages.add(msg);
                         }
 
@@ -445,12 +443,17 @@ public class Translator {
                             ArrayList<Integer> dimensionList = v.getDimensionList();
                             // 判断下标是否越界， 同时计算"物理"存储的下标
                             int real_index = 0;
-                            for (int i = 0; i < dimensionList.size(); i++) {
+                            for (int i = 0,ji=2,c=10; i < dimensionList.size(); i++) {
+                                int temp = 1;
                                 if (dimension_index.get(i) >= dimensionList.get(i)) {
                                     messages.add("第 " + i + " 个数组下标越界!");
                                     return;
-                                } else
-                                    real_index += dimension_index.get(i) * dimensionList.get(i);
+                                } else {
+                                    // 最后一个维度不能乘
+                                    for (int j = i + 1; j < dimensionList.size(); j++)
+                                        temp *= dimensionList.get(j);
+                                    real_index += dimension_index.get(i) * temp;
+                                }
                             }
 
                             SimpleVariable log = translateExp(O_node.getChildren()[0]);
@@ -468,10 +471,9 @@ public class Translator {
                                     }
                                 } else
                                     v.getValues().set(real_index, log.getValue());
-                                messages.add("数组变量" + identifier + "第" + real_index + "个‘物理’位置被赋值为" + v.getValues().get(real_index)
+                                messages.add("数组变量" + identifier + "第" + real_index + "个'物理'位置被赋值为" + v.getValues().get(real_index)
                                         + ",数组当前值为" + v.getValues()); //TODO 修改多维数据的显示方式
                             }
-
 
                         }
                     }
@@ -548,7 +550,8 @@ public class Translator {
         variables.add(logic_value);
 
         ASTNode C_ = Y.getChildren()[1];
-        if (C_.getMaxChildNum() != 0) {
+        // 可以在多个数最后加一个 逗号
+        if (C_.getMaxChildNum() != 0 && C_.getChildren()[1].getMaxChildNum() != 0) {
             variables.addAll(translateY(C_.getChildren()[1]));
         }
         return variables;
@@ -782,7 +785,6 @@ public class Translator {
                             messages.add("数组" + identifier + "未被赋值，无法使用，自动返回默认值 0");
                             variable = new SimpleVariable(null, "int", "0", level);
                         } else {
-
                             // 判断下标是否过多
                             if (dimension_index.size() != arrayVariable.getDimensionList().size()) {
                                 messages.add("数组下标数量不匹配,无法取数组中的值，自动返回默认值 0");
@@ -792,22 +794,20 @@ public class Translator {
                             // 判断下标是否越界， 同时计算"物理"存储的下标
                             int real_index = 0;
                             for (int i = 0; i < dimensionList.size(); i++) {
+                                int temp = 1;
                                 if (dimension_index.get(i) >= dimensionList.get(i)) {
                                     messages.add("第 " + i + " 个数组下标越界!自动返回默认值 0");
                                     return new SimpleVariable(null, "int", "0", level);
-                                } else
-                                    real_index += dimension_index.get(i) * dimensionList.get(i);
+                                } else {
+                                    for (int j = i + 1; j < dimensionList.size(); j++)
+                                        temp *= dimensionList.get(j);
+                                    real_index += dimension_index.get(i) * temp;
+                                }
                             }
+                            ArrayList<String> array = arrayVariable.getValues();
+                            // 假设数组里一定有值
+                            variable = new SimpleVariable(null, arrayVariable.getType(), array.get(real_index), level);
 
-                            Integer ix = Integer.valueOf(index.getValue());
-                            if (ix > arrayVariable.getLength() - 1) {
-                                messages.add("数组" + identifier + "下标" + ix + "越界,自动返回默认值 0");
-                                variable = new SimpleVariable(null, "int", "0", level);
-                            } else {
-                                ArrayList<String> array = arrayVariable.getValues();
-                                // 假设数组里一定有值
-                                variable = new SimpleVariable(null, arrayVariable.getType(), array.get(ix), level);
-                            }
                         }
 
                     }
@@ -905,7 +905,7 @@ public class Translator {
                 SimpleVariable var = translateExp(variable_node.getChildren()[2]);
 
                 SimpleVariable vvv = simpleTable.getVar(var.getName()); // 拿到表里已经声明的变量
-                // TODO
+                // TODO 从列表中 pop 读入输入的数据（如从文件中导入大量的输入数据）
                 if (vvv != null) {
                     System.out.println("正在执行 scan，开始接受值给变量" + var.getName());
                     Double inp = scanner.nextDouble();
@@ -1060,7 +1060,7 @@ public class Translator {
     }
 
     public static void main(String[] args) {
-        testWhileIf();
-
+//        testWhileIf();
+        String i = "12";
     }
 }

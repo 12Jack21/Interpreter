@@ -16,7 +16,7 @@ public class CodeTable {
             "<=", "&&", "||", "=", "(", ")", "{", "}", "[", "]", "'", "\"", ";",
             ",", "\\n", "\\r", "\\t", "\n", "\r", "\t", "//", "/*", "*/"};
     // 特例
-    public static String[] specials = {"identifier", "integer", "fraction"};
+    public static String[] specials = {"identifier", "integer", "fraction","character","string"};
 
     public static char[] invs = {'\n', '\r', '\t'};// TODO 转义字符，题目要求是哪种， '\n' or '\\n'
 
@@ -28,6 +28,7 @@ public class CodeTable {
     //从字符串 token 到 种别码 code 的映射
     public static HashMap<String, Integer> str2IntMap() {
         HashMap<String, Integer> map = new HashMap<>();
+
         int i;
         for (i = 1; i <= keys.length; i++)
             map.put(keys[i - 1], i);
@@ -63,7 +64,8 @@ public class CodeTable {
     //产生式
     public static String[] productions = {
             "Pro->Statement Pro", "Pro->{ Pro } Pro","Pro->",  // att: follow set of Pro should contains #
-            "Statement->Declare", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE","Statement->Interrupt","Statement->Logic ;","Statement->;",
+            "Statement->Declare", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE",
+            "Statement->Interrupt","Statement->Logic ;","Statement->;",
 
             "Assignment->identifier Index X", // Single Assignment
             "Declare->Type Assign",           // Declaration

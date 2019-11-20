@@ -25,7 +25,7 @@ public class LexicalAnalysis {
     private static LexiNode oneScan(char[] pro, LexiNode node) {
         HashMap<String, Integer> str2Code = str2IntMap();
         int p = node.getP(), i = 0;
-        char[] token = new char[1000];
+        char[] token = new char[200];
         char ch = pro[p++];
         String special = null;
 
@@ -43,8 +43,27 @@ public class LexicalAnalysis {
                 ch = pro[p++];
         }
 
+        // char字符的判定
+        if (ch == '\'' || ch == '\"'){
+            token[i++] = ch;
+            ch = pro[p++];
+            while (ch != '\n' && ch != '\'' && ch != '\"'){
+                token[i++] = ch;
+                ch = pro[p++];
+            }
+            if (ch == '\n') {
+                special = "error"; //没有右引号直接报错
+                p--;
+            }else if (ch == '\"'){
+                token[i] = '\"';
+                special = "string";
+            }else {
+                token[i] = '\''; //到语义分析再处理字符过长的情况
+                special = "character";
+            }
+        }
         //检测到符号 (最高优先级的判定),加号和减号单独拿出来考虑
-        if (ch == '|' || ch == '&' || signList.contains(String.valueOf(ch)) || ch == '\\') {
+        else if (ch == '|' || ch == '&' || signList.contains(String.valueOf(ch)) || ch == '\\') {
             token[i++] = ch;
             ch = pro[p++]; //拿到扫描的起始符号
             token[i++] = ch;
@@ -181,7 +200,6 @@ public class LexicalAnalysis {
     }
 
     public static void main(String[] args) {
-
     }
 
 }

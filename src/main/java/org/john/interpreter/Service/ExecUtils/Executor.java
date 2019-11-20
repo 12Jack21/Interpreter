@@ -116,10 +116,18 @@ public class Executor {
             String[] pros = readCodeFile(fis).split("-----");
             int index = 0;
             List<LexiNode> lexiNodes = LexicalAnalysis.lexicalScan(pros[0]);
-            GramParser parser = new GramParser();
-            ASTNode astNode = parser.LLParse(LexicalAnalysis.preprocess(lexiNodes));
 
-            System.out.println("test succeed");
+            for (LexiNode node:lexiNodes){
+                System.out.println(node);
+            }
+
+//            GramParser parser = new GramParser();
+//            ASTNode astNode = parser.LLParse(LexicalAnalysis.preprocess(lexiNodes));
+//            Translator t = new Translator();
+//            t.translate(astNode);
+//            System.out.println("msg:");
+//            for (String m : t.getPrintList())
+//                System.out.println(m);
         }catch (Exception e){
             e.printStackTrace();
         }
