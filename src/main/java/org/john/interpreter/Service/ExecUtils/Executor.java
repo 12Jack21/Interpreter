@@ -4,6 +4,7 @@ import org.john.interpreter.dto.Wrapper;
 import org.springframework.util.ResourceUtils;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.List;
 
 public class Executor {
@@ -107,6 +108,7 @@ public class Executor {
             String prefix = ResourceUtils.getFile("classpath:others").getAbsolutePath();
             System.out.println(prefix);
             FileInputStream fis = new FileInputStream(prefix + "/Grammar_Test.txt");
+            FileInputStream scanInputs = new FileInputStream(prefix + "/scan_input.txt");
 
             /* 写入Txt文件 */
             File write = new File(prefix + "/My.txt"); // 相对路径，如果没有则要建立一个新的output.txt文件
@@ -114,17 +116,20 @@ public class Executor {
 
             // 程序文件的每个程序都用 "-----" 来分隔
             String[] pros = readCodeFile(fis).split("-----");
+            String[] scan_inputs = readCodeFile(scanInputs).split(" "); // 空格分隔
+
             int index = 0;
             List<LexiNode> lexiNodes = LexicalAnalysis.lexicalScan(pros[0]);
 
             GramParser parser = new GramParser();
             ASTNode astNode = parser.LLParse(LexicalAnalysis.preprocess(lexiNodes));
 
-//            Translator t = new Translator();
-//            t.translate(astNode);
-//            System.out.println("msg:");
-//            for (String m : t.getPrintList())
-//                System.out.println(m);
+            Translator t = new Translator();
+            t.setScanList(Arrays.asList(scan_inputs));  // 注入输入的数据
+            t.translate(astNode);
+            System.out.println("msg:");
+            for (String m : t.getPrintList())
+                System.out.println(m);
 
         }catch (Exception e){
             e.printStackTrace();

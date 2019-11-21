@@ -25,6 +25,7 @@ public class Translator {
     private SimpleVariable returnVal = null;// 用于传递函数返回值，为空则置默认值 0（int）
 
     private LinkedList<String> printList;
+    private List<String> scanList;
 
     public Translator() {
         simpleTable = new SimpleTable();
@@ -33,6 +34,10 @@ public class Translator {
         returnTypeStack = new LinkedList<>();
         printList = new LinkedList<>();
         level = 1;
+    }
+
+    public void setScanList(List<String> scanList) {
+        this.scanList = scanList;
     }
 
     public LinkedList<String> getPrintList() {
@@ -885,7 +890,6 @@ public class Translator {
                 variable = new SimpleVariable(null, "string", val, level);
             }
         } else if (variable_node.getMaxChildNum() == 2) {
-
             // "Variable->identifier Call" TODO + id, - id
             ASTNode call_node = variable_node.getChildren()[1];
             String identifier = variable_node.getChildren()[0].getValue();
@@ -920,7 +924,7 @@ public class Translator {
                         }
                     }
                 } else {
-                    // 数组取下标的值 TODO 不正确则返回 默认值 0
+                    // 数组取下标的值, 不正确则返回 默认值 0
 //                    SimpleVariable index = translateExp(index_node.getChildren()[1]); //Logical expression
                     ArrayList<SimpleVariable> dimension_logics = translateIndex(index_node);
                     ArrayList<Integer> dimension_index = new ArrayList<>();// 下标列表
@@ -1055,7 +1059,7 @@ public class Translator {
             variable = translateExp(variable_node.getChildren()[1]);
         } else if (variable_node.getMaxChildNum() == 4) {
             ASTNode id = variable_node.getChildren()[0];
-            // print函数调用 TODO print char数组时，直接打印出整个字符串
+            // print函数调用, print char数组时，直接打印出整个字符串
             if (id.getValue().equals("print")) {
                 ASTNode logic = variable_node.getChildren()[2];
                 SimpleVariable log = translateExp(logic);
@@ -1069,23 +1073,44 @@ public class Translator {
                 Scanner scanner = new Scanner(System.in);
                 // 拿到要赋值的变量 logic expression
                 SimpleVariable var = translateExp(variable_node.getChildren()[2]);
-
-                SimpleVariable vvv = simpleTable.getVar(var.getName()); // 拿到表里已经声明的变量
-                // TODO 从列表中 pop 读入输入的数据（如从文件中导入大量的输入数据）
-                if (vvv != null) {
-                    System.out.println("正在执行 scan，开始接受值给变量" + var.getName());
-                    Double inp = scanner.nextDouble();
-                    if (vvv.getType().equals("int")) {
-                        messages.add("scan时强制转换");
-                        int i = (int) inp.doubleValue();
-                        vvv.setValue(String.valueOf(i));
-                    } else
-                        vvv.setValue(String.valueOf(inp));
-                    messages.add("变量" + var.getName() + "接受并被赋值为" + String.valueOf(inp) + ",返回默认值 1");
-                    variable = new SimpleVariable(null, "int", "1", level);
-                } else {
-                    messages.add("变量" + var.getName() + "未声明，无法scan得到值，返回默认值 0");
-                    variable = new SimpleVariable(null, "int", "0", level);
+                ArrayVariable array = arrayTable.getArray(var.getName());
+                if (array != null && array.getType().equals("char")){
+                    if (var.equals("string")){
+                        // 接受 字符串
+                        ArrayList<String> values = new ArrayList<>();
+                        int total = 1; //总的数组内元素数量
+                        for (Integer ix : array.getDimensionList())
+                            total *= ix;
+                        // 包括上最后的一个 \0
+                        if (var.getValue().length() > total - 1) {
+                            messages.add("接收的字符串过长！");
+                        } else {
+                            for (int i = 0; i < var.getValue().length(); i++)
+                                values.add(String.valueOf(var.getValue().charAt(i)));
+                        }
+                        values.add(String.valueOf('\0')); // TODO 加上最后的 \0
+                    }else {
+                        messages.add("字符数组只能接受字符串输入！");
+                        variable = new SimpleVariable(null, "int", "1", level);
+                    }
+                }else {
+                    SimpleVariable vvv = simpleTable.getVar(var.getName()); // 拿到表里已经声明的变量
+                    // TODO 从列表中 pop 读入输入的数据（如从文件中导入大量的输入数据）
+                    if (vvv != null) {
+                        System.out.println("正在执行 scan，开始接受值给变量" + var.getName());
+                        Double inp = scanner.nextDouble();
+                        if (vvv.getType().equals("int")) {
+                            messages.add("scan时强制转换");
+                            int i = (int) inp.doubleValue();
+                            vvv.setValue(String.valueOf(i));
+                        } else
+                            vvv.setValue(String.valueOf(inp));
+                        messages.add("变量" + var.getName() + "接受并被赋值为" + String.valueOf(inp) + ",返回默认值 1");
+                        variable = new SimpleVariable(null, "int", "1", level);
+                    } else {
+                        messages.add("变量" + var.getName() + "未声明，无法scan得到值，返回默认值 0");
+                        variable = new SimpleVariable(null, "int", "0", level);
+                    }
                 }
             }
         }
