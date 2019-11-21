@@ -1,5 +1,6 @@
 package org.john.interpreter.Service.ExecUtils;
 
+import org.apache.el.lang.ELArithmetic;
 import org.john.interpreter.Service.SemanticUtils.*;
 import org.john.interpreter.dto.Wrapper;
 
@@ -289,37 +290,47 @@ public class Translator {
 
     // 专门处理类型转换 的赋值
     private SimpleVariable typeHandle(SimpleVariable v, SimpleVariable logic_value) {
-        if (!v.getType().equals(logic_value.getType())) {
-            if (v.getType().equals("int") && logic_value.getType().equals("real")) {
-                // 强制转换
-                int val = (int) Double.parseDouble(logic_value.getValue());
-                messages.add("类型不匹配，" + logic_value.getValue() + "强制转换为" + val);
-                v.setValue(String.valueOf(val));
-            } else if (v.getType().equals("real") && logic_value.getType().equals("int")) {
-                double val = Double.parseDouble(logic_value.getValue());
-                messages.add("类型不匹配，" + logic_value.getValue() + "自动类型转换为" + val);
-                v.setValue(String.valueOf(val));
-            } else if (v.getType().equals("char") && logic_value.getType().equals("int")) {
-                // int过大导致没有对应字符的问题
-                char val = (char) Integer.parseInt(logic_value.getValue());
-                messages.add("类型不匹配，" + logic_value.getValue() + "强制转换为" + val);
-                v.setValue(String.valueOf(val));
-            } else if (v.getType().equals("int") && logic_value.getType().equals("char")) {
-                int val = (int) logic_value.getValue().charAt(0);
-                messages.add("类型不匹配，" + logic_value.getValue() + "自动类型转换为" + val);
-                v.setValue(String.valueOf(val));
-            } else if (v.getType().equals("char") && logic_value.getType().equals("real")) {
-                char val = (char) Double.parseDouble(logic_value.getValue()); //side effect
-                messages.add("类型不匹配，" + logic_value.getValue() + "自动转换为" + val);
-                v.setValue(String.valueOf(val));
-            } else if (v.getType().equals("real") && logic_value.getType().equals("char")) {
-                // 先转成int，再转成character
-                double val = Double.parseDouble(String.valueOf((int) logic_value.getValue().charAt(0)));
-                messages.add("类型不匹配，" + logic_value.getValue() + "强制转换为" + val);
-                v.setValue(String.valueOf(val));
-            }
-        } else
-            v.setValue(logic_value.getValue());
+        if (logic_value.getType().equals("string")) {
+            if (v.getType().equals("int"))
+                v.setValue("0");
+            else if (v.getType().equals("real"))
+                v.setValue("0.0");
+            else if (v.getType().equals("char"))
+                v.setValue("\0");
+            messages.add("非法使用 string，自动返回默认值 " + v.getValue());
+        } else {
+            if (!v.getType().equals(logic_value.getType())) {
+                if (v.getType().equals("int") && logic_value.getType().equals("real")) {
+                    // 强制转换
+                    int val = (int) Double.parseDouble(logic_value.getValue());
+                    messages.add("类型不匹配，" + logic_value.getValue() + "强制转换为" + val);
+                    v.setValue(String.valueOf(val));
+                } else if (v.getType().equals("real") && logic_value.getType().equals("int")) {
+                    double val = Double.parseDouble(logic_value.getValue());
+                    messages.add("类型不匹配，" + logic_value.getValue() + "自动类型转换为" + val);
+                    v.setValue(String.valueOf(val));
+                } else if (v.getType().equals("char") && logic_value.getType().equals("int")) {
+                    // int过大导致没有对应字符的问题
+                    char val = (char) Integer.parseInt(logic_value.getValue());
+                    messages.add("类型不匹配，" + logic_value.getValue() + "强制转换为" + val);
+                    v.setValue(String.valueOf(val));
+                } else if (v.getType().equals("int") && logic_value.getType().equals("char")) {
+                    int val = (int) logic_value.getValue().charAt(0);
+                    messages.add("类型不匹配，" + logic_value.getValue() + "自动类型转换为" + val);
+                    v.setValue(String.valueOf(val));
+                } else if (v.getType().equals("char") && logic_value.getType().equals("real")) {
+                    char val = (char) Double.parseDouble(logic_value.getValue()); //side effect
+                    messages.add("类型不匹配，" + logic_value.getValue() + "自动转换为" + val);
+                    v.setValue(String.valueOf(val));
+                } else if (v.getType().equals("real") && logic_value.getType().equals("char")) {
+                    // 先转成int，再转成character
+                    double val = Double.parseDouble(String.valueOf((int) logic_value.getValue().charAt(0)));
+                    messages.add("类型不匹配，" + logic_value.getValue() + "强制转换为" + val);
+                    v.setValue(String.valueOf(val));
+                }
+            } else
+                v.setValue(logic_value.getValue());
+        }
         return v;
     }
 
@@ -370,10 +381,8 @@ public class Translator {
                     }
                 }
             }
-        } else {
-            // 声明数组，或给数组下标的位置赋值
+        } else { // 声明数组，或给数组下标的位置赋值
             ArrayList<SimpleVariable> dimension_logics = translateIndex(index_node);
-            int index_type_tag = 0;
             ArrayList<Integer> dimension_index = new ArrayList<>();// 下标列表
             // 检查下标是否合法,不合法则自动退出
             for (SimpleVariable s : dimension_logics) {
@@ -390,12 +399,12 @@ public class Translator {
                 }
             }
 
-            // 下标已经满足了条件
+            // 下标已经满足了不为小数和负数的条件
             if (X_node.getMaxChildNum() == 0) {
                 // 只有声明没有初始化的情况
                 if (type == null) //赋值时此语句无意义
                     return;
-                // 添加变量到 变量符号表中 TODO 未赋值的使用问题，联系 translateVariable(),下面同理
+                // 添加变量到 变量符号表中  -未赋值的使用问题，联系 translateVariable()
                 ArrayList<String> zeroValues = new ArrayList<>();
                 int total = 1; //总的数组内元素数量
                 for (Integer ix : dimension_index)
@@ -408,6 +417,9 @@ public class Translator {
                     while (total-- > 0) {
                         zeroValues.add(String.valueOf(0.0));
                     }
+                } else if (type.equals("char")) {
+                    while (total-- > 0)
+                        zeroValues.add(String.valueOf('\0')); // 字符默认值 \0
                 }
                 if (!arrayTable.addVariable(new ArrayVariable(identifier, type, dimension_index, zeroValues, level)))
                     messages.add("数组变量" + identifier + "已被声明过！");
@@ -421,19 +433,42 @@ public class Translator {
                 ASTNode O_node = X_node.getChildren()[1];
                 if (O_node.getMaxChildNum() != 3) { //TODO add string
                     if (type != null) {
-                        messages.add("不能用单独的表达式来初始化数组" + identifier);
-                        // 不能初始化，就自动声明
                         ArrayList<String> zeroValues = new ArrayList<>();
-                        int total = 1; //总的数组内元素数量
-                        for (Integer ix : dimension_index)
-                            total *= ix;
-                        if (type.equals("int")) {
-                            while (total-- > 0) {
-                                zeroValues.add(String.valueOf(0));
+                        SimpleVariable log_val = translateExp(O_node.getChildren()[0]);
+                        if (log_val.getType().equals("string") && type.equals("char")) {
+                            // 用 string 来初始化 单维或多维char数组
+                            String val = log_val.getValue();
+                            int total = 1; //总的数组内元素数量
+                            for (Integer ix : dimension_index)
+                                total *= ix;
+                            // 包括上最后的一个 \0
+                            if (val.length() > total - 1){
+                                messages.add("用来初始化的字符串过长！");
+                            }else {
+                                for (int i = 0; i < val.length(); i++)
+                                    zeroValues.add(String.valueOf(val.charAt(i)));
                             }
-                        } else if (type.equals("real")) {
-                            while (total-- > 0) {
-                                zeroValues.add(String.valueOf(0.0));
+                            int start = zeroValues.size();
+                            // 不够的自动赋给初始值 \0,包括字符串最后的 \0
+                            while (start++ < total)
+                                zeroValues.add(String.valueOf('\0'));  // 直接使用 "\0" 是否相同？
+                        } else {
+                            messages.add("不能用单独的表达式来初始化除了char型之外的数组" + identifier);
+                            // 不能初始化，就自动声明
+                            int total = 1; //总的数组内元素数量
+                            for (Integer ix : dimension_index)
+                                total *= ix;
+                            if (type.equals("int")) {
+                                while (total-- > 0) {
+                                    zeroValues.add(String.valueOf(0));
+                                }
+                            } else if (type.equals("real")) {
+                                while (total-- > 0) {
+                                    zeroValues.add(String.valueOf(0.0));
+                                }
+                            } else if (type.equals("char")){
+                                while (total-- >0)
+                                    zeroValues.add(String.valueOf('\0'));
                             }
                         }
                         if (!arrayTable.addVariable(new ArrayVariable(identifier, type, dimension_index, zeroValues, level)))
@@ -443,7 +478,6 @@ public class Translator {
                             msg += " ,并自动初始化为" + zeroValues;
                             messages.add(msg);
                         }
-
                     } else { //TODO add char array
                         // 数组下标位置 赋值的情况
                         ArrayVariable v = arrayTable.getArray(identifier);
@@ -473,19 +507,22 @@ public class Translator {
 
                             SimpleVariable log = translateExp(O_node.getChildren()[0]);
                             if (log != null) {
-                                if (!v.getType().equals(log.getType())) {
-                                    if (v.getType().equals("int")) {
-                                        // 强制转换
-                                        int val = (int) Double.parseDouble(log.getValue());
-                                        messages.add("类型不匹配，" + log.getValue() + "强制转换为" + val);
-                                        v.getValues().set(real_index, String.valueOf(val));
-                                    } else if (v.getType().equals("real")) {
-                                        double val = Double.parseDouble(log.getValue());
-                                        messages.add("类型不匹配，" + log.getValue() + "自动类型转换为" + val);
-                                        v.getValues().set(real_index, String.valueOf(val));
-                                    }
-                                } else
-                                    v.getValues().set(real_index, log.getValue());
+//                                if (!v.getType().equals(log.getType())) { TODO 未经过测试
+//                                    if (v.getType().equals("int")) {
+//                                        // 强制转换
+//                                        int val = (int) Double.parseDouble(log.getValue());
+//                                        messages.add("类型不匹配，" + log.getValue() + "强制转换为" + val);
+//                                        v.getValues().set(real_index, String.valueOf(val));
+//                                    } else if (v.getType().equals("real")) {
+//                                        double val = Double.parseDouble(log.getValue());
+//                                        messages.add("类型不匹配，" + log.getValue() + "自动类型转换为" + val);
+//                                        v.getValues().set(real_index, String.valueOf(val));
+//                                    }
+//                                } else
+//                                    v.getValues().set(real_index, log.getValue());
+
+                                SimpleVariable val_variable = typeHandle(new SimpleVariable(null, type, null, level), log);
+                                v.getValues().set(real_index, val_variable.getValue());
                                 messages.add("数组变量" + identifier + "第" + real_index + "个'物理'位置被赋值为" + v.getValues().get(real_index)
                                         + ",数组当前值为" + v.getValues()); //TODO 修改多维数据的显示方式
                             }
@@ -494,8 +531,7 @@ public class Translator {
                     }
                 } else {
                     if (type == null) {
-                        //TODO 多维数组除外
-                        messages.add("不能用一个数组来赋值");
+                        messages.add("不能用一个数组来赋值!");
                         return;
                     }
                     // 数组初始化 O->{ Y }, 多维的也转成一维的
@@ -509,36 +545,38 @@ public class Translator {
                         vals = new ArrayList<>();
                         // 数组声明为空时，全部赋给初始值
                         if (type.equals("int")) {
-                            while (i-- > 0) {
+                            while (i-- > 0)
                                 vals.add(String.valueOf(0));
-                            }
                         } else if (type.equals("real")) {
-                            while (i-- > 0) {
+                            while (i-- > 0)
                                 vals.add(String.valueOf(0.0));
-                            }
+                        } else if (type.equals("char")) {
+                            while (i-- > 0)
+                                vals.add(String.valueOf('\0'));
                         }
                     } else {
-                        // 数组里的值
+                        // 数组里的值 O->{ Y }
                         ArrayList<SimpleVariable> array_values = translateY(Y_node);
                         vals = convertArray(array_values, type);
                         if (vals.size() > total) {
                             messages.add("用于初始化的数组内元素过多，自动全部赋了初值");
                             vals = new ArrayList<>();
                             if (type.equals("int")) {
-                                while (i-- > 0) {
+                                while (i-- > 0)
                                     vals.add(String.valueOf(0));
-                                }
                             } else if (type.equals("real")) {
-                                while (i-- > 0) {
+                                while (i-- > 0)
                                     vals.add(String.valueOf(0.0));
-                                }
-                            }
+                            } else if (type.equals("char"))
+                                while (i-- > 0)
+                                    vals.add(String.valueOf('\0'));
                         } else {
                             // 数组元素不足时，自动填充初始值
                             messages.add("用于初始化的数组内元素过少，自动用初值填充了剩下的元素");
                             i = vals.size();
                             while (i < total) {
-                                vals.add(type.equals("int") ? String.valueOf(0) : String.valueOf(0.0));
+                                vals.add(type.equals("int") ? String.valueOf(0) :
+                                        (type.equals("real") ? String.valueOf(0.0) : String.valueOf('\0')));
                                 i++;
                             }
                         }
@@ -694,9 +732,9 @@ public class Translator {
             else
                 messages.add("类型" + v1.getType() + "与" + v2.getType() + "不匹配,自动对 " + v1.getValue() + "进行类型转换");
 
-            double a1 = v1.getType().equals("char")? Double.parseDouble(String.valueOf((int)v1.getValue().charAt(0))):
+            double a1 = v1.getType().equals("char") ? Double.parseDouble(String.valueOf((int) v1.getValue().charAt(0))) :
                     Double.parseDouble(v1.getValue());
-            double a2 = v2.getType().equals("char")? Double.parseDouble(String.valueOf((int)v2.getValue().charAt(0))):
+            double a2 = v2.getType().equals("char") ? Double.parseDouble(String.valueOf((int) v2.getValue().charAt(0))) :
                     Double.parseDouble(v2.getValue());
 
             if (top.equals("*")) {
@@ -994,29 +1032,16 @@ public class Translator {
     private ArrayList<String> convertArray(ArrayList<SimpleVariable> arrayList, String type) {
         // 这里数组里值的类型都是 match type 的
         ArrayList<String> list = new ArrayList<>();
-        for (SimpleVariable var : arrayList) {
-            if (!var.getType().equals(type)) {
-                if (var.getType().equals("int")) {
-                    double val = Double.parseDouble(var.getValue());
-                    messages.add("类型不匹配，" + var.getValue() + "自动类型转换为" + val);
-                    list.add(String.valueOf(val));
-                } else if (var.getType().equals("real")) {
-                    int val = (int) Double.parseDouble(var.getValue());
-                    messages.add("类型不匹配，" + var.getValue() + "强制转换为" + val);
-                    list.add(String.valueOf(val));
-                }
-            } else
-                list.add(var.getValue());
-        }
+        for (SimpleVariable var : arrayList)
+            list.add(typeHandle(new SimpleVariable(null, type, null, level), var).getValue());
         return list;
     }
 
     private static void testWhileIf() {
         Translator t = new Translator();
-        String pro = "char c = 97;print(\"qwewqe\" + (12.9012 - 10));";
+        String pro = "char po[2][2] = \"12k\";";
 
         Wrapper w = Executor.analyze(pro);
-
         t.simpleTable.addVariable(new SimpleVariable("p", "int", "0", 1));
         ArrayList<String> values = new ArrayList<>();
         values.add("43");
@@ -1112,6 +1137,5 @@ public class Translator {
 
     public static void main(String[] args) {
         testWhileIf();
-//        String i = "\"12\"";
     }
 }
