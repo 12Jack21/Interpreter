@@ -184,6 +184,68 @@ public class Translator {
             else
                 messages.add("不满足while循环条件，循环退出");
             whileNum--;
+        } else if (name.equals("FOR")) {
+            // TODO like while
+            whileNum++;
+            if (root.getChildren()[3].getMaxChildNum() != 0){
+                ASTNode DA = root.getChildren()[2];
+                ASTNode LO = root.getChildren()[3];
+                ASTNode AS = root.getChildren()[5];
+                if (DA.getMaxChildNum() == 1){
+                    level++;
+                    translate(DA.getChildren()[0]); // 为了进入里面的作用域来声明
+                    level--;
+                }else if (DA.getMaxChildNum() == 2){
+                    ASTNode C_node = DA.getChildren()[0].getChildren()[1];
+                    translate(DA.getChildren()[0].getChildren()[0]); // translate assignment
+                    while (C_node.getMaxChildNum() != 0){
+                        translate(C_node.getChildren()[1]);
+                        C_node = C_node.getChildren()[2];
+                    }
+                }// 为空则不管
+
+                ASTNode logic = LO.getChildren()[0];
+                SimpleVariable log = translateExp(logic);
+                boolean re = (int) Double.parseDouble(log.getValue()) == 1;
+                logic.flushFindTag();
+                level++;
+                while (re) {
+                    messages.add("满足for循环条件，执行循环体程序");
+                    // 拉出处理 H_node 的逻辑
+                    ASTNode H_node = root.getChildren()[7];
+                    translate(H_node.getMaxChildNum() == 1? H_node.getChildren()[0]:H_node.getChildren()[1]);
+                    if (AS.getMaxChildNum() != 0){
+                        // 执行第二个分号之后的 赋值语句
+                        ASTNode C_node = AS.getChildren()[0].getChildren()[1];
+                        translate(AS.getChildren()[0].getChildren()[0]); // execute assignment
+                        while (C_node.getMaxChildNum() != 0){
+                            translate(C_node.getChildren()[1]);
+                            C_node = C_node.getChildren()[2];
+                        }
+                        // 刷新以供下次运行
+                        AS.flushFindTag();
+                    }
+
+                    if (toBreak)
+                        break;
+                    re = (int) Double.parseDouble(translateExp(logic).getValue()) == 1;
+                    logic.flushFindTag();
+                    toContinue = false;
+                    root.getChildren()[7].flushFindTag();
+                }
+                simpleTable.deleteVariable(level);
+                arrayTable.deleteArrays(level);
+                level--;
+                if (toBreak) //TODO 多个 while 嵌套的情况下需要用栈来存取 break 吗
+                    toBreak = false;
+                else
+                    messages.add("不满足for循环条件，循环退出");
+                whileNum--;
+
+            }else {
+                // TODO 程序无限循环，除了里面有 break
+            }
+
         } else if (name.equals("Logic")) {
             SimpleVariable s = translateExp(root);
         } else if (name.equals("Interrupt")) {
@@ -1054,8 +1116,11 @@ public class Translator {
 
     private static void testWhileIf() {
         Translator t = new Translator();
-        String pro = "char s[5] = { 'H','e','l','l','o'};\n" +
-                "print(s);";
+        String pro = "int n=5;for(int i = 0, k = 1;i < n;i = i + 1){\n" +
+                "  for(int j = 0;j < n;j =j + k){\n" +
+                "    print(\"i+j= \" + (i + j)+ \"  ---  \" );\n" +
+                "  }//if(i == 3)break;\n" +
+                " }";
 
         Wrapper w = Executor.analyze(pro);
         t.simpleTable.addVariable(new SimpleVariable("p", "int", "0", 1));

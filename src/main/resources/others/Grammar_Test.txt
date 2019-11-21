@@ -42,3 +42,10 @@ for(int i = 0, k = 1;i < n;i = i + 1){
   //  print('\n');
  }
 */
+int n =5;
+for(int i = 0, k = 1;i < n;i = i + 1){
+  for(int j = 0;j < n;j =j + k){
+    print("i+j= " + (i+j) + "  ---  ");
+  }
+    if(i == 3)break;
+ }
