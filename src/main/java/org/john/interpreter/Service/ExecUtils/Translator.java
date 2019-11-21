@@ -628,8 +628,8 @@ public class Translator {
                 messages.add(top + " 操作中不能存在字符串,自动返回默认值 空");
                 return new SimpleVariable(null, "string", "", level);
             } else {
-                String val = (v1.getType().equals("string") ? v1.getValue().split("\"")[1] : v1.getValue()) +
-                        (v2.getType().equals("string") ? v2.getValue().split("\"")[1] : v2.getValue());
+                // 应该取下标为 0 而不是 1 ， TODO value是否已经除去了 双引号
+                String val = v1.getValue() + v2.getValue();
                 return new SimpleVariable(v1.getName(), "string", val, level);
             }
         }
@@ -1013,7 +1013,7 @@ public class Translator {
 
     private static void testWhileIf() {
         Translator t = new Translator();
-        String pro = "char c = 97;int s = c+1;char x=c+'Z'-'a';";
+        String pro = "char c = 97;print(\"qwewqe\" + (12.9012 - 10));";
 
         Wrapper w = Executor.analyze(pro);
 
@@ -1112,6 +1112,6 @@ public class Translator {
 
     public static void main(String[] args) {
         testWhileIf();
-//        String i = "12";
+//        String i = "\"12\"";
     }
 }

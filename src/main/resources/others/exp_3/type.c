@@ -68,3 +68,4 @@ s[4] = '~';
 print(s);
 print(s[4]);
 
+char c = 97;print("qwewqe" + (12.9012 - 10));
