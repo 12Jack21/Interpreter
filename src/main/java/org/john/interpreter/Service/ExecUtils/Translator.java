@@ -287,6 +287,42 @@ public class Translator {
         return indexs;
     }
 
+    // 专门处理类型转换 的赋值
+    private SimpleVariable typeHandle(SimpleVariable v, SimpleVariable logic_value) {
+        if (!v.getType().equals(logic_value.getType())) {
+            if (v.getType().equals("int") && logic_value.getType().equals("real")) {
+                // 强制转换
+                int val = (int) Double.parseDouble(logic_value.getValue());
+                messages.add("类型不匹配，" + logic_value.getValue() + "强制转换为" + val);
+                v.setValue(String.valueOf(val));
+            } else if (v.getType().equals("real") && logic_value.getType().equals("int")) {
+                double val = Double.parseDouble(logic_value.getValue());
+                messages.add("类型不匹配，" + logic_value.getValue() + "自动类型转换为" + val);
+                v.setValue(String.valueOf(val));
+            } else if (v.getType().equals("char") && logic_value.getType().equals("int")) {
+                // int过大导致没有对应字符的问题
+                char val = (char) Integer.parseInt(logic_value.getValue());
+                messages.add("类型不匹配，" + logic_value.getValue() + "强制转换为" + val);
+                v.setValue(String.valueOf(val));
+            } else if (v.getType().equals("int") && logic_value.getType().equals("char")) {
+                int val = (int) logic_value.getValue().charAt(0);
+                messages.add("类型不匹配，" + logic_value.getValue() + "自动类型转换为" + val);
+                v.setValue(String.valueOf(val));
+            } else if (v.getType().equals("char") && logic_value.getType().equals("real")) {
+                char val = (char) Double.parseDouble(logic_value.getValue()); //side effect
+                messages.add("类型不匹配，" + logic_value.getValue() + "自动转换为" + val);
+                v.setValue(String.valueOf(val));
+            } else if (v.getType().equals("real") && logic_value.getType().equals("char")) {
+                // 先转成int，再转成character
+                double val = Double.parseDouble(String.valueOf((int) logic_value.getValue().charAt(0)));
+                messages.add("类型不匹配，" + logic_value.getValue() + "强制转换为" + val);
+                v.setValue(String.valueOf(val));
+            }
+        } else
+            v.setValue(logic_value.getValue());
+        return v;
+    }
+
     // if type == null,则为 Assignment调用的，否则为 Declare调用
     private void translateIndexWithX(ASTNode index_node, ASTNode X_node, String identifier, String type) {
         if (index_node.getMaxChildNum() == 0) {
@@ -319,33 +355,12 @@ public class Translator {
                             messages.add("变量" + identifier + "未声明，无法赋值");
                             return;
                         }
-                        if (!v.getType().equals(logic_value.getType())) {
-                            if (v.getType().equals("int")) {
-                                // 强制转换
-                                int val = (int) Double.parseDouble(logic_value.getValue());
-                                messages.add("类型不匹配，" + logic_value.getValue() + "强制转换为" + val);
-                                v.setValue(String.valueOf(val));
-                            } else if (v.getType().equals("real")) {
-                                double val = Double.parseDouble(logic_value.getValue());
-                                messages.add("类型不匹配，" + logic_value.getValue() + "自动类型转换为" + val);
-                                v.setValue(String.valueOf(val));
-                            }
-                        } else
-                            v.setValue(logic_value.getValue());
+                        v = typeHandle(v, logic_value); //直接进行类型处理
                         messages.add("变量" + identifier + "被赋值为" + v.getValue());
-                    } else {//声明过程
-                        if (!type.equals(logic_value.getType())) {
-                            if (type.equals("int")) {
-                                // 强制转换
-                                int val = (int) Double.parseDouble(logic_value.getValue());
-                                messages.add("类型不匹配，" + logic_value.getValue() + "强制转换为" + val);
-                                logic_value.setValue(String.valueOf(val));
-                            } else if (type.equals("real")) {
-                                double val = Double.parseDouble(logic_value.getValue());
-                                messages.add("类型不匹配，" + logic_value.getValue() + "自动类型转换为" + val);
-                                logic_value.setValue(String.valueOf(val));
-                            }
-                        }
+                    } else {
+                        // 声明和初始化过程--------------------------------
+                        // 为了少省定义一个变量的开销
+                        logic_value = typeHandle(new SimpleVariable(null, type, null, level), logic_value);
                         logic_value.setName(identifier);
                         if (!simpleTable.addVariable(logic_value))
                             messages.add("变量" + identifier + "已被声明过");
@@ -443,7 +458,7 @@ public class Translator {
                             ArrayList<Integer> dimensionList = v.getDimensionList();
                             // 判断下标是否越界， 同时计算"物理"存储的下标
                             int real_index = 0;
-                            for (int i = 0,ji=2,c=10; i < dimensionList.size(); i++) {
+                            for (int i = 0, ji = 2, c = 10; i < dimensionList.size(); i++) {
                                 int temp = 1;
                                 if (dimension_index.get(i) >= dimensionList.get(i)) {
                                     messages.add("第 " + i + " 个数组下标越界!");
@@ -604,13 +619,27 @@ public class Translator {
         return arith_val;
     }
 
-    // 两个数之间的运算，可以包括 算术、关系和逻辑运算
+    // 两个数之间的运算，可以包括 算术、关系和逻辑运算, 字符能参与所有运算，而字符串只能参与 加法运算 TODO mod operand未实现
     private SimpleVariable calculate(SimpleVariable v1, SimpleVariable v2, String top) {
-        SimpleVariable reVar;
-        if (v1.getType().equals(v2.getType()) && v1.getType().equals("int")) {
-            // 都为 int型
-            int a1 = Integer.parseInt(v1.getValue());
-            int a2 = Integer.parseInt(v2.getValue());
+        SimpleVariable reVar = null;
+        // 有字符串存在的情况下
+        if (v1.getType().equals("string") || v2.getType().equals("string")) {
+            if (!top.equals("+")) {
+                messages.add(top + " 操作中不能存在字符串,自动返回默认值 空");
+                return new SimpleVariable(null, "string", "", level);
+            } else {
+                String val = (v1.getType().equals("string") ? v1.getValue().split("\"")[1] : v1.getValue()) +
+                        (v2.getType().equals("string") ? v2.getValue().split("\"")[1] : v2.getValue());
+                return new SimpleVariable(v1.getName(), "string", val, level);
+            }
+        }
+        if (!v1.getType().equals("real") && !v2.getType().equals("real")) {
+            // 没有 real 存在时，操作类似
+            if (v1.getType().equals("char") || v2.getType().equals("char"))
+                messages.add("char 类型数" + v1.getValue() + "和" + v2.getValue() + "进行运算时，自动进行类型转换成 int再进行运算");
+
+            int a1 = v1.getType().equals("int") ? Integer.parseInt(v1.getValue()) : (int) v1.getValue().charAt(0);
+            int a2 = v2.getType().equals("int") ? Integer.parseInt(v2.getValue()) : (int) v2.getValue().charAt(0);
             if (top.equals("*")) {
                 messages.add(a1 + " * " + a2 + " = " + (a1 * a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 * a2), level);
@@ -629,6 +658,7 @@ public class Translator {
                 messages.add(a1 + " - " + a2 + " = " + (a1 - a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 - a2), level);
             } else {
+                // 关系和逻辑运算
                 int val = 0;
                 if (top.equals("=="))
                     val = a1 == a2 ? 1 : 0;
@@ -655,16 +685,20 @@ public class Translator {
                 messages.add(a1 + top + a2 + " = " + val);
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(val), level);
             }
-        } else { // 有real型存在
-            if (!v1.getType().equals(v2.getType())) {
-                if (v1.getType().equals("real"))
-                    messages.add("类型" + v1.getType() + "与" + v2.getType() + "不匹配,自动对 " + v2.getValue() + "进行类型转换");
-                else
-                    messages.add("类型" + v1.getType() + "与" + v2.getType() + "不匹配,自动对 " + v1.getValue() + "进行类型转换");
-            }
-            double a1 = Double.parseDouble(v1.getValue());
 
-            double a2 = Double.parseDouble(v2.getValue());
+        }// 两者类型中存在 real 的情况
+        else {
+            // 两个之中有real型存在
+            if (v1.getType().equals("real"))
+                messages.add("类型" + v1.getType() + "与" + v2.getType() + "不匹配,自动对 " + v2.getValue() + "进行类型转换");
+            else
+                messages.add("类型" + v1.getType() + "与" + v2.getType() + "不匹配,自动对 " + v1.getValue() + "进行类型转换");
+
+            double a1 = v1.getType().equals("char")? Double.parseDouble(String.valueOf((int)v1.getValue().charAt(0))):
+                    Double.parseDouble(v1.getValue());
+            double a2 = v2.getType().equals("char")? Double.parseDouble(String.valueOf((int)v2.getValue().charAt(0))):
+                    Double.parseDouble(v2.getValue());
+
             if (top.equals("*")) {
                 messages.add(a1 + " * " + a2 + " = " + (a1 * a2));
                 reVar = new SimpleVariable(v1.getName(), "real", String.valueOf(a1 * a2), level);
@@ -684,6 +718,8 @@ public class Translator {
                 reVar = new SimpleVariable(v1.getName(), "real", String.valueOf(a1 - a2), level);
             } else {
                 //TODO 是否会有其他情况没有考虑到
+
+                // 关系和逻辑运算
                 int val = 0;
                 if (top.equals("=="))
                     val = a1 == a2 ? 1 : 0;
@@ -718,24 +754,39 @@ public class Translator {
     private SimpleVariable translateVariable(ASTNode variable_node) {
         SimpleVariable variable = null;
         if (variable_node.getMaxChildNum() == 1) {
-            // "Variable->Digit"
-            ASTNode digit_node = variable_node.getChildren()[0];
-            ASTNode positive_node = digit_node.getChildren()[digit_node.getMaxChildNum() - 1];
-            if (positive_node.getChildren()[0].getName().equals("integer")) {
-                // 正整数
-                Integer value = Integer.valueOf(positive_node.getChildren()[0].getValue());
-                if (digit_node.getChildren()[0].getName().equals("-")) //负数
-                    value = -1 * value;
-                variable = new SimpleVariable(null, "int", value.toString(), level);
+            if (variable_node.getChildren()[0].getName().equals("Digit")) {
+                // "Variable->Digit"
+                ASTNode digit_node = variable_node.getChildren()[0];
+                ASTNode positive_node = digit_node.getChildren()[digit_node.getMaxChildNum() - 1];
+                if (positive_node.getChildren()[0].getName().equals("integer")) {
+                    // 正整数
+                    Integer value = Integer.valueOf(positive_node.getChildren()[0].getValue());
+                    if (digit_node.getChildren()[0].getName().equals("-")) //负数
+                        value = -1 * value;
+                    variable = new SimpleVariable(null, "int", value.toString(), level);
+                } else {
+                    // 小数
+                    Double value = Double.valueOf(positive_node.getChildren()[0].getValue());
+                    if (digit_node.getChildren()[0].getName().equals("-")) //负数
+                        value = -1.0 * value;
+                    variable = new SimpleVariable(null, "real", value.toString(), level);
+                }
+            } else if (variable_node.getChildren()[0].getName().equals("character")) {
+                // character,此处进行词法分析没有进行的 字符长度的检查
+                String char_value = variable_node.getChildren()[0].getValue().split("\'")[1];
+                if (char_value.length() != 1) {
+                    messages.add("字符" + char_value + "长度非法，自动返回默认值 '\\0' ");
+                    variable = new SimpleVariable(null, "char", String.valueOf('\0'), level);
+                } else
+                    variable = new SimpleVariable(null, "char", String.valueOf(char_value), level);
             } else {
-                // 小数
-                Double value = Double.valueOf(positive_node.getChildren()[0].getValue());
-                if (digit_node.getChildren()[0].getName().equals("-")) //负数
-                    value = -1.0 * value;
-                variable = new SimpleVariable(null, "real", value.toString(), level);
+                // string
+                String val = variable_node.getChildren()[0].getValue().split("\"")[1];
+                variable = new SimpleVariable(null, "string", val, level);
             }
         } else if (variable_node.getMaxChildNum() == 2) {
-            // "Variable->identifier Call"
+
+            // "Variable->identifier Call" TODO + id, - id
             ASTNode call_node = variable_node.getChildren()[1];
             String identifier = variable_node.getChildren()[0].getValue();
             if (call_node.getChildren()[0].getName().equals("Index")) {
@@ -962,7 +1013,7 @@ public class Translator {
 
     private static void testWhileIf() {
         Translator t = new Translator();
-        String pro = "int a =20;scan(a);print(a);";
+        String pro = "char c = 97;int s = c+1;char x=c+'Z'-'a';";
 
         Wrapper w = Executor.analyze(pro);
 
@@ -1060,7 +1111,7 @@ public class Translator {
     }
 
     public static void main(String[] args) {
-//        testWhileIf();
-        String i = "12";
+        testWhileIf();
+//        String i = "12";
     }
 }

@@ -249,14 +249,19 @@ public class GramParser {
             return ")";
         else if (symbol.equals("["))
             return "]";
-        else
+        else if (symbol.equals("{"))
             return "}";
+        else
+            return symbol; // ' and "
     }
 
     public void updateMatch(String top) {
-        if (top.equals("(") || top.equals("[") || top.equals("{"))
+        if (top.equals("(") || top.equals("[") || top.equals("{") ||
+                top.equals("\'") && !matchStack.contains("\'") || top.equals("\"") && !matchStack.contains("\""))
             matchStack.addFirst(top);
-        else if (top.equals(")") || top.equals("]") || top.equals("}")) {
+        // seem to be not necessary to handle error here
+        else if (top.equals(")") || top.equals("]") || top.equals("}") ||
+                top.equals("\'") || top.equals("\"") ) {
             if (matchStack.size() != 0)
                 matchStack.pop(); // TODO Handle matchStack.size == 0 Error !!!
         }

@@ -44,22 +44,26 @@ public class LexicalAnalysis {
         }
 
         // char字符的判定
-        if (ch == '\'' || ch == '\"'){
+        if (ch == '\'' || ch == '\"') {
             token[i++] = ch;
             ch = pro[p++];
-            while (ch != '\n' && ch != '\'' && ch != '\"'){
+            while (ch != '\n' && ch != '\'' && ch != '\"' && p < pro.length) {
                 token[i++] = ch;
                 ch = pro[p++];
             }
-            if (ch == '\n') {
-                special = "error"; //没有右引号直接报错
-                p--;
-            }else if (ch == '\"'){
-                token[i] = '\"';
-                special = "string";
-            }else {
-                token[i] = '\''; //到语义分析再处理字符过长的情况
-                special = "character";
+            if (p >= pro.length)
+                special = "error"; //解析到头了
+            else {
+                if (ch == '\n') {
+                    special = "error"; //没有右引号直接报错
+                    p--;
+                } else if (ch == '\"') {
+                    token[i] = '\"';
+                    special = "string";
+                } else {
+                    token[i] = '\''; //到语义分析再处理字符过长的情况
+                    special = "character";
+                }
             }
         }
         //检测到符号 (最高优先级的判定),加号和减号单独拿出来考虑
