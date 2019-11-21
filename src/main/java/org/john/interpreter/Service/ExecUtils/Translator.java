@@ -419,7 +419,7 @@ public class Translator {
             } else {
                 // X ->= O，伴随着初始化（赋值）的情况
                 ASTNode O_node = X_node.getChildren()[1];
-                if (O_node.getMaxChildNum() != 3) {
+                if (O_node.getMaxChildNum() != 3) { //TODO add string
                     if (type != null) {
                         messages.add("不能用单独的表达式来初始化数组" + identifier);
                         // 不能初始化，就自动声明
@@ -444,7 +444,7 @@ public class Translator {
                             messages.add(msg);
                         }
 
-                    } else {
+                    } else { //TODO add char array
                         // 数组下标位置 赋值的情况
                         ArrayVariable v = arrayTable.getArray(identifier);
                         if (v == null)
