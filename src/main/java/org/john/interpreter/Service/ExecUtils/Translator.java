@@ -369,7 +369,7 @@ public class Translator {
                         v = typeHandle(v, logic_value); //直接进行类型处理
                         messages.add("变量" + identifier + "被赋值为" + v.getValue());
                     } else {
-                        // 声明和初始化过程--------------------------------
+                        // 声明和初始化过程 --------------------------------
                         // 为了少省定义一个变量的开销
                         logic_value = typeHandle(new SimpleVariable(null, type, null, level), logic_value);
                         logic_value.setName(identifier);
@@ -442,9 +442,9 @@ public class Translator {
                             for (Integer ix : dimension_index)
                                 total *= ix;
                             // 包括上最后的一个 \0
-                            if (val.length() > total - 1){
+                            if (val.length() > total - 1) {
                                 messages.add("用来初始化的字符串过长！");
-                            }else {
+                            } else {
                                 for (int i = 0; i < val.length(); i++)
                                     zeroValues.add(String.valueOf(val.charAt(i)));
                             }
@@ -466,8 +466,8 @@ public class Translator {
                                 while (total-- > 0) {
                                     zeroValues.add(String.valueOf(0.0));
                                 }
-                            } else if (type.equals("char")){
-                                while (total-- >0)
+                            } else if (type.equals("char")) {
+                                while (total-- > 0)
                                     zeroValues.add(String.valueOf('\0'));
                             }
                         }
@@ -521,7 +521,7 @@ public class Translator {
 //                                } else
 //                                    v.getValues().set(real_index, log.getValue());
 
-                                SimpleVariable val_variable = typeHandle(new SimpleVariable(null, type, null, level), log);
+                                SimpleVariable val_variable = typeHandle(new SimpleVariable(null, v.getType(), null, level), log);
                                 v.getValues().set(real_index, val_variable.getValue());
                                 messages.add("数组变量" + identifier + "第" + real_index + "个'物理'位置被赋值为" + v.getValues().get(real_index)
                                         + ",数组当前值为" + v.getValues()); //TODO 修改多维数据的显示方式
@@ -570,7 +570,7 @@ public class Translator {
                             } else if (type.equals("char"))
                                 while (i-- > 0)
                                     vals.add(String.valueOf('\0'));
-                        } else {
+                        } else if (vals.size() < total) {
                             // 数组元素不足时，自动填充初始值
                             messages.add("用于初始化的数组内元素过少，自动用初值填充了剩下的元素");
                             i = vals.size();
@@ -830,17 +830,32 @@ public class Translator {
             if (call_node.getChildren()[0].getName().equals("Index")) {
                 ASTNode index_node = call_node.getChildren()[0];
                 if (index_node.getMaxChildNum() == 0) {
-                    SimpleVariable id = simpleTable.getVar(identifier);
-                    if (id == null) {
-                        messages.add("变量 " + identifier + "未被声明，无法使用,自动返回默认值 0");
-                        //TODO 这些变量是否应该都有名字
-                        variable = new SimpleVariable(identifier, "int", "0", level);
-                    } else {
-                        if (id.getValue() == null) {
-                            messages.add("变量 " + identifier + "没有被初始化，无法使用，自动返回默认值 0");
+                    // 有可能是字符数组取整个 string，这里优先考虑 char 数组
+                    ArrayVariable array = arrayTable.getArray(identifier);
+                    if (array != null) {
+                        if (!array.getType().equals("char")) {
+                            messages.add("不能单独使用非 char型数组的名称!返回默认值 0");
                             variable = new SimpleVariable(identifier, "int", "0", level);
-                        } else
-                            variable = id;
+                        } else {
+                            // 拿到 char 数组所有数据，拼接并返回
+                            String s = "";
+                            for (String v : array.getValues())
+                                s += v;
+                            variable = new SimpleVariable(identifier, "string", s, level);
+                        }
+                    } else {
+                        SimpleVariable id = simpleTable.getVar(identifier);
+                        if (id == null) {
+                            messages.add("变量 " + identifier + "未被声明，无法使用,自动返回默认值 0");
+                            //TODO 这些变量是否应该都有名字
+                            variable = new SimpleVariable(identifier, "int", "0", level);
+                        } else {
+                            if (id.getValue() == null) {
+                                messages.add("变量 " + identifier + "没有被初始化，无法使用，自动返回默认值 0");
+                                variable = new SimpleVariable(identifier, "int", "0", level);
+                            } else
+                                variable = id;
+                        }
                     }
                 } else {
                     // 数组取下标的值 TODO 不正确则返回 默认值 0
@@ -978,7 +993,7 @@ public class Translator {
             variable = translateExp(variable_node.getChildren()[1]);
         } else if (variable_node.getMaxChildNum() == 4) {
             ASTNode id = variable_node.getChildren()[0];
-            // print函数调用
+            // print函数调用 TODO print char数组时，直接打印出整个字符串
             if (id.getValue().equals("print")) {
                 ASTNode logic = variable_node.getChildren()[2];
                 SimpleVariable log = translateExp(logic);
@@ -1039,7 +1054,8 @@ public class Translator {
 
     private static void testWhileIf() {
         Translator t = new Translator();
-        String pro = "char po[2][2] = \"12k\";";
+        String pro = "char s[5] = { 'H','e','l','l','o'};\n" +
+                "print(s);";
 
         Wrapper w = Executor.analyze(pro);
         t.simpleTable.addVariable(new SimpleVariable("p", "int", "0", 1));
