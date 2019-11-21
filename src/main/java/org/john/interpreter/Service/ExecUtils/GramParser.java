@@ -85,12 +85,6 @@ public class GramParser {
                             curNode.addChild(new ASTNode(0, "symbol", top, true, true));
                         else
                             curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
-
-//                        if (Arrays.asList(value_contain_token).contains(top))
-//                            curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
-//                        else
-//                            curNode.addChild(new ASTNode(0, top, true, true));
-
                     } else {
                         legal = false;
                         if (top.equals("#"))
@@ -103,7 +97,6 @@ public class GramParser {
                         curNode.addChild(new ASTNode(0, top, true, false));
 
                         errorStack.add("第" + node.getRow() + "行,第" + node.getCol() + "列处 " + node.getSymbol() + " 出现语法错误,缺少 " + top);
-
                     }
                     updateMatch(top); //更新匹配栈 TODO 丢掉一个语句的时候，该怎么处理这个栈---
 
@@ -111,7 +104,6 @@ public class GramParser {
                     y = llDrive.getNtMap().get(top);
                     x = llDrive.gettMap().get(symbol);
                     pos = llTable[y][x];
-
                     if (pos != -1) {
                         if (pos == -2) {
                             /* 特殊情况下矛盾产生式的选择, 标识符作为 Select集矛盾的地方
@@ -120,7 +112,7 @@ public class GramParser {
                             LexiNode temp = nodes.get(t_index++);
                             String[] p1 = {"||", "&&", "<", "<=", "<>", ">", ">=", "==", "+", "-", "*", "/", "(", ")"};
                             String selection = null;
-                            int mode = top.equals("Statement") ? 0 : 1;
+                            int mode = top.equals("Statement") ? 0 : (top.equals("ELSEIF")? 1: 2);
 
                             if (mode == 1) {
                                 // else if 产生式 判断下一个符号是否是 if 即可
@@ -129,6 +121,20 @@ public class GramParser {
                                     selection = special_production[mode * 2];
                                 else
                                     selection = special_production[mode * 2 + 1];
+                            } else if (mode == 2) {
+                                // Variable产生式，看下一个token是identifier还是 integer or fraction
+                                temp = nodes.get(t_index);
+                                if (int2StrMap.get(temp.getCode()).equals("identifier")) {
+                                    if (symbol.equals("+"))
+                                        selection = special_production[mode * 2];
+                                    else
+                                        selection = special_production[(mode + 1) * 2];
+                                }else {
+                                    if (symbol.equals("+"))
+                                        selection = special_production[mode * 2 + 1];
+                                    else
+                                        selection = special_production[(mode + 1) * 2 + 1];
+                                }
                             } else {
                                 // statement 产生式
                                 while (!temp.getSymbol().trim().equals(";")) {
@@ -144,7 +150,6 @@ public class GramParser {
                                         selection = special_production[mode * 2 + 1];
                                         break;
                                     }
-
                                     temp = nodes.get(t_index++);
                                 }
                             }

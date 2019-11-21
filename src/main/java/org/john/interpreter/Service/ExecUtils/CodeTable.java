@@ -55,6 +55,8 @@ public class CodeTable {
     public static String[] special_production = {
             "Statement->Logic ;", "Statement->Assignment ;",
             "ELSEIF->else if ( Logic ) H ELSEIF", "ELSEIF->",
+            "Variable->+ identifier","Variable->Digit",
+            "Variable->- identifier","Variable->Digit"
     };
     public static String[] value_contain_token = {
             "identifier", "integer", "fraction"
@@ -77,6 +79,7 @@ public class CodeTable {
             "F->( Parameter ) { Pro }", "F->Index X C ;",         // define function
             "Parameter->Type identifier Index CC", "Parameter->", //function parameters no.24
             "CC->, Parameter", "CC->",     // can replace CC with original non-terminal
+            "ConAssign->Assignment C",     // continuing assignment
 
             "X->= O", "X->", //no.28
             "O->Logic", "O->{ Y }",     // array assignment
@@ -89,9 +92,9 @@ public class CodeTable {
             "WHILE->while ( Logic ) H",    //while , do-----------undone---
             "H->Statement", "H->{ Pro }",
             "FOR->for ( DA LO ; AS ) H",   //for loop,can be null in any position
-            "DA->Declare","DA->;", //for the reason that Declare takes ;
+            "DA->Declare","DA->ConAssign ;","DA->;", //for the reason that Declare takes ;
             "LO->Logic","LO->",
-            "AS->Assignment","AS->", //TODO 多赋值语句
+            "AS->ConAssign","AS->", //TODO 多赋值语句
             "Interrupt->break ;", "Interrupt->continue ;", "Interrupt->return Result ;", //break & continue
             "Result->Logic", "Result->",
 
@@ -102,10 +105,10 @@ public class CodeTable {
             "R->== Relation", "R-><> Relation", "R->>= Relation", "R-><= Relation", "R->> Relation", "R->< Relation", "R->",
 
             "Arithmetic->Item V",
-            "V->+ Arithmetic", "V->- Arithmetic", "V->", //att: 右结合
+            "V->+ Arithmetic", "V->- Arithmetic", "V->", //右结合
             "Item->Variable Factor",
             "Factor->* Item", "Factor->/ Item", "Factor->",
-            "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit",
+            "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->+ identifier","Variable->- identifier",
             "Variable->print ( Logic )", "Variable->scan ( Logic )","Variable->character","Variable->string",
 
             "Call->( Argument )", "Call->Index",
