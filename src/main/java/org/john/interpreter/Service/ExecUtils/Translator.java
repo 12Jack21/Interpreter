@@ -25,7 +25,7 @@ public class Translator {
     private SimpleVariable returnVal = null;// 用于传递函数返回值，为空则置默认值 0（int）
 
     private LinkedList<String> printList;
-    private List<String> scanList;
+    private LinkedList<String> scanList;
 
     public Translator() {
         simpleTable = new SimpleTable();
@@ -36,7 +36,7 @@ public class Translator {
         level = 1;
     }
 
-    public void setScanList(List<String> scanList) {
+    public void setScanList(LinkedList<String> scanList) {
         this.scanList = scanList;
     }
 
@@ -192,18 +192,18 @@ public class Translator {
         } else if (name.equals("FOR")) {
             // TODO like while
             whileNum++;
-            if (root.getChildren()[3].getMaxChildNum() != 0){
+            if (root.getChildren()[3].getMaxChildNum() != 0) {
                 ASTNode DA = root.getChildren()[2];
                 ASTNode LO = root.getChildren()[3];
                 ASTNode AS = root.getChildren()[5];
-                if (DA.getMaxChildNum() == 1){
+                if (DA.getMaxChildNum() == 1) {
                     level++;
                     translate(DA.getChildren()[0]); // 为了进入里面的作用域来声明
                     level--;
-                }else if (DA.getMaxChildNum() == 2){
+                } else if (DA.getMaxChildNum() == 2) {
                     ASTNode C_node = DA.getChildren()[0].getChildren()[1];
                     translate(DA.getChildren()[0].getChildren()[0]); // translate assignment
-                    while (C_node.getMaxChildNum() != 0){
+                    while (C_node.getMaxChildNum() != 0) {
                         translate(C_node.getChildren()[1]);
                         C_node = C_node.getChildren()[2];
                     }
@@ -218,12 +218,12 @@ public class Translator {
                     messages.add("满足for循环条件，执行循环体程序");
                     // 拉出处理 H_node 的逻辑
                     ASTNode H_node = root.getChildren()[7];
-                    translate(H_node.getMaxChildNum() == 1? H_node.getChildren()[0]:H_node.getChildren()[1]);
-                    if (AS.getMaxChildNum() != 0){
+                    translate(H_node.getMaxChildNum() == 1 ? H_node.getChildren()[0] : H_node.getChildren()[1]);
+                    if (AS.getMaxChildNum() != 0) {
                         // 执行第二个分号之后的 赋值语句
                         ASTNode C_node = AS.getChildren()[0].getChildren()[1];
                         translate(AS.getChildren()[0].getChildren()[0]); // execute assignment
-                        while (C_node.getMaxChildNum() != 0){
+                        while (C_node.getMaxChildNum() != 0) {
                             translate(C_node.getChildren()[1]);
                             C_node = C_node.getChildren()[2];
                         }
@@ -247,7 +247,7 @@ public class Translator {
                     messages.add("不满足for循环条件，循环退出");
                 whileNum--;
 
-            }else {
+            } else {
                 // TODO 程序无限循环，除了里面有 break
             }
 
@@ -913,11 +913,11 @@ public class Translator {
                         SimpleVariable id = simpleTable.getVar(identifier);
                         if (id == null) {
                             messages.add("变量 " + identifier + "未被声明，无法使用,自动返回默认值 0");
-                            //TODO 这些变量是否应该都有名字
+                            //TODO 这些变量是否应该都有名字,出错的地方应该为匿名
                             variable = new SimpleVariable(identifier, "int", "0", level);
                         } else {
                             if (id.getValue() == null) {
-                                messages.add("变量 " + identifier + "没有被初始化，无法使用，自动返回默认值 0");
+                                messages.add("变量 " + identifier + "没有被初始化，自动返回默认值 0");
                                 variable = new SimpleVariable(identifier, "int", "0", level);
                             } else
                                 variable = id;
@@ -1074,38 +1074,53 @@ public class Translator {
                 // 拿到要赋值的变量 logic expression
                 SimpleVariable var = translateExp(variable_node.getChildren()[2]);
                 ArrayVariable array = arrayTable.getArray(var.getName());
-                if (array != null && array.getType().equals("char")){
-                    if (var.equals("string")){
+                String scanVal = scanList.pop(); // 拿到输入的数据
+                if (array != null) {
+                    // 考虑数组变量,直接接收字符串，不用判断
+                    if (array.getType().equals("char")) {
                         // 接受 字符串
                         ArrayList<String> values = new ArrayList<>();
                         int total = 1; //总的数组内元素数量
                         for (Integer ix : array.getDimensionList())
                             total *= ix;
                         // 包括上最后的一个 \0
-                        if (var.getValue().length() > total - 1) {
+                        if (scanVal.length() > total - 1) {
                             messages.add("接收的字符串过长！");
+                            variable = new SimpleVariable(null, "int", "0", level);
                         } else {
-                            for (int i = 0; i < var.getValue().length(); i++)
-                                values.add(String.valueOf(var.getValue().charAt(i)));
+                            for (int i = 0; i < scanVal.length(); i++)
+                                values.add(String.valueOf(scanVal.charAt(i)));
+                            values.add(String.valueOf('\0')); // TODO 加上最后的 \0
+                            array.setValues(values);
+                            messages.add("char 数组变量" + array.getArrayName() + "接受字符串输入被赋值为 " + array.getValues() + " ,返回默认值 1");
+                            variable = new SimpleVariable(null, "int", "1", level);
                         }
-                        values.add(String.valueOf('\0')); // TODO 加上最后的 \0
-                    }else {
-                        messages.add("字符数组只能接受字符串输入！");
-                        variable = new SimpleVariable(null, "int", "1", level);
+                    } else {
+                        messages.add("非字符数组的数组变量不能直接接收输入！");
+                        variable = new SimpleVariable(null, "int", "0", level);
                     }
-                }else {
+                } else {
+                    // 考虑简单变量
                     SimpleVariable vvv = simpleTable.getVar(var.getName()); // 拿到表里已经声明的变量
-                    // TODO 从列表中 pop 读入输入的数据（如从文件中导入大量的输入数据）
                     if (vvv != null) {
                         System.out.println("正在执行 scan，开始接受值给变量" + var.getName());
-                        Double inp = scanner.nextDouble();
-                        if (vvv.getType().equals("int")) {
-                            messages.add("scan时强制转换");
-                            int i = (int) inp.doubleValue();
-                            vvv.setValue(String.valueOf(i));
-                        } else
-                            vvv.setValue(String.valueOf(inp));
-                        messages.add("变量" + var.getName() + "接受并被赋值为" + String.valueOf(inp) + ",返回默认值 1");
+                        if (vvv.getType().equals("char")){
+                            if (scanVal.length() > 1){
+                                messages.add("输入的字符过长!");
+                                variable = new SimpleVariable(null, "int", "0", level);
+                            }else
+                                vvv.setValue(scanVal);
+                        }else {
+//                        Double inp = scanner.nextDouble();
+                            Double inp = Double.valueOf(scanVal);
+                            if (vvv.getType().equals("int")) {
+                                messages.add("scan时强制转换");
+                                int i = (int) inp.doubleValue();
+                                vvv.setValue(String.valueOf(i));
+                            } else
+                                vvv.setValue(String.valueOf(inp));
+                        }
+                        messages.add("变量" + var.getName() + "接受并被赋值为" + vvv.getValue()+ ",返回默认值 1");
                         variable = new SimpleVariable(null, "int", "1", level);
                     } else {
                         messages.add("变量" + var.getName() + "未声明，无法scan得到值，返回默认值 0");
@@ -1141,11 +1156,11 @@ public class Translator {
 
     private static void testWhileIf() {
         Translator t = new Translator();
-        String pro = "int n=5;for(int i = 0, k = 1;i < n;i = i + 1){\n" +
-                "  for(int j = 0;j < n;j =j + k){\n" +
-                "    print(\"i+j= \" + (i + j)+ \"  ---  \" );\n" +
-                "  }//if(i == 3)break;\n" +
-                " }";
+        String pro = "int n = 5;\n" +
+                "scan(n);\n" +
+                "char c;\n" +
+                "scan(c);\n" +
+                "print(\"c=\" + c);";
 
         Wrapper w = Executor.analyze(pro);
         t.simpleTable.addVariable(new SimpleVariable("p", "int", "0", 1));

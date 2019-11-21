@@ -5,6 +5,7 @@ import org.springframework.util.ResourceUtils;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Executor {
@@ -125,10 +126,11 @@ public class Executor {
             ASTNode astNode = parser.LLParse(LexicalAnalysis.preprocess(lexiNodes));
 
             Translator t = new Translator();
-            t.setScanList(Arrays.asList(scan_inputs));  // 注入输入的数据
+            LinkedList<String> scanList = new LinkedList<>(Arrays.asList(scan_inputs));
+            t.setScanList(scanList);  // 注入输入的数据
             t.translate(astNode);
-            System.out.println("msg:");
-            for (String m : t.getPrintList())
+            System.out.println("--------msg-------");
+            for (String m : t.getMessages())
                 System.out.println(m);
 
         }catch (Exception e){
