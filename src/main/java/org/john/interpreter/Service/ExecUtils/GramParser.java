@@ -54,7 +54,7 @@ public class GramParser {
             int y, x, pos; //LL分析表的 行和列位置
             int index = 0; //扫描的索引
             LexiNode node;
-            List<String> symList = signList.subList(0, 12);
+            List<String> symList = signList.subList(0, signList.indexOf("&") + 1);
             while (index < nodes.size()) {
 
                 node = nodes.get(index);

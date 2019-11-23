@@ -48,7 +48,11 @@
 	7. 数组下标不是整数，不是正数
 	8. 简单变量初始化为数组变量
 	9. 数组变量和简单变量名相同
+	10. Overflow Exception
 - Extend
 	1. 死循环 （条件恒为 1 或 0）
 	2. 常量左值不可修改
 	3. 函数未声明，参数列表不匹配
+
+### Passed Test
+1. implicitly cast, operation test(without overflow exception throw) and CHAR & STRING (without explicitly type transfer)in type.c

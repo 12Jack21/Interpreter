@@ -116,11 +116,11 @@ public class Executor {
             BufferedWriter out = new BufferedWriter(new FileWriter(write));
 
             // 程序文件的每个程序都用 "-----" 来分隔
-            String[] pros = readCodeFile(fis).split("-----");
+//            String[] pros = readCodeFile(fis).split("-----");
             String[] scan_inputs = readCodeFile(scanInputs).split(" "); // 空格分隔
 
             int index = 0;
-            List<LexiNode> lexiNodes = LexicalAnalysis.lexicalScan(pros[0]);
+            List<LexiNode> lexiNodes = LexicalAnalysis.lexicalScan(readCodeFile(fis));
 
             GramParser parser = new GramParser();
             ASTNode astNode = parser.LLParse(LexicalAnalysis.preprocess(lexiNodes));

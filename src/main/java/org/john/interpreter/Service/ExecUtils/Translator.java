@@ -733,7 +733,7 @@ public class Translator {
                 messages.add(top + " 操作中不能存在字符串,自动返回默认值 空");
                 return new SimpleVariable(null, "string", "", level);
             } else {
-                // 应该取下标为 0 而不是 1 ， TODO value是否已经除去了 双引号
+                // 应该取下标为 0 而不是 1 ，value已经除去了 双引号
                 String val = v1.getValue() + v2.getValue();
                 return new SimpleVariable(v1.getName(), "string", val, level);
             }
@@ -762,7 +762,17 @@ public class Translator {
             } else if (top.equals("-")) {
                 messages.add(a1 + " - " + a2 + " = " + (a1 - a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 - a2), level);
-            } else {
+            } else if (top.equals("&")){
+                messages.add(a1 + " & " + a2 + " = " + (a1 & a2));
+                reVar = new SimpleVariable(v1.getName(),"int",String.valueOf(a1 & a2),level);;
+            } else if (top.equals("|")){
+                messages.add(a1 + " | " + a2 + " = " + (a1 | a2));
+                reVar = new SimpleVariable(v1.getName(),"int",String.valueOf(a1 | a2),level);;
+            } else if (top.equals("^")){
+                messages.add(a1 + " ^ " + a2 + " = " + (a1 ^ a2));
+                reVar = new SimpleVariable(v1.getName(),"int",String.valueOf(a1 ^ a2),level);;
+            }
+            else {
                 // 关系和逻辑运算
                 int val = 0;
                 if (top.equals("=="))
@@ -786,13 +796,13 @@ public class Translator {
                     if (val == 1) // 物理上的短路求值
                         val = ((a1 != 0) && (a2 != 0)) ? 1 : 0;
                 } else
-                    messages.add("运算出错！！！");
+                    messages.add("运算calculate出错！！！");
                 messages.add(a1 + top + a2 + " = " + val);
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(val), level);
             }
 
         }// 两者类型中存在 real 的情况
-        else {
+        else {//TODO left bit operation
             // 两个之中有real型存在
             if (v1.getType().equals("real"))
                 messages.add("类型" + v1.getType() + "与" + v2.getType() + "不匹配,自动对 " + v2.getValue() + "进行类型转换");
@@ -810,6 +820,7 @@ public class Translator {
             } else if (top.equals("/")) {
                 if (a2 == 0.0) {
                     messages.add("发生除零错误，值自动变为 0.0");
+                    System.err.println("发生除零错误，值自动变为 0.0");
                     reVar = new SimpleVariable(v1.getName(), "real", "0.0", level);
                 } else {
                     messages.add(a1 + " / " + a2 + " = " + (a1 / a2));
@@ -847,7 +858,7 @@ public class Translator {
                     if (val == 1) // 物理上的短路求值
                         val = ((a1 != 0.0) && (a2 != 0)) ? 1 : 0;
                 } else
-                    messages.add("运算出错！！！");
+                    messages.add("运算calculate出错！！！");
                 messages.add(a1 + top + a2 + " = " + val);
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(val), level);
             }
@@ -867,7 +878,7 @@ public class Translator {
                 String symbol = digit_node.getChildren()[0].getName();
                 if (positive_node.getChildren()[0].getName().equals("integer")) {
                     // 正整数
-                    int value = Integer.parseInt(positive_node.getChildren()[0].getValue());
+                    int value = (int)Double.parseDouble(positive_node.getChildren()[0].getValue());
                     if (symbol.equals("-")) //负数
                         value = -1 * value;
                     else if (symbol.equals("~"))
@@ -915,8 +926,15 @@ public class Translator {
                         if (symbol.equals("-")) {
                             if (!id.getType().equals("char")) {
                                 //TODO 传一个深拷贝的对象，以免导致赋值产生变量表中变量的值被改变的问题
-                                variable = typeHandle(new SimpleVariable(identifier, id.getType(), null, id.getLevel()),
-                                        new SimpleVariable(null, id.getType(), "-" + id.getValue(), id.getLevel()));
+                                //不能简单地把负号加上去，可能出现 “--2.14” 无法转化的情况
+                                String val = null;
+                                if (id.getType().equals("real"))
+                                    val = String.valueOf(-1.0 * Double.parseDouble(id.getValue()));
+                                else if (id.getType().equals("int"))
+                                    val = String.valueOf(-1 * Integer.parseInt(id.getValue()));
+                                else
+                                    System.err.println("- 操作时类型错误！");
+                                variable = new SimpleVariable(identifier,id.getType(),val,level);
                             } else {
                                 // char 单独处理,转成 int
                                 int val = (int) id.getValue().charAt(0) * -1;
@@ -926,8 +944,9 @@ public class Translator {
                         } else if (symbol.equals("~")) {
                             // 位运算不支持 real 型数
                             if (id.getType().equals("real") || id.getType().equals("string")) {
-                                messages.add("~ 位运算仅支持 int或char型数, 返回默认值 0");
-                                variable = new SimpleVariable(null, "int", "0", level);
+                                int val = (int)Double.parseDouble(id.getValue());
+                                messages.add("~ 位运算仅支持 int或char型数,real型数" +id.getValue()+ "强制转换为int数 " + val);
+                                variable = new SimpleVariable(null, "int", String.valueOf(~ val), level);
                             } else {
                                 if (id.getType().equals("char")) {
                                     int val = ~(int) id.getValue().charAt(0);

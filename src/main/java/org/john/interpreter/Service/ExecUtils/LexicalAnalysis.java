@@ -161,7 +161,7 @@ public class LexicalAnalysis {
             return null;
         while (pro.endsWith("\n")) //除去最后的换行
             pro = pro.substring(0, pro.length() - 1);
-        pro += " ";     //TODO 防止 indexOutOfBound
+        pro += " ";     //TODO 防止 indexOutOfBound,尚未完全解决
         List<LexiNode> nodes = new ArrayList<>();
         HashMap<String, Integer> str2Code = str2IntMap();
         //起始节点
