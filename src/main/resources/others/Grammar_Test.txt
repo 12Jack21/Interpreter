@@ -5,7 +5,7 @@ real b2 = a2;
 a2 = b2 * a2; // must throw overflow exception!
 b2 = a2 / 0.0; // must throw divided by zero exception !
 */
-int a =0x12;
-print("a= " + a);
 real b = 1.2e-023;
 print("b= " + b);
+int a =0x1f;
+print("a= " + a);

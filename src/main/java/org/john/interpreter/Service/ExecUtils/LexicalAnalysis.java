@@ -248,6 +248,9 @@ public class LexicalAnalysis {
 
         List<LexiNode> nodes = lexicalScan(pro);
         System.out.println(nodes);
+
+        int m = 'a';
+        System.out.println("m = " + m + "    " + (int)'f');
     }
 
 }

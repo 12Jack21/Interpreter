@@ -762,17 +762,19 @@ public class Translator {
             } else if (top.equals("-")) {
                 messages.add(a1 + " - " + a2 + " = " + (a1 - a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 - a2), level);
-            } else if (top.equals("&")){
+            } else if (top.equals("&")) {
                 messages.add(a1 + " & " + a2 + " = " + (a1 & a2));
-                reVar = new SimpleVariable(v1.getName(),"int",String.valueOf(a1 & a2),level);;
-            } else if (top.equals("|")){
+                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 & a2), level);
+                ;
+            } else if (top.equals("|")) {
                 messages.add(a1 + " | " + a2 + " = " + (a1 | a2));
-                reVar = new SimpleVariable(v1.getName(),"int",String.valueOf(a1 | a2),level);;
-            } else if (top.equals("^")){
+                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 | a2), level);
+                ;
+            } else if (top.equals("^")) {
                 messages.add(a1 + " ^ " + a2 + " = " + (a1 ^ a2));
-                reVar = new SimpleVariable(v1.getName(),"int",String.valueOf(a1 ^ a2),level);;
-            }
-            else {
+                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 ^ a2), level);
+                ;
+            } else {
                 // 关系和逻辑运算
                 int val = 0;
                 if (top.equals("=="))
@@ -878,11 +880,26 @@ public class Translator {
                 String symbol = digit_node.getChildren()[0].getName();
                 if (positive_node.getChildren()[0].getName().equals("integer")) {
                     // 正整数
-                    int value = (int)Double.parseDouble(positive_node.getChildren()[0].getValue());
+                    int value = (int) Double.parseDouble(positive_node.getChildren()[0].getValue());
                     if (symbol.equals("-")) //负数
                         value = -1 * value;
                     else if (symbol.equals("~"))
                         value = ~value;
+                    variable = new SimpleVariable(null, "int", String.valueOf(value), level);
+                } else if (positive_node.getChildren()[0].getName().equals("hexadecimal")) {
+                    // 十六进制数 转成 十进制的 int型数
+                    String raw = positive_node.getChildren()[0].getValue();
+                    raw = raw.substring(2, raw.length());
+                    int value = 0;
+                    char ch;
+                    for (int i = 0; i < raw.length(); i++) {
+                        ch = raw.charAt(i);
+                        // 需要把 a-f (ascii code from 97 to 102)转换成 10-15
+                        if (ch >= 97 && ch <= 102)
+                            value = (value << 4) + (ch - 87);
+                        else
+                            value = (value << 4) + Integer.parseInt(String.valueOf(ch));
+                    }
                     variable = new SimpleVariable(null, "int", String.valueOf(value), level);
                 } else {
                     // 小数
@@ -894,8 +911,8 @@ public class Translator {
                         int val = ~(int) value;
                         messages.add("~ 位运算使real型数" + value + "转变为int型数 " + val);
                         variable = new SimpleVariable(null, "int", String.valueOf(val), level);
-                    }else
-                        variable = new SimpleVariable(null,"real",String.valueOf(value),level);
+                    } else
+                        variable = new SimpleVariable(null, "real", String.valueOf(value), level);
                 }
             } else if (name.equals("character")) {
                 // character,此处进行词法分析没有进行的 字符长度的检查
@@ -934,7 +951,7 @@ public class Translator {
                                     val = String.valueOf(-1 * Integer.parseInt(id.getValue()));
                                 else
                                     System.err.println("- 操作时类型错误！");
-                                variable = new SimpleVariable(identifier,id.getType(),val,level);
+                                variable = new SimpleVariable(identifier, id.getType(), val, level);
                             } else {
                                 // char 单独处理,转成 int
                                 int val = (int) id.getValue().charAt(0) * -1;
@@ -944,9 +961,9 @@ public class Translator {
                         } else if (symbol.equals("~")) {
                             // 位运算不支持 real 型数
                             if (id.getType().equals("real") || id.getType().equals("string")) {
-                                int val = (int)Double.parseDouble(id.getValue());
-                                messages.add("~ 位运算仅支持 int或char型数,real型数" +id.getValue()+ "强制转换为int数 " + val);
-                                variable = new SimpleVariable(null, "int", String.valueOf(~ val), level);
+                                int val = (int) Double.parseDouble(id.getValue());
+                                messages.add("~ 位运算仅支持 int或char型数,real型数" + id.getValue() + "强制转换为int数 " + val);
+                                variable = new SimpleVariable(null, "int", String.valueOf(~val), level);
                             } else {
                                 if (id.getType().equals("char")) {
                                     int val = ~(int) id.getValue().charAt(0);
