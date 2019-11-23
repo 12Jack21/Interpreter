@@ -106,15 +106,12 @@ public class CodeTable {
             "Arithmetic->Variable Operation",
             "Operation->+ Arithmetic","Operation->- Arithmetic","Operation->* Arithmetic","Operation->/ Arithmetic",
             "Operation->| Arithmetic","Operation->^ Arithmetic","Operation->& Arithmetic","Operation->",
-//            "Arithmetic->Item V",
-//            "V->+ Arithmetic", "V->- Arithmetic", "V->", //右结合
-//            "Item->Variable Factor",
-//            "Factor->* Item", "Factor->/ Item", "Factor->",
+
             "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->SymbolVar",
             "Variable->print ( Logic )", "Variable->scan ( Logic )","Variable->character","Variable->string",
             "SymbolVar->+ identifier","SymbolVar->- identifier","SymbolVar->~ identifier",
             "Call->( Argument )", "Call->Index",
-//            "A->= Relation","A->",
+
             "Argument->Logic CCC", "Argument->",
             "CCC->, Argument", "CCC->", //no.73
 
@@ -133,6 +130,11 @@ public class CodeTable {
      2.Follow集匹配
     */
 
+//                "Arithmetic->Item V",
+//            "V->+ Arithmetic", "V->- Arithmetic", "V->", //右结合
+//            "Item->Variable Factor",
+//            "Factor->* Item", "Factor->/ Item", "Factor->",
+//                "A->= Relation","A->",
 
     // 各个运算符的优先级
     public static HashMap<String, Integer> opPriority() {

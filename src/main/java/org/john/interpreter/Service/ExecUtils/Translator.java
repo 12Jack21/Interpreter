@@ -83,7 +83,7 @@ public class Translator {
                     translateAssignment(C_node.getChildren()[1], type); // 处理Assignment
                     C_node = C_node.getChildren()[2];
                 }
-            } else {//  函数定义
+            } else {//  函数定义 TODO add char and array parameters
                 // 保存 pro_node 到函数表中
                 try {
                     ArrayList<Object> parameters = translateParameter(F.getChildren()[1]);
@@ -154,7 +154,7 @@ public class Translator {
                     if (root.getChildren()[6].getMaxChildNum() != 0) {
                         // ELSE->else H
                         messages.add("执行 else里的程序");
-                        translate(root.getChildren()[5].getChildren()[1]);
+                        translate(root.getChildren()[6].getChildren()[1]);
                     }
                 }
             }
@@ -270,19 +270,7 @@ public class Translator {
                     String type = returnTypeStack.pop();
                     //返回值置入 returnVal中
                     SimpleVariable tmp = new SimpleVariable(null, type, null, level);
-                    if (!type.equals(log.getType())) {
-                        if (type.equals("int")) {
-                            // 强制转换
-                            int val = (int) Double.parseDouble(log.getValue());
-                            messages.add("值类型与返回类型不匹配，" + log.getValue() + "强制转换为" + val + "并返回");
-                            tmp.setValue(String.valueOf(val));
-                        } else if (type.equals("real")) {
-                            double val = Double.parseDouble(log.getValue());
-                            messages.add("值类型与返回类型不匹配，" + log.getValue() + "自动类型转换为" + val + "并返回");
-                            tmp.setValue(String.valueOf(val));
-                        }
-                    } else
-                        tmp.setValue(log.getValue());
+                    tmp = typeHandle(tmp,log);
                     returnVal = tmp;
                 }
                 // 没有返回值则不加理会
@@ -309,7 +297,7 @@ public class Translator {
 
         if (parameter.getMaxChildNum() == 4) {
             // Parameter->Type identifier Index CC
-            String type = parameter.getChildren()[0].getChildren()[0].getName(); //可能为 void，char
+            String type = parameter.getChildren()[0].getChildren()[0].getName(); //可能为 void
             String identifier = parameter.getChildren()[1].getValue();
             ASTNode index_node = parameter.getChildren()[2];
             ASTNode CC_node = parameter.getChildren()[3];
@@ -318,10 +306,10 @@ public class Translator {
                 SimpleVariable v = new SimpleVariable(identifier, type, null, level);//TODO level的影响
                 parameters.add(v);
             } else {
-                //数组变量的参数，有错误就无法成功声明，考虑throw
+                // TODO 数组变量的参数，有错误就无法成功声明，考虑throw , ---没有涉及到 多维数组！！！
                 ASTNode logic = index_node.getChildren()[1];
                 SimpleVariable log = translateExp(logic);
-                int len;
+                int len = 0;
                 if (log.getType().equals("real")) {
                     len = (int) Double.parseDouble(log.getValue());
                     messages.add("作为参数的数组长度不能为小数" + log.getValue() + "，将强制转换为" + len);
@@ -329,8 +317,11 @@ public class Translator {
                         messages.add("作为参数的数组长度不能为负数" + len);
                         throw new Exception();
                     }
-                } else //int型
+                } else if (log.getType().equals("int"))//int型
                     len = Integer.parseInt(log.getValue());
+                else {
+                    // char 型
+                }
                 ArrayVariable v = new ArrayVariable(identifier, type, len, null, level);
                 parameters.add(v);
             }
@@ -765,15 +756,12 @@ public class Translator {
             } else if (top.equals("&")) {
                 messages.add(a1 + " & " + a2 + " = " + (a1 & a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 & a2), level);
-                ;
             } else if (top.equals("|")) {
                 messages.add(a1 + " | " + a2 + " = " + (a1 | a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 | a2), level);
-                ;
             } else if (top.equals("^")) {
                 messages.add(a1 + " ^ " + a2 + " = " + (a1 ^ a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 ^ a2), level);
-                ;
             } else {
                 // 关系和逻辑运算
                 int val = 0;
@@ -804,7 +792,7 @@ public class Translator {
             }
 
         }// 两者类型中存在 real 的情况
-        else {//TODO left bit operation
+        else {
             // 两个之中有real型存在
             if (v1.getType().equals("real"))
                 messages.add("类型" + v1.getType() + "与" + v2.getType() + "不匹配,自动对 " + v2.getValue() + "进行类型转换");
@@ -834,11 +822,22 @@ public class Translator {
             } else if (top.equals("-")) {
                 messages.add(a1 + " - " + a2 + " = " + (a1 - a2));
                 reVar = new SimpleVariable(v1.getName(), "real", String.valueOf(a1 - a2), level);
-            } else {
+            } else if (top.equals("&")) {
+                // 强制转为 int 再进行位运算
+                messages.add(a1 + " & " + a2 + " = " + ((int)a1 & (int)a2));
+                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int)a1 & (int)a2), level);
+            } else if (top.equals("|")) {
+                messages.add(a1 + " | " + a2 + " = " + ((int)a1 | (int)a2));
+                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int)a1 | (int)a2), level);
+            } else if (top.equals("^")) {
+                messages.add(a1 + " ^ " + a2 + " = " + ((int)a1 ^ (int)a2));
+                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int)a1 ^ (int)a2), level);
+            }
+            else {
                 //TODO 是否会有其他情况没有考虑到
 
                 // 关系和逻辑运算
-                int val = 0;
+                 int val = 0;
                 if (top.equals("=="))
                     val = a1 == a2 ? 1 : 0;
                 else if (top.equals("<>"))
@@ -1075,7 +1074,7 @@ public class Translator {
                     }
                 }
             } else {
-                // 函数调用
+                // 函数调用 TODO add char and array
                 ArrayList<SimpleVariable> arguments = translateArgument(call_node.getChildren()[1]);
                 FunctionVariable func = functionTable.getVar(identifier);
                 if (func == null) {
@@ -1100,19 +1099,8 @@ public class Translator {
                             SimpleVariable arg = arguments.get(i);
                             // 函数里的局部变量，与参数的名称相同
                             SimpleVariable local = new SimpleVariable(par.getName(), par.getType(), null, level + 1);
-                            if (!par.getType().equals(arg.getType())) {
-                                if (par.getType().equals("int")) {
-                                    // 强制转换
-                                    int val = (int) Double.parseDouble(arg.getValue());
-                                    messages.add("调用类型不匹配，" + arg.getValue() + "强制转换为" + val);
-                                    local.setValue(String.valueOf(val));
-                                } else if (par.getType().equals("real")) {
-                                    double val = Double.parseDouble(arg.getValue());
-                                    messages.add("调用类型不匹配，" + arg.getValue() + "自动类型转换为" + val);
-                                    local.setValue(String.valueOf(val));
-                                }
-                            } else
-                                local.setValue(arg.getValue());
+
+                            local = typeHandle(local,arg);
                             simpleTable.addVariable(local); // 添加进变量表中，当前的高 level
                         }
                         if (canExecute) {
@@ -1128,8 +1116,8 @@ public class Translator {
                             proNum--;
                             // 把返回值置入 variable变量中
                             if (returnVal == null) {
-                                messages.add("函数调用后没有返回值，自动返回默认值 0");
-                                variable = new SimpleVariable(null, "int", "0", level - 1);
+                                messages.add("函数调用后没有返回值，自动返回默认值 1");
+                                variable = new SimpleVariable(null, "int", "1", level - 1);
                             } else {
                                 messages.add("函数调用后返回了值：" + returnVal.getValue());
                                 variable = returnVal;

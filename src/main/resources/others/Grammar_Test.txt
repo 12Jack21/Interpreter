@@ -5,7 +5,19 @@ real b2 = a2;
 a2 = b2 * a2; // must throw overflow exception!
 b2 = a2 / 0.0; // must throw divided by zero exception !
 */
-real b = 1.2e-023;
-print("b= " + b);
-int a =0x1f;
-print("a= " + a);
+
+int fibonacci(int n){
+    if(n == 1 || n==2)
+      return 1;
+    else
+      return fibonacci(n-1) + fibonacci(n-2);
+}
+int factorial(int n){
+    if(n==1)
+        return 1;
+    else
+        return n * factorial(n-1);
+}
+//int a  = fibonacci(6);
+int a  = factorial(6);
+print("a = " + a);
