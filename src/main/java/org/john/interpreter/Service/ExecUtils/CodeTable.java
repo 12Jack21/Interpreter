@@ -14,7 +14,7 @@ public class CodeTable {
     // 把 '.' 删去
     public static String[] signs = {"/", "+", "-", "*", "<", ">", "==", "<>", ">=",
             "<=", "&&", "||", "=", "(", ")", "{", "}", "[", "]", "'", "\"", ";",
-            ",", "\\n", "\\r", "\\t", "\n", "\r", "\t", "//", "/*", "*/"};
+            ",", "\\n", "\\r", "\\t", "\n", "\r", "\t", "//", "/*", "*/","~","|","&"};
     // 特例
     public static String[] specials = {"identifier", "integer", "fraction", "character", "string"};
 
@@ -112,14 +112,14 @@ public class CodeTable {
 //            "Factor->* Item", "Factor->/ Item", "Factor->",
             "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->SymbolVar",
             "Variable->print ( Logic )", "Variable->scan ( Logic )","Variable->character","Variable->string",
-            "SymbolVar->+ identifier","SymbolVar->- identifier","Symbol->~ identifier",
+            "SymbolVar->+ identifier","SymbolVar->- identifier","SymbolVar->~ identifier",
             "Call->( Argument )", "Call->Index",
 //            "A->= Relation","A->",
             "Argument->Logic CCC", "Argument->",
             "CCC->, Argument", "CCC->", //no.73
 
             "Digit->Positive", "Digit->- Positive", "Digit->+ Positive","Digit->~ Positive", //选择正数或者负数
-            "Positive->integer", "Positive->fraction"  //整数、小数
+            "Positive->integer", "Positive->fraction","Positive->hexadecimal"  //整数、小数、十六进制数
     };
 
     /*

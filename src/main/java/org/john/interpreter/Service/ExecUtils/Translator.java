@@ -545,7 +545,7 @@ public class Translator {
                             msg += " ,并自动初始化为" + zeroValues;
                             messages.add(msg);
                         }
-                    } else { //TODO add char array
+                    } else {
                         // 数组下标位置 赋值的情况
                         ArrayVariable v = arrayTable.getArray(identifier);
                         if (v == null)
@@ -864,18 +864,27 @@ public class Translator {
                 // "Variable->Digit"
                 ASTNode digit_node = variable_node.getChildren()[0];
                 ASTNode positive_node = digit_node.getChildren()[digit_node.getMaxChildNum() - 1];
+                String symbol = digit_node.getChildren()[0].getName();
                 if (positive_node.getChildren()[0].getName().equals("integer")) {
                     // 正整数
-                    Integer value = Integer.valueOf(positive_node.getChildren()[0].getValue());
-                    if (digit_node.getChildren()[0].getName().equals("-")) //负数
+                    int value = Integer.parseInt(positive_node.getChildren()[0].getValue());
+                    if (symbol.equals("-")) //负数
                         value = -1 * value;
-                    variable = new SimpleVariable(null, "int", value.toString(), level);
+                    else if (symbol.equals("~"))
+                        value = ~value;
+                    variable = new SimpleVariable(null, "int", String.valueOf(value), level);
                 } else {
                     // 小数
-                    Double value = Double.valueOf(positive_node.getChildren()[0].getValue());
-                    if (digit_node.getChildren()[0].getName().equals("-")) //负数
+                    double value = Double.parseDouble(positive_node.getChildren()[0].getValue());
+                    if (symbol.equals("-")) {//负数
                         value = -1.0 * value;
-                    variable = new SimpleVariable(null, "real", value.toString(), level);
+                        variable = new SimpleVariable(null, "real", String.valueOf(value), level);
+                    } else if (symbol.equals("~")) {
+                        int val = ~(int) value;
+                        messages.add("~ 位运算使real型数" + value + "转变为int型数 " + val);
+                        variable = new SimpleVariable(null, "int", String.valueOf(val), level);
+                    }else
+                        variable = new SimpleVariable(null,"real",String.valueOf(value),level);
                 }
             } else if (name.equals("character")) {
                 // character,此处进行词法分析没有进行的 字符长度的检查
@@ -885,13 +894,12 @@ public class Translator {
                     variable = new SimpleVariable(null, "char", String.valueOf('\0'), level);
                 } else
                     variable = new SimpleVariable(null, "char", String.valueOf(char_value), level);
-            } else if (name.equals("string")){
+            } else if (name.equals("string")) {
                 // string
                 String val = variable_node.getChildren()[0].getValue().split("\"")[1];
                 variable = new SimpleVariable(null, "string", val, level);
-            } else if (name.equals("SymbolVar")){
-                //TODO + id, - id, ~id and ~ Positive
-                String identifier = variable_node.getChildren()[0].getChildren()[1].getName();
+            } else if (name.equals("SymbolVar")) {
+                String identifier = variable_node.getChildren()[0].getChildren()[1].getValue();
                 SimpleVariable id = simpleTable.getVar(identifier);
                 String symbol = variable_node.getChildren()[0].getChildren()[0].getValue();
                 if (id == null) {
@@ -904,19 +912,35 @@ public class Translator {
                         variable = new SimpleVariable(identifier, "int", "0", level);
                     } else {
                         // 不用考虑 正号
-                        if (symbol.equals("-")){
-                            if (!variable.getType().equals("char")){
+                        if (symbol.equals("-")) {
+                            if (!id.getType().equals("char")) {
                                 //TODO 传一个深拷贝的对象，以免导致赋值产生变量表中变量的值被改变的问题
-                                variable = typeHandle(new SimpleVariable(identifier,id.getType(),null,id.getLevel()),
-                                        new SimpleVariable(null,id.getType(),"-" + id.getValue(),id.getLevel()));
-                            }else {
-                                // char 单独处理
-
+                                variable = typeHandle(new SimpleVariable(identifier, id.getType(), null, id.getLevel()),
+                                        new SimpleVariable(null, id.getType(), "-" + id.getValue(), id.getLevel()));
+                            } else {
+                                // char 单独处理,转成 int
+                                int val = (int) id.getValue().charAt(0) * -1;
+                                messages.add("char变量" + identifier + "的值" + id.getValue() + "自动转为 int");
+                                variable = new SimpleVariable(identifier, "int", String.valueOf(val), level);
                             }
-                        }else if (symbol.equals("~")){
-
-                        }else
-                            System.err.println("语法分析出错！");
+                        } else if (symbol.equals("~")) {
+                            // 位运算不支持 real 型数
+                            if (id.getType().equals("real") || id.getType().equals("string")) {
+                                messages.add("~ 位运算仅支持 int或char型数, 返回默认值 0");
+                                variable = new SimpleVariable(null, "int", "0", level);
+                            } else {
+                                if (id.getType().equals("char")) {
+                                    int val = ~(int) id.getValue().charAt(0);
+                                    messages.add("char 类型数" + id.getValue() + "经~运算自动转为" + val);
+                                    variable = new SimpleVariable(identifier, id.getType(), String.valueOf(val), level);
+                                } else if (id.getType().equals("int")) {
+                                    int val = ~Integer.parseInt(id.getValue());
+                                    variable = new SimpleVariable(identifier, id.getType(), String.valueOf(val), level);
+                                } else
+                                    System.err.println("~ 位运算时发现语法分析错误！");
+                            }
+                        } else
+                            System.err.println("特殊符号运算时发现语法分析出错！");
                     }
                 }
             } else
@@ -1136,13 +1160,13 @@ public class Translator {
                     SimpleVariable vvv = simpleTable.getVar(var.getName()); // 拿到表里已经声明的变量
                     if (vvv != null) {
                         System.out.println("正在执行 scan，开始接受值给变量" + var.getName());
-                        if (vvv.getType().equals("char")){
-                            if (scanVal.length() > 1){
+                        if (vvv.getType().equals("char")) {
+                            if (scanVal.length() > 1) {
                                 messages.add("输入的字符过长!");
                                 variable = new SimpleVariable(null, "int", "0", level);
-                            }else
+                            } else
                                 vvv.setValue(scanVal);
-                        }else {
+                        } else {
 //                        Double inp = scanner.nextDouble();
                             Double inp = Double.valueOf(scanVal);
                             if (vvv.getType().equals("int")) {
@@ -1152,7 +1176,7 @@ public class Translator {
                             } else
                                 vvv.setValue(String.valueOf(inp));
                         }
-                        messages.add("变量" + var.getName() + "接受并被赋值为" + vvv.getValue()+ ",返回默认值 1");
+                        messages.add("变量" + var.getName() + "接受并被赋值为" + vvv.getValue() + ",返回默认值 1");
                         variable = new SimpleVariable(null, "int", "1", level);
                     } else {
                         messages.add("变量" + var.getName() + "未声明，无法scan得到值，返回默认值 0");
@@ -1289,9 +1313,11 @@ public class Translator {
     }
 
     public static void main(String[] args) {
-        String s = "-a";
-        int a = Integer.parseInt(s);
-        a = ~a;
+        String s = "-1e-10";
+        int a = 12;
+        double d = Double.parseDouble(s);
+        char x = 'w';
+        a = -x;
 //        testWhileIf();
     }
 }

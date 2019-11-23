@@ -87,14 +87,13 @@ public class LLDrive {
                 int y = ntMap.get(Node.splitP(production).leftP);
                 if (manualProcess(table, cStr, i))
                     continue;
-                if (table[y][x] == -1)
-                    table[y][x] = i;
-                else {
-                    if (special_production_list.contains(production)){
-                        table[y][x] = -2; // 特殊整数 -2 指代特殊处理
-                        continue;
-                    }
-                    throw new Exception("请修改产生式，此非 LL(1) 文法！");
+                if (special_production_list.contains(production)) {
+                    table[y][x] = -2; // 特殊整数 -2 指代特殊处理
+                } else {
+                    if (table[y][x] == -1)
+                        table[y][x] = i;
+                    else
+                        throw new Exception("请修改产生式，此非 LL(1) 文法！");
                 }
             }
         }

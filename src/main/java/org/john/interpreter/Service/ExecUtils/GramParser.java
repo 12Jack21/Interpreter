@@ -81,10 +81,10 @@ public class GramParser {
                             continue;
                         curNode = curNode.findLefted();
 
-                        if (symList.contains(top) && !curNode.getName().equals("Digit")) // 为运算符
+                        if (symList.contains(top) && !curNode.getName().equals("Digit") && !curNode.getName().equals("SymbolVar")) // 为双目运算符
                             curNode.addChild(new ASTNode(0, "symbol", top, true, true));
                         else
-                            curNode.addChild(new ASTNode(0, top, node.getSymbol(), true, true));
+                            curNode.addChild(new ASTNode(0, top, node.getSymbol().trim(), true, true));
                     } else {
                         legal = false;
                         if (top.equals("#"))

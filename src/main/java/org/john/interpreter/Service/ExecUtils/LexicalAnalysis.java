@@ -66,8 +66,8 @@ public class LexicalAnalysis {
                 }
             }
         }
-        //检测到符号 (最高优先级的判定),加号和减号单独拿出来考虑
-        else if (ch == '|' || ch == '&' || signList.contains(String.valueOf(ch)) || ch == '\\') {
+        //检测到符号 (最高优先级的判定),加号和减号单独拿出来考虑 TODO 已删去 ch == '|' || ch == '&' ||
+        else if (signList.contains(String.valueOf(ch)) || ch == '\\') {
             token[i++] = ch;
             ch = pro[p++]; //拿到扫描的起始符号
             token[i++] = ch;
