@@ -859,7 +859,8 @@ public class Translator {
     private SimpleVariable translateVariable(ASTNode variable_node) {
         SimpleVariable variable = null;
         if (variable_node.getMaxChildNum() == 1) {
-            if (variable_node.getChildren()[0].getName().equals("Digit")) {
+            String name = variable_node.getChildren()[0].getName();
+            if (name.equals("Digit")) {
                 // "Variable->Digit"
                 ASTNode digit_node = variable_node.getChildren()[0];
                 ASTNode positive_node = digit_node.getChildren()[digit_node.getMaxChildNum() - 1];
@@ -876,7 +877,7 @@ public class Translator {
                         value = -1.0 * value;
                     variable = new SimpleVariable(null, "real", value.toString(), level);
                 }
-            } else if (variable_node.getChildren()[0].getName().equals("character")) {
+            } else if (name.equals("character")) {
                 // character,此处进行词法分析没有进行的 字符长度的检查
                 String char_value = variable_node.getChildren()[0].getValue().split("\'")[1];
                 if (char_value.length() != 1) {
@@ -884,20 +885,50 @@ public class Translator {
                     variable = new SimpleVariable(null, "char", String.valueOf('\0'), level);
                 } else
                     variable = new SimpleVariable(null, "char", String.valueOf(char_value), level);
-            } else {
+            } else if (name.equals("string")){
                 // string
                 String val = variable_node.getChildren()[0].getValue().split("\"")[1];
                 variable = new SimpleVariable(null, "string", val, level);
-                int a = ~11;
-            }
+            } else if (name.equals("SymbolVar")){
+                //TODO + id, - id, ~id and ~ Positive
+                String identifier = variable_node.getChildren()[0].getChildren()[1].getName();
+                SimpleVariable id = simpleTable.getVar(identifier);
+                String symbol = variable_node.getChildren()[0].getChildren()[0].getValue();
+                if (id == null) {
+                    messages.add("变量 " + identifier + "未被声明，无法使用,自动返回默认值 0");
+                    //TODO 这些变量是否应该都有名字,出错的地方或者出现 setValue 的地方应该为匿名
+                    variable = new SimpleVariable(identifier, "int", "0", level);
+                } else {
+                    if (id.getValue() == null) {
+                        messages.add("变量 " + identifier + "没有被初始化，自动返回默认值 0");
+                        variable = new SimpleVariable(identifier, "int", "0", level);
+                    } else {
+                        // 不用考虑 正号
+                        if (symbol.equals("-")){
+                            if (!variable.getType().equals("char")){
+                                //TODO 传一个深拷贝的对象，以免导致赋值产生变量表中变量的值被改变的问题
+                                variable = typeHandle(new SimpleVariable(identifier,id.getType(),null,id.getLevel()),
+                                        new SimpleVariable(null,id.getType(),"-" + id.getValue(),id.getLevel()));
+                            }else {
+                                // char 单独处理
+
+                            }
+                        }else if (symbol.equals("~")){
+
+                        }else
+                            System.err.println("语法分析出错！");
+                    }
+                }
+            } else
+                System.err.println("语法分析未通过！");
         } else if (variable_node.getMaxChildNum() == 2) {
-            // "Variable->identifier Call" TODO + id, - id
+            // "Variable->identifier Call"
             ASTNode call_node = variable_node.getChildren()[1];
             String identifier = variable_node.getChildren()[0].getValue();
             if (call_node.getChildren()[0].getName().equals("Index")) {
                 ASTNode index_node = call_node.getChildren()[0];
                 if (index_node.getMaxChildNum() == 0) {
-                    // 有可能是字符数组取整个 string，这里优先考虑 char 数组
+                    // 有可能是字符数组取整个 string，如print(a),这里优先考虑 char 数组
                     ArrayVariable array = arrayTable.getArray(identifier);
                     if (array != null) {
                         if (!array.getType().equals("char")) {
@@ -1258,7 +1289,7 @@ public class Translator {
     }
 
     public static void main(String[] args) {
-        String s = "11";
+        String s = "-a";
         int a = Integer.parseInt(s);
         a = ~a;
 //        testWhileIf();

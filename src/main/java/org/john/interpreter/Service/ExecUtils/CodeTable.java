@@ -97,22 +97,24 @@ public class CodeTable {
             "Interrupt->break ;", "Interrupt->continue ;", "Interrupt->return Result ;", //break & continue
             "Result->Logic", "Result->",
 
-            "Logic->Relation L",          //logic expression
+            "Logic->Relation L",        //logic expression
             "L->|| Logic", "L->&& Logic", "L->",
 
             "Relation->Arithmetic R",     //relation expresion
             "R->== Relation", "R-><> Relation", "R->>= Relation", "R-><= Relation", "R->> Relation", "R->< Relation", "R->",
 
-            "Arithmetic->Item V",
-            "V->+ Arithmetic", "V->- Arithmetic", "V->", //右结合
-            "Item->Variable Factor",
-            "Factor->* Item", "Factor->/ Item", "Factor->",
+            "Arithmetic->Variable Operation",
+            "Operation->+ Arithmetic","Operation->- Arithmetic","Operation->* Arithmetic","Operation->/ Arithmetic",
+            "Operation->| Arithmetic","Operation->^ Arithmetic","Operation->& Arithmetic","Operation->",
+//            "Arithmetic->Item V",
+//            "V->+ Arithmetic", "V->- Arithmetic", "V->", //右结合
+//            "Item->Variable Factor",
+//            "Factor->* Item", "Factor->/ Item", "Factor->",
             "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->SymbolVar",
             "Variable->print ( Logic )", "Variable->scan ( Logic )","Variable->character","Variable->string",
             "SymbolVar->+ identifier","SymbolVar->- identifier","Symbol->~ identifier",
             "Call->( Argument )", "Call->Index",
 //            "A->= Relation","A->",
-            //"Argument->identifier Index CCC","Argument->", //function argument when call TODO argument support expression
             "Argument->Logic CCC", "Argument->",
             "CCC->, Argument", "CCC->", //no.73
 
@@ -137,16 +139,19 @@ public class CodeTable {
         HashMap<String, Integer> map = new HashMap<>();
         map.put("||", 1);
         map.put("&&", 2);
-        map.put("==", 3);
-        map.put("<>", 3);
-        map.put("<", 4);
-        map.put("<=", 4);
-        map.put(">", 4);
-        map.put(">=", 4);
-        map.put("+", 5);
-        map.put("-", 5);
-        map.put("*", 6);
-        map.put("/", 6);
+        map.put("|",3);
+        map.put("^",4);
+        map.put("&",5);
+        map.put("==", 6);
+        map.put("<>", 6);
+        map.put("<", 7);
+        map.put("<=", 7);
+        map.put(">", 7);
+        map.put(">=", 7);
+        map.put("+", 8);
+        map.put("-", 8);
+        map.put("*", 9);
+        map.put("/", 9);
         map.put("(", 10);
         return map;
     }
