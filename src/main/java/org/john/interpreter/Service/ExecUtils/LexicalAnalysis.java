@@ -10,7 +10,6 @@ import static org.john.interpreter.Service.ExecUtils.CodeTable.*;
 public class LexicalAnalysis {
 
     public LexicalAnalysis() {
-
     }
 
     //是否为符号或者 下划线
@@ -20,6 +19,10 @@ public class LexicalAnalysis {
 
     private static boolean isDigit(char ch) {
         return ch >= '0' && ch <= '9';
+    }
+
+    private static boolean isHex(char ch) {
+        return isDigit(ch) || ch >= 'a' && ch <= 'f';
     }
 
     private static LexiNode oneScan(char[] pro, LexiNode node) {
@@ -34,7 +37,6 @@ public class LexicalAnalysis {
         int col = node.getSymbol().equals("\t\0") ? node.getCol() + 4 : node.getCol() + node.getLength();
         if (row == node.getRow() + 1)
             col = 1; //新的一行
-
         //去掉空格, tab
         while (ch == ' ') {
             col++;
@@ -42,7 +44,6 @@ public class LexicalAnalysis {
             if (ch == ' ')
                 ch = pro[p++];
         }
-
         // char字符的判定
         if (ch == '\'' || ch == '\"') {
             token[i++] = ch;
@@ -74,7 +75,6 @@ public class LexicalAnalysis {
 
             String a = String.valueOf(token);
             boolean containInv = false;
-
             for (char inv : invs) {
                 if (String.valueOf(token).contains(Character.toString(inv)))
                     containInv = true;
@@ -89,7 +89,6 @@ public class LexicalAnalysis {
         else if (isLetter(ch) && ch != '_') {
             token[i++] = ch;
             ch = pro[p++];
-
             while (isLetter(ch) || isDigit(ch)) {
                 //判断是否以下划线结尾,可能会有 AB_12_a 这样的标识符,这里 p 就是向前看了一位
                 if (ch == '_' && !isLetter(pro[p]) && !isDigit(pro[p]))
@@ -98,33 +97,67 @@ public class LexicalAnalysis {
                 ch = pro[p++];
             }
             p--; //多读了一位（超前搜索）
-
             //不为关键字, 即为标识符
             if (!keyList.contains(String.valueOf(token).trim()))
                 special = "identifier";
-
         } else if (isDigit(ch)) { //数字的判定
-            boolean hasDot = false;
-            boolean hasSign = false;
+            int mode = 0;
             boolean legal = true;
+            boolean hasE = false; // 科学计数法的 自然对数 e
 
-            //跟着数字或者数字开头
-            while (isDigit(ch) || ch == '.') {
-                if (ch == '.' && hasDot) //圆点数量超过规定
-                    break;
-                else {
-                    if (ch == '.')
-                        hasDot = true;
+            if (ch == '0' && (pro[p] == 'x' || pro[p] == 'X')) {
+                mode = 2;
+                // 十六进制数
+                token[i++] = ch; //存入 0
+                token[i++] = pro[p++]; // 存入 x or X
+                ch = pro[p++]; // 下一个字符
+                if (!isDigit(ch)) // 后面不跟着数字的话，报错
+                    mode = -1;
+                else
+                    while (isHex(ch)) {
+                        token[i++] = ch;
+                        ch = pro[p++];
+                    }
+                p--;
+            } else {
+                //跟着数字或者数字开头
+                while (isDigit(ch) || ch == '.') {
+                    if (ch == '.' && mode == 1) //圆点数量超过规定
+                        break;
+                    else {
+                        if (ch == '.')
+                            mode = 1;
+                        token[i++] = ch;
+                        ch = pro[p++];
+                    }
+                }
+                if (ch == 'e' || ch == 'E') {
                     token[i++] = ch;
                     ch = pro[p++];
+                    if (ch == '-') { // 考虑之后接着负号
+                        token[i++] = ch;
+                        ch = pro[p++];
+                    }
+                    // 后面不跟着数字，就报错
+                    if (!isDigit(ch))
+                        mode = -1;
+                    while (isDigit(ch)) {
+                        token[i++] = ch;
+                        ch = pro[p++];
+                    }
+                    if (mode != -1)
+                        mode = 1;
                 }
+                p--;
             }
-            p--;
-            if (hasDot)
+            if (mode == 2)
+                special = "hexadecimal"; //识别为十六进制数
+            else if (mode == 1)
                 special = "fraction"; //识别为小数
-            else
+            else if (mode == 0)
                 special = "integer"; //识别为整数
-
+            else
+                special = "error";
         } else {
             token[i] = ch;
             special = "error"; // 识别为 错误
@@ -191,7 +224,7 @@ public class LexicalAnalysis {
     }
 
     public static List<LexiNode> preprocess(List<LexiNode> nodes) {
-        LexiNode[] nodeArray = nodes.toArray(new LexiNode[nodes.size()]);
+        LexiNode[] nodeArray = nodes.toArray(new LexiNode[0]);
         // remove inverse meaning token
         for (LexiNode node : nodeArray) {
             if (node.getLength() == 0) {
@@ -204,6 +237,17 @@ public class LexicalAnalysis {
     }
 
     public static void main(String[] args) {
+        String b = "9e20"; // 不能直接转化 hexadecimal
+        String a = "0x12";
+//        int k = Integer.parseInt(a);
+        double k = Double.parseDouble(b);
+
+        System.err.println(k);
+
+        String pro = "double b = 1.2e-023;int a =0x12;";
+
+        List<LexiNode> nodes = lexicalScan(pro);
+        System.out.println(nodes);
     }
 
 }

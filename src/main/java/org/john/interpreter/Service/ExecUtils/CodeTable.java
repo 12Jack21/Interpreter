@@ -15,8 +15,8 @@ public class CodeTable {
     public static String[] signs = {"/", "+", "-", "*", "<", ">", "==", "<>", ">=",
             "<=", "&&", "||", "*/","~","|","&","=", "(", ")", "{", "}", "[", "]", "'", "\"", ";",
             ",", "\\n", "\\r", "\\t", "\n", "\r", "\t", "//", "/*"};
-    // 特例
-    public static String[] specials = {"identifier", "integer", "fraction", "character", "string"};
+    // 特例 (科学计数法的数直接当成 fraction)
+    public static String[] specials = {"identifier", "integer", "fraction", "character", "string","hexadecimal"};
 
     public static char[] invs = {'\n', '\r', '\t'};// TODO 转义字符，题目要求是哪种， '\n' or '\\n'
 
