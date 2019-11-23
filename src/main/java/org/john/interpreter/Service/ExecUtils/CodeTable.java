@@ -55,8 +55,7 @@ public class CodeTable {
     public static String[] special_production = {
             "Statement->Logic ;", "Statement->Assignment ;",
             "ELSEIF->else if ( Logic ) H ELSEIF", "ELSEIF->",
-            "Variable->+ identifier","Variable->Digit",
-            "Variable->- identifier","Variable->Digit"
+            "Variable->SymbolVar","Variable->Digit",
     };
     public static String[] value_contain_token = {
             "identifier", "integer", "fraction"
@@ -108,16 +107,16 @@ public class CodeTable {
             "V->+ Arithmetic", "V->- Arithmetic", "V->", //右结合
             "Item->Variable Factor",
             "Factor->* Item", "Factor->/ Item", "Factor->",
-            "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->+ identifier","Variable->- identifier",
+            "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->SymbolVar",
             "Variable->print ( Logic )", "Variable->scan ( Logic )","Variable->character","Variable->string",
-
+            "SymbolVar->+ identifier","SymbolVar->- identifier","Symbol->~ identifier",
             "Call->( Argument )", "Call->Index",
 //            "A->= Relation","A->",
             //"Argument->identifier Index CCC","Argument->", //function argument when call TODO argument support expression
             "Argument->Logic CCC", "Argument->",
             "CCC->, Argument", "CCC->", //no.73
 
-            "Digit->Positive", "Digit->- Positive", "Digit->+ Positive", //选择正数或者负数
+            "Digit->Positive", "Digit->- Positive", "Digit->+ Positive","Digit->~ Positive", //选择正数或者负数
             "Positive->integer", "Positive->fraction"  //整数、小数
     };
 

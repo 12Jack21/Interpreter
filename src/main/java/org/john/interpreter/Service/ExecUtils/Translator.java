@@ -888,6 +888,7 @@ public class Translator {
                 // string
                 String val = variable_node.getChildren()[0].getValue().split("\"")[1];
                 variable = new SimpleVariable(null, "string", val, level);
+                int a = ~11;
             }
         } else if (variable_node.getMaxChildNum() == 2) {
             // "Variable->identifier Call" TODO + id, - id
@@ -1257,6 +1258,9 @@ public class Translator {
     }
 
     public static void main(String[] args) {
-        testWhileIf();
+        String s = "11";
+        int a = Integer.parseInt(s);
+        a = ~a;
+//        testWhileIf();
     }
 }
