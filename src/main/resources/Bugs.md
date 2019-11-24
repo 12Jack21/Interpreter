@@ -17,8 +17,8 @@
 顺便还消除了单独考虑 逗号的麻烦
 
 ### TODO list
-- [ ] '|' 和 '&'的词法判别错误处理
-- [ ] 字符串的实现
+- [x] '|' 和 '&'的词法判别错误处理
+- [x] 字符串的实现
 
 ## 语义分析
 - Basic
@@ -59,3 +59,7 @@
 
 ### Passed Test
 1. implicitly cast, operation test(without overflow exception throw) and CHAR & STRING (without explicitly type transfer)in type.c
+
+
+### Solved problem
+- 用深拷贝解决了函数递归调用时的ASTNode 共享问题，但在逻辑表达式中依然保留 flushfindtag()

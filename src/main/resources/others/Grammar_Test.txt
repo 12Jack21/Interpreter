@@ -1,23 +1,41 @@
-/*
-// operation test
-int a2 = 123456789;
-real b2 = a2;
-a2 = b2 * a2; // must throw overflow exception!
-b2 = a2 / 0.0; // must throw divided by zero exception !
-*/
+// matrix multiplication
+// basic test for no.2
 
-int fibonacci(int n){
-    if(n == 1 || n==2)
-      return 1;
-    else
-      return fibonacci(n-1) + fibonacci(n-2);
+int n = 3;
+real a[n][n];
+real b[n][n];
+
+// initialize
+for(int i = 0,k = 1;i < n;i = i + 1)
+  for(int j = 0;j < n;j =j + k){
+    scan(a[i][j]);
+  }
+
+
+print("input b:\n");
+
+for(int i = 0,k = 1;i < n;i = i + 1)
+  for(int j = 0;j < n;j =j + k){
+    scan(b[i][j]);
+  }
+
+int k = -1;
+real c[n][n];
+for(int i = 0,k = 1;i < n;i = i + 1)
+  for(int j = 0;j < n;j =j + k){
+    c[i][j] = 0;
+    for(k = 0;k < n;k = k + 1){
+      c[i][j] = c[i][j] + a[i][k] * b[k][j];
+    }
 }
-int factorial(int n){
-    if(n==1)
-        return 1;
-    else
-        return n * factorial(n-1);
-}
-//int a  = fibonacci(6);
-int a  = factorial(6);
-print("a = " + a);
+
+
+// print c
+
+for(int i = 0,k = 1;i < n;i = i + 1){
+  for(int j = 0;j < n;j =j + k){
+    print(c[i][j]);
+     print(' ');
+  }
+  print('\n');
+ }

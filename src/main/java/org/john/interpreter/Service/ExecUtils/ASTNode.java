@@ -10,13 +10,25 @@ public class ASTNode implements Serializable {
     private int maxChildNum;
     private int curIndex;
     private String name;
-    private String value = null; // TODO can be defined as complex data structure
+    private String value = null;
     private boolean isLeaf; //是否为叶子节点
     private boolean isLegal; //是否合法(正确解析)
     private ASTNode[] children;
     private ASTNode parent;
 
     public ASTNode() {
+    }
+
+    public ASTNode(ASTNode root){
+        curIndex = 0;
+        name = root.name;
+        value = root.value;
+        maxChildNum = root.maxChildNum;
+        children = new ASTNode[maxChildNum];
+        while (curIndex < maxChildNum) {
+            children[curIndex] = new ASTNode(root.children[curIndex]);
+            curIndex++;
+        }
     }
 
     public ASTNode(int maxChildNum, String name, String value) {
@@ -174,6 +186,7 @@ public class ASTNode implements Serializable {
         }
     }
 
+
     public static void main(String[] args) {
         ASTNode arith = new ASTNode(2, "Arithmetic", null);
         ASTNode item = new ASTNode(2, "Item", null);
@@ -209,10 +222,9 @@ public class ASTNode implements Serializable {
         item2.addChild(var2);
         item2.addChild(fac2);
 
-        arith.findNextNodeWithValueOrTip("Variable");
-        arith.findNextNodeWithValueOrTip("Variable");
-        arith.findNextNodeWithValueOrTip("symbol");
-        ASTNode fi = arith.findNextNodeWithValueOrTip("symbol");
-        System.out.println(fi);
+        ASTNode var = arith.findNextNodeWithValueOrTip("Variable");
+        ASTNode symbol = arith.findNextNodeWithValueOrTip("symbol");
+        ASTNode copy = new ASTNode(arith);
+        System.out.println(copy);
     }
 }

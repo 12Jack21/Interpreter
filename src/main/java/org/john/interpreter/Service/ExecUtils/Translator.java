@@ -236,7 +236,7 @@ public class Translator {
                     re = (int) Double.parseDouble(translateExp(logic).getValue()) == 1;
                     logic.flushFindTag();
                     toContinue = false;
-                    root.getChildren()[7].flushFindTag();
+                    root.getChildren()[7].flushFindTag(); // 刷新 for 循环中的程序
                 }
                 simpleTable.deleteVariable(level);
                 arrayTable.deleteArrays(level);
@@ -779,12 +779,12 @@ public class Translator {
                     val = a1 >= a2 ? 1 : 0;
                 else if (top.equals("||")) {
                     val = a1 != 0 ? 1 : 0;
-                    if (val == 1) // 物理上的短路求值
-                        val = ((a1 != 0) || (a2 != 0)) ? 1 : 0;
+                    if (val == 0) // 物理上的短路求值, val==1就不用判断 a2了
+                        val = a2 != 0 ? 1 : 0;
                 } else if (top.equals("&&")) {
                     val = a1 != 0 ? 1 : 0;
-                    if (val == 1) // 物理上的短路求值
-                        val = ((a1 != 0) && (a2 != 0)) ? 1 : 0;
+                    if (val == 1) // 物理上的短路求值，val==0就不用判断 a2了
+                        val = a2 != 0 ? 1 : 0;
                 } else
                     messages.add("运算calculate出错！！！");
                 messages.add(a1 + top + a2 + " = " + val);
@@ -835,7 +835,6 @@ public class Translator {
             }
             else {
                 //TODO 是否会有其他情况没有考虑到
-
                 // 关系和逻辑运算
                  int val = 0;
                 if (top.equals("=="))
@@ -852,12 +851,12 @@ public class Translator {
                     val = a1 >= a2 ? 1 : 0;
                 else if (top.equals("||")) {
                     val = a1 != 0.0 ? 1 : 0;
-                    if (val == 1) // 物理上的短路求值
-                        val = ((a1 != 0.0) || (a2 != 0)) ? 1 : 0;
+                    if (val == 0) // 物理上的短路求值
+                        val = a2 != 0.0 ? 1 : 0;
                 } else if (top.equals("&&")) {
                     val = a1 != 0.0 ? 1 : 0;
                     if (val == 1) // 物理上的短路求值
-                        val = ((a1 != 0.0) && (a2 != 0)) ? 1 : 0;
+                        val = a2 != 0.0 ? 1 : 0;
                 } else
                     messages.add("运算calculate出错！！！");
                 messages.add(a1 + top + a2 + " = " + val);
@@ -1111,8 +1110,8 @@ public class Translator {
                             // 返回类型入栈
                             returnTypeStack.addFirst(func.getType());
 
-                            func.getPro_node().flushFindTag(); // 调用之前就得flush
-                            translate(func.getPro_node());
+                            // 传入一个深拷贝
+                            translate(new ASTNode(func.getPro_node()));
                             proNum--;
                             // 把返回值置入 variable变量中
                             if (returnVal == null) {
@@ -1180,7 +1179,8 @@ public class Translator {
                         variable = new SimpleVariable(null, "int", "0", level);
                     }
                 } else {
-                    // 考虑简单变量
+                    // 考虑传入一个简单的值，可能 是简单变量接收，也可能是数组中某元素接受
+                    // TODO add scan( a[i][j] )
                     SimpleVariable vvv = simpleTable.getVar(var.getName()); // 拿到表里已经声明的变量
                     if (vvv != null) {
                         System.out.println("正在执行 scan，开始接受值给变量" + var.getName());
