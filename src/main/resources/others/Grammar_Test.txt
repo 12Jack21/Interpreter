@@ -22,12 +22,12 @@ for(int i = 0,k = 1;i < n;i = i + 1)
 int k = -1;
 real c[n][n];
 for(int i = 0,k = 1;i < n;i = i + 1)
-  for(int j = 0;j < n;j =j + k){
+  for(int j = 0;j < n;j =j + 1){
     c[i][j] = 0;
     for(k = 0;k < n;k = k + 1){
       c[i][j] = c[i][j] + a[i][k] * b[k][j];
     }
-}
+  }
 
 
 // print c
@@ -35,7 +35,7 @@ for(int i = 0,k = 1;i < n;i = i + 1)
 for(int i = 0,k = 1;i < n;i = i + 1){
   for(int j = 0;j < n;j =j + k){
     print(c[i][j]);
-     print(' ');
+     print('\r');
   }
   print('\n');
  }

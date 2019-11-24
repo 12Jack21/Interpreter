@@ -900,11 +900,12 @@ public class Translator {
             } else if (name.equals("character")) {
                 // character,此处进行词法分析没有进行的 字符长度的检查
                 String char_value = variable_node.getChildren()[0].getValue().split("\'")[1];
-                if (char_value.length() != 1) {
+                if (char_value.length() > 2) { // 考虑转义字符长度为 2
                     messages.add("字符" + char_value + "长度非法，自动返回默认值 '\\0' ");
                     variable = new SimpleVariable(null, "char", String.valueOf('\0'), level);
                 } else
-                    variable = new SimpleVariable(null, "char", String.valueOf(char_value), level);
+                    variable = new SimpleVariable(null, "char",
+                            String.valueOf(StringEscapeUtils.unescapeJava(char_value)), level);
             } else if (name.equals("string")) {
                 // string
                 String val = variable_node.getChildren()[0].getValue().split("\"")[1];
@@ -1372,17 +1373,17 @@ public class Translator {
     }
 
     public static void main(String[] args) {
-        String s = "\\\n";
-        int a = 12;
-        char x = 'w';
-        a = -x;
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Please input the value of c: ");
-        char c = 'P';
-        c = StringEscapeUtils.unescapeJava(scanner.next()).charAt(0);
+        int n = 3;
+        double[][] c = new double[n][n];
+        for(int i = 0,k = 1;i < n;i = i + 1)
+            for(int j = 0;j < n;j =j + 1){
+                c[i][j] = 0;
+                for(k = 0;k < n;k = k + 1){
+                    c[i][j] = c[i][j] + 1;
+                }
+                System.out.println(c[i][j]);
+            }
 
-        System.out.println("A = " + a);
-        System.out.println("C = " + c);
 //        testWhileIf();
     }
 }
