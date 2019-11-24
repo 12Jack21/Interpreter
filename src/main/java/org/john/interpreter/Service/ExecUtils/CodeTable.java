@@ -9,14 +9,14 @@ public class CodeTable {
 
     //关键词表
     public static String[] keys = {"if", "else", "while", "do", "int",
-            "real", "char", "for","print", "scan", "break", "continue", "return"};
+            "real", "char", "for", "print", "scan", "break", "continue", "return"};
 
     // 把 '.' 删去
-    public static String[] signs = {"/", "+", "-", "*", "<", ">", "==", "<>", ">=",
-            "<=", "&&", "||", "*/","~","|","&","=", "(", ")", "{", "}", "[", "]", "'", "\"", ";",
+    public static String[] signs = {"/", "+", "-", "*", "%", "<", ">", "==", "<>", ">=",
+            "<=", "&&", "||", "*/", "~", "|", "&", "=", "(", ")", "{", "}", "[", "]", "'", "\"", ";",
             ",", "\\n", "\\r", "\\t", "\n", "\r", "\t", "//", "/*"};
     // 特例 (科学计数法的数直接当成 fraction)
-    public static String[] specials = {"identifier", "integer", "fraction", "character", "string","hexadecimal"};
+    public static String[] specials = {"identifier", "integer", "fraction", "character", "string", "hexadecimal"};
 
     public static char[] invs = {'\n', '\r', '\t'};// TODO 转义字符，题目要求是哪种， '\n' or '\\n'
 
@@ -55,8 +55,8 @@ public class CodeTable {
     public static String[] special_production = {
             "Statement->Logic ;", "Statement->Assignment ;",
             "ELSEIF->else if ( Logic ) H ELSEIF", "ELSEIF->",
-            "Variable->SymbolVar","Variable->Digit",
-            "Con->= identifier Index Con","Con->"
+            "Variable->SymbolVar", "Variable->Digit",
+            "Con->= identifier Index Con", "Con->"
     };
     public static String[] value_contain_token = {
             "identifier", "integer", "fraction"
@@ -67,10 +67,10 @@ public class CodeTable {
     public static String[] productions = {
             "Pro->Statement Pro", "Pro->{ Pro } Pro", "Pro->",  // att: follow set of Pro should contains #
             "Statement->Declare", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE",
-            "Statement->Interrupt", "Statement->Logic ;","Statement->FOR","Statement->;",
+            "Statement->Interrupt", "Statement->Logic ;", "Statement->FOR", "Statement->;",
 
             "Assignment->identifier Index Con X", // Single Assignment
-            "Con->= identifier Index Con","Con->",// like  a = b = 3;
+            "Con->= identifier Index Con", "Con->",// like  a = b = 3;
             "Declare->Type Assign",           // Declaration
             "Type->int", "Type->real", "Type->char", "Type->void", // Type Specifier
             "Index->[ Logic ] Index", "Index->", //TODO index allows expression
@@ -93,10 +93,10 @@ public class CodeTable {
             "WHILE->while ( Logic ) H",    //while , do-----------undone---
             "H->Statement", "H->{ Pro }",
             "FOR->for ( DA LO ; AS ) H",   //for loop,can be null in any position
-            "DA->Declare","DA->ConAssign ;","DA->;", //for the reason that Declare takes ;
-            "LO->Logic","LO->",
-            "AS->ConAssign","AS->",
-            "Interrupt->break ;" ,"Interrupt->continue ;", "Interrupt->return Result ;", //break & continue
+            "DA->Declare", "DA->ConAssign ;", "DA->;", //for the reason that Declare takes ;
+            "LO->Logic", "LO->",
+            "AS->ConAssign", "AS->",
+            "Interrupt->break ;", "Interrupt->continue ;", "Interrupt->return Result ;", //break & continue
             "Result->Logic", "Result->",
 
             "Logic->Relation L",        //logic expression
@@ -106,19 +106,20 @@ public class CodeTable {
             "R->== Relation", "R-><> Relation", "R->>= Relation", "R-><= Relation", "R->> Relation", "R->< Relation", "R->",
 
             "Arithmetic->Variable Operation",
-            "Operation->+ Arithmetic","Operation->- Arithmetic","Operation->* Arithmetic","Operation->/ Arithmetic",
-            "Operation->| Arithmetic","Operation->^ Arithmetic","Operation->& Arithmetic","Operation->",
+            "Operation->+ Arithmetic", "Operation->- Arithmetic", "Operation->* Arithmetic", "Operation->/ Arithmetic",
+            "Operation->| Arithmetic", "Operation->^ Arithmetic", "Operation->& Arithmetic", "Operation->% Arithmetic",
+            "Operation->",
 
-            "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->SymbolVar",
-            "Variable->print ( Logic )", "Variable->scan ( Logic )","Variable->character","Variable->string",
-            "SymbolVar->+ identifier","SymbolVar->- identifier","SymbolVar->~ identifier",
+            "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit", "Variable->SymbolVar",
+            "Variable->print ( Logic )", "Variable->scan ( Logic )", "Variable->character", "Variable->string",
+            "SymbolVar->+ identifier", "SymbolVar->- identifier", "SymbolVar->~ identifier",
             "Call->( Argument )", "Call->Index", //TODO add c1 = c2 = c3 = 0 Error in LL table
 
             "Argument->Logic CCC", "Argument->",
             "CCC->, Argument", "CCC->", //no.73
 
-            "Digit->Positive", "Digit->- Positive", "Digit->+ Positive","Digit->~ Positive", //选择正数或者负数
-            "Positive->integer", "Positive->fraction","Positive->hexadecimal"  //整数、小数、十六进制数
+            "Digit->Positive", "Digit->- Positive", "Digit->+ Positive", "Digit->~ Positive", //选择正数或者负数
+            "Positive->integer", "Positive->fraction", "Positive->hexadecimal"  //整数、小数、十六进制数
     };
 
     /*
@@ -143,9 +144,9 @@ public class CodeTable {
         HashMap<String, Integer> map = new HashMap<>();
         map.put("||", 1);
         map.put("&&", 2);
-        map.put("|",3);
-        map.put("^",4);
-        map.put("&",5);
+        map.put("|", 3);
+        map.put("^", 4);
+        map.put("&", 5);
         map.put("==", 6);
         map.put("<>", 6);
         map.put("<", 7);
@@ -156,6 +157,7 @@ public class CodeTable {
         map.put("-", 8);
         map.put("*", 9);
         map.put("/", 9);
+        map.put("%", 9);
         map.put("(", 10);
         return map;
     }

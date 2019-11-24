@@ -11,7 +11,7 @@ import java.util.*;
 public class Translator {
 
     private List<String> messages = new LinkedList<>();
-    private int level; // å½“å‰ä½œç”¨åŸŸ
+    private int level; // µ±Ç°×÷ÓÃÓò
     private SimpleTable simpleTable;
     private ArrayTable arrayTable;
     private FunctionTable functionTable;
@@ -22,7 +22,7 @@ public class Translator {
     private boolean toReturn = false;
     private LinkedList<String> returnTypeStack;
     private String msg = "";
-    private SimpleVariable returnVal = null;// ç”¨äºä¼ é€’å‡½æ•°è¿”å›å€¼ï¼Œä¸ºç©ºåˆ™ç½®é»˜è®¤å€¼ 0ï¼ˆintï¼‰
+    private SimpleVariable returnVal = null;// ÓÃÓÚ´«µİº¯Êı·µ»ØÖµ£¬Îª¿ÕÔòÖÃÄ¬ÈÏÖµ 0£¨int£©
 
     private LinkedList<String> printList;
     private LinkedList<String> scanList;
@@ -48,13 +48,13 @@ public class Translator {
         return messages;
     }
 
-    // å…ˆåºéå† ASTï¼Œé€’å½’è°ƒç”¨ï¼Œç›®çš„ï¼šè¾“å‡ºéå†è¿‡ç¨‹ä¸­åˆ†æå¾—å‡ºçš„ä¿¡æ¯ï¼Œå­˜åˆ°messagesä¸­
-    // å…ˆå‡è®¾è¯­æ³•åˆ†æå·²ç»å…¨éƒ¨é€šè¿‡
+    // ÏÈĞò±éÀú AST£¬µİ¹éµ÷ÓÃ£¬Ä¿µÄ£ºÊä³ö±éÀú¹ı³ÌÖĞ·ÖÎöµÃ³öµÄĞÅÏ¢£¬´æµ½messagesÖĞ
+    // ÏÈ¼ÙÉèÓï·¨·ÖÎöÒÑ¾­È«²¿Í¨¹ı
     public void translate(ASTNode root) {
         String name = root.getName();
         if (name.equals("Pro")) {
             for (int i = 0; i < root.getMaxChildNum(); i++) {
-                //é‡åˆ° {} æ—¶çš„ levelå˜åŒ–é—®é¢˜
+                //Óöµ½ {} Ê±µÄ level±ä»¯ÎÊÌâ
                 if (root.getChildren()[i].getName().equals("{"))
                     level++;
                 else if (root.getChildren()[i].getName().equals("}")) {
@@ -69,38 +69,38 @@ public class Translator {
                 translate(root.getChildren()[0]);
         } else if (name.equals("Declare")) {
             // int, real, char, void
-            String type = root.getChildren()[0].getChildren()[0].getName(); //å¯ä»¥ä½œä¸ºéå±€éƒ¨å˜é‡ä¿å­˜èµ·æ¥ï¼Œè¯­å¥ç»“æŸåæ¸…é™¤
+            String type = root.getChildren()[0].getChildren()[0].getName(); //¿ÉÒÔ×÷Îª·Ç¾Ö²¿±äÁ¿±£´æÆğÀ´£¬Óï¾ä½áÊøºóÇå³ı
             String identifier = root.getChildren()[1].getChildren()[0].getValue();
             ASTNode F = root.getChildren()[1].getChildren()[1];
             if (!F.getChildren()[0].getName().equals("(")) {
-                // ä¸æ˜¯å‡½æ•°å£°æ˜
+                // ²»ÊÇº¯ÊıÉùÃ÷
                 ASTNode index_node = F.getChildren()[0]; // Index
                 ASTNode X_node = F.getChildren()[2]; // X
                 translateIndexWithX(index_node, X_node, identifier, type);
 
-                // å£°æ˜æ—¶å¤šèµ‹å€¼
+                // ÉùÃ÷Ê±¶à¸³Öµ
                 ASTNode Con = F.getChildren()[1];
                 while (Con.getMaxChildNum() != 0){
                     X_node.flushFindTag();
-                    translateIndexWithX(Con.getChildren()[2],X_node,Con.getChildren()[1].getValue(),null);// null ä»¥ä¾›èµ‹å€¼
+                    translateIndexWithX(Con.getChildren()[2],X_node,Con.getChildren()[1].getValue(),null);// null ÒÔ¹©¸³Öµ
                     Con = Con.getChildren()[3];
                 }
                 ASTNode C_node = F.getChildren()[3];
                 while (C_node.getMaxChildNum() != 0) {
-                    translateAssignment(C_node.getChildren()[1], type); // å¤„ç†Assignment TODO ä¸éœ€è¦ flushå—
+                    translateAssignment(C_node.getChildren()[1], type); // ´¦ÀíAssignment TODO ²»ĞèÒª flushÂğ
                     C_node = C_node.getChildren()[2];
                 }
-            } else {//  å‡½æ•°å®šä¹‰ TODO add char and array parameters
-                // ä¿å­˜ pro_node åˆ°å‡½æ•°è¡¨ä¸­
+            } else {//  º¯Êı¶¨Òå TODO add array parameters
+                // ±£´æ pro_node µ½º¯Êı±íÖĞ
                 try {
                     ArrayList<Object> parameters = translateParameter(F.getChildren()[1]);
                     FunctionVariable v = new FunctionVariable(type, identifier, parameters, F.getChildren()[4]);
                     functionTable.addVariable(v);
-                    String msg = "å£°æ˜äº†å‡½æ•°" + identifier + ",";
+                    String msg = "ÉùÃ÷ÁËº¯Êı" + identifier + ",";
                     if (parameters.size() == 0)
-                        msg += "æ²¡æœ‰å‚æ•°";
+                        msg += "Ã»ÓĞ²ÎÊı";
                     else {
-                        msg += "å‚æ•°åˆ—è¡¨ä¸º(";
+                        msg += "²ÎÊıÁĞ±íÎª(";
                         for (Object param : parameters) {
                             if (param instanceof SimpleVariable)
                                 msg += ((SimpleVariable) param).getType() + " " + ((SimpleVariable) param).getName();
@@ -113,10 +113,10 @@ public class Translator {
                             msg = msg.substring(0, msg.length() - 1);
                         msg += ")";
                     }
-                    msg += ",è¿”å›ç±»å‹ä¸º " + v.getType();
+                    msg += ",·µ»ØÀàĞÍÎª " + v.getType();
                     messages.add(msg);
                 } catch (Exception e) {
-                    messages.add("å‡½æ•°" + identifier + "å£°æ˜å¤±è´¥ï¼");
+                    messages.add("º¯Êı" + identifier + "ÉùÃ÷Ê§°Ü£¡");
                 }
             }
         } else if (name.equals("Assignment")) {
@@ -127,40 +127,40 @@ public class Translator {
             SimpleVariable log = translateExp(logic);
             boolean re = (int) Double.parseDouble(log.getValue()) == 1;
             if (re) {
-                messages.add("æ»¡è¶³ ifæ¡ä»¶ï¼Œæ‰§è¡Œä¸‹æ¡ç¨‹åº");
+                messages.add("Âú×ã ifÌõ¼ş£¬Ö´ĞĞÏÂÌõ³ÌĞò");
                 translate(root.getChildren()[4]);
             } else {
                 boolean exeELSEIF = false;
                 ASTNode ELSEIF = root.getChildren()[5];
-                // åˆ¤æ–­æ˜¯å¦æœ‰else if
+                // ÅĞ¶ÏÊÇ·ñÓĞelse if
                 if (ELSEIF.getMaxChildNum() != 0) {
                     ArrayList<ASTNode> logics = translateELSEIF(ELSEIF);
                     int num = 0;
                     while (num < logics.size()) {
-                        // ä¸€ä¸ªä¸€ä¸ªåœ°åˆ¤æ–­ else if çš„æ¡ä»¶
+                        // Ò»¸öÒ»¸öµØÅĞ¶Ï else if µÄÌõ¼ş
                         re = (int) Double.parseDouble(translateExp(logics.get(num)).getValue()) == 1;
                         if (re) {
-                            messages.add("æ»¡è¶³ç¬¬" + (num + 1) + "ä¸ª else if è¯­å¥ï¼Œæ‰§è¡Œè¯¥å—çš„ç¨‹åº");
+                            messages.add("Âú×ãµÚ" + (num + 1) + "¸ö else if Óï¾ä£¬Ö´ĞĞ¸Ã¿éµÄ³ÌĞò");
                             exeELSEIF = true;
                             break;
                         }
                         num++;
                     }
                     if (exeELSEIF) {
-                        // æ‰¾åˆ°æ‰§è¡Œçš„ else if å—
+                        // ÕÒµ½Ö´ĞĞµÄ else if ¿é
                         while (num-- > 0) {
                             ELSEIF = ELSEIF.getChildren()[6];
                         }
                         ASTNode H_node = ELSEIF.getChildren()[5];
-                        translate(H_node); // æ‰§è¡Œ H_node
+                        translate(H_node); // Ö´ĞĞ H_node
                     }
                 }
 
-                // else if é‡Œçš„æ¡ä»¶éƒ½ä¸æ»¡è¶³æ—¶
+                // else if ÀïµÄÌõ¼ş¶¼²»Âú×ãÊ±
                 if (!exeELSEIF) {
                     if (root.getChildren()[6].getMaxChildNum() != 0) {
                         // ELSE->else H
-                        messages.add("æ‰§è¡Œ elseé‡Œçš„ç¨‹åº");
+                        messages.add("Ö´ĞĞ elseÀïµÄ³ÌĞò");
                         translate(root.getChildren()[6].getChildren()[1]);
                     }
                 }
@@ -182,7 +182,7 @@ public class Translator {
             boolean re = (int) Double.parseDouble(log.getValue()) == 1;
             logic.flushFindTag();
             while (re) {
-                messages.add("æ»¡è¶³whileå¾ªç¯æ¡ä»¶ï¼Œæ‰§è¡Œå¾ªç¯ä½“ç¨‹åº");
+                messages.add("Âú×ãwhileÑ­»·Ìõ¼ş£¬Ö´ĞĞÑ­»·Ìå³ÌĞò");
                 translate(root.getChildren()[4]); // H_node
                 if (toBreak)
                     break;
@@ -194,7 +194,7 @@ public class Translator {
             if (toBreak)
                 toBreak = false;
             else
-                messages.add("ä¸æ»¡è¶³whileå¾ªç¯æ¡ä»¶ï¼Œå¾ªç¯é€€å‡º");
+                messages.add("²»Âú×ãwhileÑ­»·Ìõ¼ş£¬Ñ­»·ÍË³ö");
             whileNum--;
         } else if (name.equals("FOR")) {
             // TODO like while
@@ -204,9 +204,9 @@ public class Translator {
                 ASTNode LO = root.getChildren()[3];
                 ASTNode AS = root.getChildren()[5];
                 if (DA.getMaxChildNum() == 1) {
-                    // åˆ©ç”¨ level += large num åˆ›é€ ä¸€ä¸ªæš‚å­˜ç©ºé—´ç»™åœ¨ for () é‡Œå£°æ˜çš„å˜é‡
+                    // ÀûÓÃ level += large num ´´ÔìÒ»¸öÔİ´æ¿Õ¼ä¸øÔÚ for () ÀïÉùÃ÷µÄ±äÁ¿
                     level += 1000;
-                    translate(DA.getChildren()[0]); // ä¸ºäº†è¿›å…¥é‡Œé¢çš„ä½œç”¨åŸŸæ¥å£°æ˜
+                    translate(DA.getChildren()[0]); // ÎªÁË½øÈëÀïÃæµÄ×÷ÓÃÓòÀ´ÉùÃ÷
                     level -= 1000;
                 } else if (DA.getMaxChildNum() == 2) {
                     ASTNode C_node = DA.getChildren()[0].getChildren()[1];
@@ -215,27 +215,27 @@ public class Translator {
                         translate(C_node.getChildren()[1]);
                         C_node = C_node.getChildren()[2];
                     }
-                }// ä¸ºç©ºåˆ™ä¸ç®¡
+                }// Îª¿ÕÔò²»¹Ü
 
                 ASTNode logic = LO.getChildren()[0];
                 SimpleVariable log = translateExp(logic);
                 boolean re = (int) Double.parseDouble(log.getValue()) == 1;
                 logic.flushFindTag();
                 while (re) {
-                    messages.add("æ»¡è¶³forå¾ªç¯æ¡ä»¶ï¼Œæ‰§è¡Œå¾ªç¯ä½“ç¨‹åº");
+                    messages.add("Âú×ãforÑ­»·Ìõ¼ş£¬Ö´ĞĞÑ­»·Ìå³ÌĞò");
                     level++;
-                    // æ‹‰å‡ºå¤„ç† H_node çš„é€»è¾‘
+                    // À­³ö´¦Àí H_node µÄÂß¼­
                     ASTNode H_node = root.getChildren()[7];
                     translate(H_node.getMaxChildNum() == 1 ? H_node.getChildren()[0] : H_node.getChildren()[1]);
                     if (AS.getMaxChildNum() != 0) {
-                        // æ‰§è¡Œç¬¬äºŒä¸ªåˆ†å·ä¹‹åçš„ èµ‹å€¼è¯­å¥
+                        // Ö´ĞĞµÚ¶ş¸ö·ÖºÅÖ®ºóµÄ ¸³ÖµÓï¾ä
                         ASTNode C_node = AS.getChildren()[0].getChildren()[1];
                         translate(AS.getChildren()[0].getChildren()[0]); // execute assignment
                         while (C_node.getMaxChildNum() != 0) {
                             translate(C_node.getChildren()[1]);
                             C_node = C_node.getChildren()[2];
                         }
-                        // åˆ·æ–°ä»¥ä¾›ä¸‹æ¬¡è¿è¡Œ
+                        // Ë¢ĞÂÒÔ¹©ÏÂ´ÎÔËĞĞ
                         AS.flushFindTag();
                     }
                     simpleTable.deleteVariable(level);
@@ -248,18 +248,18 @@ public class Translator {
                     re = (int) Double.parseDouble(translateExp(logic).getValue()) == 1;
                     logic.flushFindTag();
                     toContinue = false;
-                    root.getChildren()[7].flushFindTag(); // åˆ·æ–° for å¾ªç¯ä¸­çš„ç¨‹åº
+                    root.getChildren()[7].flushFindTag(); // Ë¢ĞÂ for Ñ­»·ÖĞµÄ³ÌĞò
                 }
-                simpleTable.deleteVariable(level + 1000); // åˆ é™¤ foræ‹¬å·é‡Œå£°æ˜çš„å˜é‡
+                simpleTable.deleteVariable(level + 1000); // É¾³ı forÀ¨ºÅÀïÉùÃ÷µÄ±äÁ¿
                 arrayTable.deleteArrays(level + 1000);
-                if (toBreak) //TODO å¤šä¸ª while åµŒå¥—çš„æƒ…å†µä¸‹éœ€è¦ç”¨æ ˆæ¥å­˜å– break å—
+                if (toBreak) //TODO ¶à¸ö while Ç¶Ì×µÄÇé¿öÏÂĞèÒªÓÃÕ»À´´æÈ¡ break Âğ
                     toBreak = false;
                 else
-                    messages.add("ä¸æ»¡è¶³forå¾ªç¯æ¡ä»¶ï¼Œå¾ªç¯é€€å‡º");
+                    messages.add("²»Âú×ãforÑ­»·Ìõ¼ş£¬Ñ­»·ÍË³ö");
                 whileNum--;
 
             } else {
-                // TODO ç¨‹åºæ— é™å¾ªç¯ï¼Œé™¤äº†é‡Œé¢æœ‰ break
+                // TODO ³ÌĞòÎŞÏŞÑ­»·£¬³ıÁËÀïÃæÓĞ break
             }
 
         } else if (name.equals("Logic")) {
@@ -268,26 +268,26 @@ public class Translator {
             String na = root.getChildren()[0].getName();
             if (na.equals("break") && whileNum > 0) {
                 toBreak = true;
-                messages.add("é‡åˆ° break,å¾ªç¯é€€å‡º");
+                messages.add("Óöµ½ break,Ñ­»·ÍË³ö");
             } else if (na.equals("continue") && whileNum > 0) {
                 toContinue = true;
-                messages.add("é‡åˆ° continue,è·³åˆ°ä¸‹ä¸€æ¬¡å¾ªç¯");
+                messages.add("Óöµ½ continue,Ìøµ½ÏÂÒ»´ÎÑ­»·");
             } else if (na.equals("return")) {
-                //TODO ç¨‹åº return åä¼šæˆªæ–­åé¢ä»£ç çš„æ‰§è¡Œ---
+                //TODO ³ÌĞò return ºó»á½Ø¶ÏºóÃæ´úÂëµÄÖ´ĞĞ---
                 ASTNode result_node = root.getChildren()[1];
                 if (result_node.getMaxChildNum() != 0) {
                     SimpleVariable log = translateExp(result_node.getChildren()[0]);
 
                     String type = returnTypeStack.pop();
-                    //è¿”å›å€¼ç½®å…¥ returnValä¸­
+                    //·µ»ØÖµÖÃÈë returnValÖĞ
                     SimpleVariable tmp = new SimpleVariable(null, type, null, level);
                     tmp = typeHandle(tmp, log);
                     returnVal = tmp;
                 }
-                // æ²¡æœ‰è¿”å›å€¼åˆ™ä¸åŠ ç†ä¼š
+                // Ã»ÓĞ·µ»ØÖµÔò²»¼ÓÀí»á
                 if (proNum > 0) {
                     toReturn = true;
-                    messages.add("é‡åˆ°return,ç¨‹åºé€€å‡º");
+                    messages.add("Óöµ½return,³ÌĞòÍË³ö");
                 }
             }
         }
@@ -302,36 +302,36 @@ public class Translator {
         return logics;
     }
 
-    // when CC->, Parameter, like translateYï¼Œ just accept simple variable
+    // when CC->, Parameter, like translateY£¬ just accept simple variable
     private ArrayList<Object> translateParameter(ASTNode parameter) throws Exception {
         ArrayList<Object> parameters = new ArrayList<>();
 
         if (parameter.getMaxChildNum() == 4) {
             // Parameter->Type identifier Index CC
-            String type = parameter.getChildren()[0].getChildren()[0].getName(); //å¯èƒ½ä¸º void
+            String type = parameter.getChildren()[0].getChildren()[0].getName(); //¿ÉÄÜÎª void
             String identifier = parameter.getChildren()[1].getValue();
             ASTNode index_node = parameter.getChildren()[2];
             ASTNode CC_node = parameter.getChildren()[3];
             if (index_node.getMaxChildNum() == 0) {
-                //ç®€å•å˜é‡çš„å‚æ•°
-                SimpleVariable v = new SimpleVariable(identifier, type, null, level);//TODO levelçš„å½±å“
+                //¼òµ¥±äÁ¿µÄ²ÎÊı
+                SimpleVariable v = new SimpleVariable(identifier, type, null, level);//TODO levelµÄÓ°Ïì
                 parameters.add(v);
             } else {
-                // TODO æ•°ç»„å˜é‡çš„å‚æ•°ï¼Œæœ‰é”™è¯¯å°±æ— æ³•æˆåŠŸå£°æ˜ï¼Œè€ƒè™‘throw , ---æ²¡æœ‰æ¶‰åŠåˆ° å¤šç»´æ•°ç»„ï¼ï¼ï¼
+                // TODO Êı×é±äÁ¿µÄ²ÎÊı£¬ÓĞ´íÎó¾ÍÎŞ·¨³É¹¦ÉùÃ÷£¬¿¼ÂÇthrow , ---Ã»ÓĞÉæ¼°µ½ ¶àÎ¬Êı×é£¡£¡£¡
                 ASTNode logic = index_node.getChildren()[1];
                 SimpleVariable log = translateExp(logic);
                 int len = 0;
                 if (log.getType().equals("real")) {
                     len = (int) Double.parseDouble(log.getValue());
-                    messages.add("ä½œä¸ºå‚æ•°çš„æ•°ç»„é•¿åº¦ä¸èƒ½ä¸ºå°æ•°" + log.getValue() + "ï¼Œå°†å¼ºåˆ¶è½¬æ¢ä¸º" + len);
+                    messages.add("×÷Îª²ÎÊıµÄÊı×é³¤¶È²»ÄÜÎªĞ¡Êı" + log.getValue() + "£¬½«Ç¿ÖÆ×ª»»Îª" + len);
                     if (len < 0) {
-                        messages.add("ä½œä¸ºå‚æ•°çš„æ•°ç»„é•¿åº¦ä¸èƒ½ä¸ºè´Ÿæ•°" + len);
+                        messages.add("×÷Îª²ÎÊıµÄÊı×é³¤¶È²»ÄÜÎª¸ºÊı" + len);
                         throw new Exception();
                     }
-                } else if (log.getType().equals("int"))//intå‹
+                } else if (log.getType().equals("int"))//intĞÍ
                     len = Integer.parseInt(log.getValue());
                 else {
-                    // char å‹
+                    // char ĞÍ
                 }
                 ArrayVariable v = new ArrayVariable(identifier, type, len, null, level);
                 parameters.add(v);
@@ -346,16 +346,16 @@ public class Translator {
         String identifier = assignment.getChildren()[0].getValue();
         ASTNode X_node = assignment.getChildren()[3];
         translateIndexWithX(assignment.getChildren()[1], X_node, identifier, type);
-        // å¤„ç† Con èŠ‚ç‚¹åçš„å¤šèµ‹å€¼
+        // ´¦Àí Con ½ÚµãºóµÄ¶à¸³Öµ
         ASTNode Con = assignment.getChildren()[2];
         while (Con.getMaxChildNum() != 0){
-            X_node.flushFindTag(); // åˆ·æ–°ä»¥ä¾›å¤šæ¬¡èµ‹å€¼
-            translateIndexWithX(Con.getChildren()[2],X_node,Con.getChildren()[1].getValue(),null);//null ä»¥ä¾›èµ‹å€¼
+            X_node.flushFindTag(); // Ë¢ĞÂÒÔ¹©¶à´Î¸³Öµ
+            translateIndexWithX(Con.getChildren()[2],X_node,Con.getChildren()[1].getValue(),null);//null ÒÔ¹©¸³Öµ
             Con = Con.getChildren()[3];
         }
     }
 
-    // ç¿»è¯‘ Index èŠ‚ç‚¹åˆ¤æ–­ä¸ºå‡ ç»´æ•°ç»„
+    // ·­Òë Index ½ÚµãÅĞ¶ÏÎª¼¸Î¬Êı×é
     private ArrayList<SimpleVariable> translateIndex(ASTNode index) {
         ArrayList<SimpleVariable> indexs = new ArrayList<>();
         if (index.getMaxChildNum() != 0) {
@@ -365,7 +365,7 @@ public class Translator {
         return indexs;
     }
 
-    // ä¸“é—¨å¤„ç†ç±»å‹è½¬æ¢ çš„èµ‹å€¼
+    // ×¨ÃÅ´¦ÀíÀàĞÍ×ª»» µÄ¸³Öµ
     private SimpleVariable typeHandle(SimpleVariable v, SimpleVariable logic_value) {
         if (logic_value.getType().equals("string")) {
             if (v.getType().equals("int"))
@@ -374,35 +374,35 @@ public class Translator {
                 v.setValue("0.0");
             else if (v.getType().equals("char"))
                 v.setValue("\0");
-            messages.add("éæ³•ä½¿ç”¨ stringï¼Œè‡ªåŠ¨è¿”å›é»˜è®¤å€¼ " + v.getValue());
+            messages.add("·Ç·¨Ê¹ÓÃ string£¬×Ô¶¯·µ»ØÄ¬ÈÏÖµ " + v.getValue());
         } else {
             if (!v.getType().equals(logic_value.getType())) {
                 if (v.getType().equals("int") && logic_value.getType().equals("real")) {
-                    // å¼ºåˆ¶è½¬æ¢
+                    // Ç¿ÖÆ×ª»»
                     int val = (int) Double.parseDouble(logic_value.getValue());
-                    messages.add("ç±»å‹ä¸åŒ¹é…ï¼Œ" + logic_value.getValue() + "å¼ºåˆ¶è½¬æ¢ä¸º" + val);
+                    messages.add("ÀàĞÍ²»Æ¥Åä£¬" + logic_value.getValue() + "Ç¿ÖÆ×ª»»Îª" + val);
                     v.setValue(String.valueOf(val));
                 } else if (v.getType().equals("real") && logic_value.getType().equals("int")) {
                     double val = Double.parseDouble(logic_value.getValue());
-                    messages.add("ç±»å‹ä¸åŒ¹é…ï¼Œ" + logic_value.getValue() + "è‡ªåŠ¨ç±»å‹è½¬æ¢ä¸º" + val);
+                    messages.add("ÀàĞÍ²»Æ¥Åä£¬" + logic_value.getValue() + "×Ô¶¯ÀàĞÍ×ª»»Îª" + val);
                     v.setValue(String.valueOf(val));
                 } else if (v.getType().equals("char") && logic_value.getType().equals("int")) {
-                    // intè¿‡å¤§å¯¼è‡´æ²¡æœ‰å¯¹åº”å­—ç¬¦çš„é—®é¢˜
+                    // int¹ı´óµ¼ÖÂÃ»ÓĞ¶ÔÓ¦×Ö·ûµÄÎÊÌâ
                     char val = (char) Integer.parseInt(logic_value.getValue());
-                    messages.add("ç±»å‹ä¸åŒ¹é…ï¼Œ" + logic_value.getValue() + "å¼ºåˆ¶è½¬æ¢ä¸º" + val);
+                    messages.add("ÀàĞÍ²»Æ¥Åä£¬" + logic_value.getValue() + "Ç¿ÖÆ×ª»»Îª" + val);
                     v.setValue(String.valueOf(val));
                 } else if (v.getType().equals("int") && logic_value.getType().equals("char")) {
                     int val = (int) logic_value.getValue().charAt(0);
-                    messages.add("ç±»å‹ä¸åŒ¹é…ï¼Œ" + logic_value.getValue() + "è‡ªåŠ¨ç±»å‹è½¬æ¢ä¸º" + val);
+                    messages.add("ÀàĞÍ²»Æ¥Åä£¬" + logic_value.getValue() + "×Ô¶¯ÀàĞÍ×ª»»Îª" + val);
                     v.setValue(String.valueOf(val));
                 } else if (v.getType().equals("char") && logic_value.getType().equals("real")) {
                     char val = (char) Double.parseDouble(logic_value.getValue()); //side effect
-                    messages.add("ç±»å‹ä¸åŒ¹é…ï¼Œ" + logic_value.getValue() + "è‡ªåŠ¨è½¬æ¢ä¸º" + val);
+                    messages.add("ÀàĞÍ²»Æ¥Åä£¬" + logic_value.getValue() + "×Ô¶¯×ª»»Îª" + val);
                     v.setValue(String.valueOf(val));
                 } else if (v.getType().equals("real") && logic_value.getType().equals("char")) {
-                    // å…ˆè½¬æˆintï¼Œå†è½¬æˆcharacter
+                    // ÏÈ×ª³Éint£¬ÔÙ×ª³Écharacter
                     double val = Double.parseDouble(String.valueOf((int) logic_value.getValue().charAt(0)));
-                    messages.add("ç±»å‹ä¸åŒ¹é…ï¼Œ" + logic_value.getValue() + "å¼ºåˆ¶è½¬æ¢ä¸º" + val);
+                    messages.add("ÀàĞÍ²»Æ¥Åä£¬" + logic_value.getValue() + "Ç¿ÖÆ×ª»»Îª" + val);
                     v.setValue(String.valueOf(val));
                 }
             } else
@@ -411,79 +411,79 @@ public class Translator {
         return v;
     }
 
-    // if type == null,åˆ™ä¸º Assignmentè°ƒç”¨çš„ï¼Œå¦åˆ™ä¸º Declareè°ƒç”¨ TODO add Con a = b = 3;
+    // if type == null,ÔòÎª Assignmentµ÷ÓÃµÄ£¬·ñÔòÎª Declareµ÷ÓÃ
     private void translateIndexWithX(ASTNode index_node, ASTNode X_node, String identifier, String type) {
         if (index_node.getMaxChildNum() == 0) {
-            // å£°æ˜æˆ–è€…èµ‹å€¼ä¸€ä¸ªç®€å•å˜é‡
+            // ÉùÃ÷»òÕß¸³ÖµÒ»¸ö¼òµ¥±äÁ¿
             if (X_node.getMaxChildNum() == 0) {
                 if (type == null)
                     return;
-                // æ·»åŠ å˜é‡åˆ° å˜é‡ç¬¦å·è¡¨ä¸­
+                // Ìí¼Ó±äÁ¿µ½ ±äÁ¿·ûºÅ±íÖĞ
                 if (!simpleTable.addVariable(new SimpleVariable(identifier, type, null, level)))
-                    messages.add("å˜é‡" + identifier + "å·²è¢«å£°æ˜è¿‡ï¼");
+                    messages.add("±äÁ¿" + identifier + "ÒÑ±»ÉùÃ÷¹ı£¡");
                 else
-                    messages.add("å˜é‡" + identifier + "è¢«å£°æ˜ä¸º" + type + "å‹");
+                    messages.add("±äÁ¿" + identifier + "±»ÉùÃ÷Îª" + type + "ĞÍ");
             } else {
                 // X ->= O
                 ASTNode O_node = X_node.getChildren()[1];
                 if (O_node.getChildren()[0].getName().equals("{")) {
                     if (type == null) {
-                        messages.add("æ— æ³•ç”¨æ•°ç»„å¯¹å˜é‡è¿›è¡Œèµ‹å€¼");
+                        messages.add("ÎŞ·¨ÓÃÊı×é¶Ô±äÁ¿½øĞĞ¸³Öµ");
                         return;
                     }
-                    messages.add("æ— æ³•å°†æ•°ç»„ç”¨äºåˆå§‹åŒ–ç®€å•å˜é‡" + identifier);
+                    messages.add("ÎŞ·¨½«Êı×éÓÃÓÚ³õÊ¼»¯¼òµ¥±äÁ¿" + identifier);
                 } else {
                     // O->Logic
                     ASTNode logic = O_node.getChildren()[0];
-                    // æ­¤å¤„åªæœ‰ typeå’Œ valueæ˜¯æœ‰æ„ä¹‰çš„
+                    // ´Ë´¦Ö»ÓĞ typeºÍ valueÊÇÓĞÒâÒåµÄ
                     SimpleVariable logic_value = translateExp(logic);
-                    if (type == null) { //èµ‹å€¼è¿‡ç¨‹
+                    if (type == null) { //¸³Öµ¹ı³Ì
                         SimpleVariable v = simpleTable.getVar(identifier);
                         if (v == null) {
-                            messages.add("å˜é‡" + identifier + "æœªå£°æ˜ï¼Œæ— æ³•èµ‹å€¼");
+                            messages.add("±äÁ¿" + identifier + "Î´ÉùÃ÷£¬ÎŞ·¨¸³Öµ");
                             return;
                         }
-                        v = typeHandle(v, logic_value); //ç›´æ¥è¿›è¡Œç±»å‹å¤„ç†
-                        messages.add("å˜é‡" + identifier + "è¢«èµ‹å€¼ä¸º" + v.getValue());
+                        v = typeHandle(v, logic_value); //Ö±½Ó½øĞĞÀàĞÍ´¦Àí
+                        messages.add("±äÁ¿" + identifier + "±»¸³ÖµÎª" + v.getValue());
                     } else {
-                        // å£°æ˜å’Œåˆå§‹åŒ–è¿‡ç¨‹ --------------------------------
-                        // ä¸ºäº†å°‘çœå®šä¹‰ä¸€ä¸ªå˜é‡çš„å¼€é”€
+                        // ÉùÃ÷ºÍ³õÊ¼»¯¹ı³Ì --------------------------------
+                        // ÎªÁËÉÙÊ¡¶¨ÒåÒ»¸ö±äÁ¿µÄ¿ªÏú
                         logic_value = typeHandle(new SimpleVariable(null, type, null, level), logic_value);
                         logic_value.setName(identifier);
                         if (!simpleTable.addVariable(logic_value))
-                            messages.add("å˜é‡" + identifier + "å·²è¢«å£°æ˜è¿‡");
+                            messages.add("±äÁ¿" + identifier + "ÒÑ±»ÉùÃ÷¹ı");
                         else
-                            messages.add("å˜é‡" + identifier + "è¢«å£°æ˜ä¸º" + type +
-                                    "å‹å¹¶åˆå§‹åŒ–ä¸º" + logic_value.getValue());
+                            messages.add("±äÁ¿" + identifier + "±»ÉùÃ÷Îª" + type +
+                                    "ĞÍ²¢³õÊ¼»¯Îª" + logic_value.getValue());
                     }
                 }
             }
-        } else { // å£°æ˜æ•°ç»„ï¼Œæˆ–ç»™æ•°ç»„ä¸‹æ ‡çš„ä½ç½®èµ‹å€¼
+        } else { // ÉùÃ÷Êı×é£¬»ò¸øÊı×éÏÂ±êµÄÎ»ÖÃ¸³Öµ
             ArrayList<SimpleVariable> dimension_logics = translateIndex(index_node);
-            ArrayList<Integer> dimension_index = new ArrayList<>();// ä¸‹æ ‡åˆ—è¡¨
-            // æ£€æŸ¥ä¸‹æ ‡æ˜¯å¦åˆæ³•,ä¸åˆæ³•åˆ™è‡ªåŠ¨é€€å‡º
+            ArrayList<Integer> dimension_index = new ArrayList<>();// ÏÂ±êÁĞ±í
+            // ¼ì²éÏÂ±êÊÇ·ñºÏ·¨,²»ºÏ·¨Ôò×Ô¶¯ÍË³ö
             for (SimpleVariable s : dimension_logics) {
                 if (s.getType().equals("real")) {
-                    messages.add("æ•°ç»„ä¸‹æ ‡ä¸å…è®¸ä¸ºå°æ•°" + s.getValue() + " ï¼Œåªèƒ½ä¸ºæ­£æ•´æ•°");
+                    messages.add("Êı×éÏÂ±ê²»ÔÊĞíÎªĞ¡Êı" + s.getValue() + " £¬Ö»ÄÜÎªÕıÕûÊı");
                     return;
                 } else {
                     int ix = Integer.parseInt(s.getValue());
                     if (ix < 0) {
-                        messages.add("æ•°ç»„æ—¶ä¸‹æ ‡ä¸å…è®¸ä¸ºè´Ÿæ•°" + s.getValue() + " ï¼Œåªèƒ½ä¸ºæ­£æ•´æ•°");
+                        messages.add("Êı×éÊ±ÏÂ±ê²»ÔÊĞíÎª¸ºÊı" + s.getValue() + " £¬Ö»ÄÜÎªÕıÕûÊı");
                         return;
                     } else
                         dimension_index.add(ix);
                 }
             }
 
-            // ä¸‹æ ‡å·²ç»æ»¡è¶³äº†ä¸ä¸ºå°æ•°å’Œè´Ÿæ•°çš„æ¡ä»¶
+            // ÏÂ±êÒÑ¾­Âú×ãÁË²»ÎªĞ¡ÊıºÍ¸ºÊıµÄÌõ¼ş
             if (X_node.getMaxChildNum() == 0) {
-                // åªæœ‰å£°æ˜æ²¡æœ‰åˆå§‹åŒ–çš„æƒ…å†µ
-                if (type == null) //èµ‹å€¼æ—¶æ­¤è¯­å¥æ— æ„ä¹‰
+                // Ö»ÓĞÉùÃ÷Ã»ÓĞ³õÊ¼»¯µÄÇé¿ö
+                if (type == null) //¸³ÖµÊ±´ËÓï¾äÎŞÒâÒå
                     return;
-                // æ·»åŠ å˜é‡åˆ° å˜é‡ç¬¦å·è¡¨ä¸­  -æœªèµ‹å€¼çš„ä½¿ç”¨é—®é¢˜ï¼Œè”ç³» translateVariable()
+                // Ìí¼Ó±äÁ¿µ½ ±äÁ¿·ûºÅ±íÖĞ  -Î´¸³ÖµµÄÊ¹ÓÃÎÊÌâ£¬ÁªÏµ translateVariable()
                 ArrayList<String> zeroValues = new ArrayList<>();
-                int total = 1; //æ€»çš„æ•°ç»„å†…å…ƒç´ æ•°é‡
+                int total = 1; //×ÜµÄÊı×éÄÚÔªËØÊıÁ¿
                 for (Integer ix : dimension_index)
                     total *= ix;
                 if (type.equals("int")) {
@@ -496,43 +496,43 @@ public class Translator {
                     }
                 } else if (type.equals("char")) {
                     while (total-- > 0)
-                        zeroValues.add(String.valueOf('\0')); // å­—ç¬¦é»˜è®¤å€¼ \0
+                        zeroValues.add(String.valueOf('\0')); // ×Ö·ûÄ¬ÈÏÖµ \0
                 }
                 if (!arrayTable.addVariable(new ArrayVariable(identifier, type, dimension_index, zeroValues, level)))
-                    messages.add("æ•°ç»„å˜é‡" + identifier + "å·²è¢«å£°æ˜è¿‡ï¼");
+                    messages.add("Êı×é±äÁ¿" + identifier + "ÒÑ±»ÉùÃ÷¹ı£¡");
                 else {
-                    String msg = "æ•°ç»„å˜é‡" + identifier + "è¢«å£°æ˜ä¸º" + type + "å‹,ç»´åº¦ä¸º " + dimension_index.toString();
-                    msg += " ,å¹¶è‡ªåŠ¨åˆå§‹åŒ–ä¸º" + zeroValues;
+                    String msg = "Êı×é±äÁ¿" + identifier + "±»ÉùÃ÷Îª" + type + "ĞÍ,Î¬¶ÈÎª " + dimension_index.toString();
+                    msg += " ,²¢×Ô¶¯³õÊ¼»¯Îª" + zeroValues;
                     messages.add(msg);
                 }
             } else {
-                // X ->= Oï¼Œä¼´éšç€åˆå§‹åŒ–ï¼ˆèµ‹å€¼ï¼‰çš„æƒ…å†µ
+                // X ->= O£¬°éËæ×Å³õÊ¼»¯£¨¸³Öµ£©µÄÇé¿ö
                 ASTNode O_node = X_node.getChildren()[1];
                 if (O_node.getMaxChildNum() != 3) {
                     if (type != null) {
                         ArrayList<String> zeroValues = new ArrayList<>();
                         SimpleVariable log_val = translateExp(O_node.getChildren()[0]);
                         if (log_val.getType().equals("string") && type.equals("char")) {
-                            // ç”¨ string æ¥åˆå§‹åŒ– å•ç»´æˆ–å¤šç»´charæ•°ç»„
+                            // ÓÃ string À´³õÊ¼»¯ µ¥Î¬»ò¶àÎ¬charÊı×é
                             String val = log_val.getValue();
-                            int total = 1; //æ€»çš„æ•°ç»„å†…å…ƒç´ æ•°é‡
+                            int total = 1; //×ÜµÄÊı×éÄÚÔªËØÊıÁ¿
                             for (Integer ix : dimension_index)
                                 total *= ix;
-                            // åŒ…æ‹¬ä¸Šæœ€åçš„ä¸€ä¸ª \0
+                            // °üÀ¨ÉÏ×îºóµÄÒ»¸ö \0
                             if (val.length() > total - 1) {
-                                messages.add("ç”¨æ¥åˆå§‹åŒ–çš„å­—ç¬¦ä¸²è¿‡é•¿ï¼");
+                                messages.add("ÓÃÀ´³õÊ¼»¯µÄ×Ö·û´®¹ı³¤£¡");
                             } else {
                                 for (int i = 0; i < val.length(); i++)
                                     zeroValues.add(String.valueOf(val.charAt(i)));
                             }
                             int start = zeroValues.size();
-                            // ä¸å¤Ÿçš„è‡ªåŠ¨èµ‹ç»™åˆå§‹å€¼ \0,åŒ…æ‹¬å­—ç¬¦ä¸²æœ€åçš„ \0
+                            // ²»¹»µÄ×Ô¶¯¸³¸ø³õÊ¼Öµ \0,°üÀ¨×Ö·û´®×îºóµÄ \0
                             while (start++ < total)
-                                zeroValues.add(String.valueOf('\0'));  // ç›´æ¥ä½¿ç”¨ "\0" æ˜¯å¦ç›¸åŒï¼Ÿ
+                                zeroValues.add(String.valueOf('\0'));  // Ö±½ÓÊ¹ÓÃ "\0" ÊÇ·ñÏàÍ¬£¿
                         } else {
-                            messages.add("ä¸èƒ½ç”¨å•ç‹¬çš„è¡¨è¾¾å¼æ¥åˆå§‹åŒ–é™¤äº†charå‹ä¹‹å¤–çš„æ•°ç»„" + identifier);
-                            // ä¸èƒ½åˆå§‹åŒ–ï¼Œå°±è‡ªåŠ¨å£°æ˜
-                            int total = 1; //æ€»çš„æ•°ç»„å†…å…ƒç´ æ•°é‡
+                            messages.add("²»ÄÜÓÃµ¥¶ÀµÄ±í´ïÊ½À´³õÊ¼»¯³ıÁËcharĞÍÖ®ÍâµÄÊı×é" + identifier);
+                            // ²»ÄÜ³õÊ¼»¯£¬¾Í×Ô¶¯ÉùÃ÷
+                            int total = 1; //×ÜµÄÊı×éÄÚÔªËØÊıÁ¿
                             for (Integer ix : dimension_index)
                                 total *= ix;
                             if (type.equals("int")) {
@@ -549,33 +549,33 @@ public class Translator {
                             }
                         }
                         if (!arrayTable.addVariable(new ArrayVariable(identifier, type, dimension_index, zeroValues, level)))
-                            messages.add("æ•°ç»„å˜é‡" + identifier + "å·²è¢«å£°æ˜è¿‡ï¼");
+                            messages.add("Êı×é±äÁ¿" + identifier + "ÒÑ±»ÉùÃ÷¹ı£¡");
                         else {
-                            String msg = "æ•°ç»„å˜é‡" + identifier + "è¢«å£°æ˜ä¸º" + type + "å‹,ç»´åº¦ä¸º " + dimension_index.toString();
-                            msg += " ,å¹¶è‡ªåŠ¨åˆå§‹åŒ–ä¸º" + zeroValues;
+                            String msg = "Êı×é±äÁ¿" + identifier + "±»ÉùÃ÷Îª" + type + "ĞÍ,Î¬¶ÈÎª " + dimension_index.toString();
+                            msg += " ,²¢×Ô¶¯³õÊ¼»¯Îª" + zeroValues;
                             messages.add(msg);
                         }
                     } else {
-                        // æ•°ç»„ä¸‹æ ‡ä½ç½® èµ‹å€¼çš„æƒ…å†µ
+                        // Êı×éÏÂ±êÎ»ÖÃ ¸³ÖµµÄÇé¿ö
                         ArrayVariable v = arrayTable.getArray(identifier);
                         if (v == null)
-                            messages.add("æ•°ç»„å˜é‡æœªå£°æ˜ï¼Œæ— æ³•èµ‹å€¼");
+                            messages.add("Êı×é±äÁ¿Î´ÉùÃ÷£¬ÎŞ·¨¸³Öµ");
                         else {
-                            // åˆ¤æ–­ä¸‹æ ‡æ˜¯å¦è¿‡å¤š
+                            // ÅĞ¶ÏÏÂ±êÊÇ·ñ¹ı¶à
                             if (dimension_index.size() != v.getDimensionList().size()) {
-                                messages.add("æ•°ç»„ä¸‹æ ‡æ•°é‡ä¸åŒ¹é…ï¼Œæ— æ³•èµ‹å€¼");
+                                messages.add("Êı×éÏÂ±êÊıÁ¿²»Æ¥Åä£¬ÎŞ·¨¸³Öµ");
                                 return;
                             }
                             ArrayList<Integer> dimensionList = v.getDimensionList();
-                            // åˆ¤æ–­ä¸‹æ ‡æ˜¯å¦è¶Šç•Œï¼Œ åŒæ—¶è®¡ç®—"ç‰©ç†"å­˜å‚¨çš„ä¸‹æ ‡
+                            // ÅĞ¶ÏÏÂ±êÊÇ·ñÔ½½ç£¬ Í¬Ê±¼ÆËã"ÎïÀí"´æ´¢µÄÏÂ±ê
                             int real_index = 0;
                             for (int i = 0, ji = 2, c = 10; i < dimensionList.size(); i++) {
                                 int temp = 1;
                                 if (dimension_index.get(i) >= dimensionList.get(i)) {
-                                    messages.add("ç¬¬ " + i + " ä¸ªæ•°ç»„ä¸‹æ ‡è¶Šç•Œ!");
+                                    messages.add("µÚ " + i + " ¸öÊı×éÏÂ±êÔ½½ç!");
                                     return;
                                 } else {
-                                    // æœ€åä¸€ä¸ªç»´åº¦ä¸èƒ½ä¹˜
+                                    // ×îºóÒ»¸öÎ¬¶È²»ÄÜ³Ë
                                     for (int j = i + 1; j < dimensionList.size(); j++)
                                         temp *= dimensionList.get(j);
                                     real_index += dimension_index.get(i) * temp;
@@ -586,27 +586,27 @@ public class Translator {
                             if (log != null) {
                                 SimpleVariable val_variable = typeHandle(new SimpleVariable(null, v.getType(), null, level), log);
                                 v.getValues().set(real_index, val_variable.getValue());
-                                messages.add("æ•°ç»„å˜é‡" + identifier + "ç¬¬" + real_index + "ä¸ª'ç‰©ç†'ä½ç½®è¢«èµ‹å€¼ä¸º" + v.getValues().get(real_index)
-                                        + ",æ•°ç»„å½“å‰å€¼ä¸º" + v.getValues()); //TODO ä¿®æ”¹å¤šç»´æ•°æ®çš„æ˜¾ç¤ºæ–¹å¼
+                                messages.add("Êı×é±äÁ¿" + identifier + "µÚ" + real_index + "¸ö'ÎïÀí'Î»ÖÃ±»¸³ÖµÎª" + v.getValues().get(real_index)
+                                        + ",Êı×éµ±Ç°ÖµÎª" + v.getValues()); //TODO ĞŞ¸Ä¶àÎ¬Êı¾İµÄÏÔÊ¾·½Ê½
                             }
 
                         }
                     }
                 } else {
                     if (type == null) {
-                        messages.add("ä¸èƒ½ç”¨ä¸€ä¸ªæ•°ç»„æ¥èµ‹å€¼!");
+                        messages.add("²»ÄÜÓÃÒ»¸öÊı×éÀ´¸³Öµ!");
                         return;
                     }
-                    // æ•°ç»„åˆå§‹åŒ– O->{ Y }, å¤šç»´çš„ä¹Ÿè½¬æˆä¸€ç»´çš„
+                    // Êı×é³õÊ¼»¯ O->{ Y }, ¶àÎ¬µÄÒ²×ª³ÉÒ»Î¬µÄ
                     ASTNode Y_node = O_node.getChildren()[1];
                     ArrayList<String> vals;
-                    int total = 1; //æ€»çš„æ•°ç»„å†…å…ƒç´ æ•°é‡
+                    int total = 1; //×ÜµÄÊı×éÄÚÔªËØÊıÁ¿
                     for (Integer ix : dimension_index)
                         total *= ix;
                     int i = total;
                     if (Y_node.getMaxChildNum() == 0) {
                         vals = new ArrayList<>();
-                        // æ•°ç»„å£°æ˜ä¸ºç©ºæ—¶ï¼Œå…¨éƒ¨èµ‹ç»™åˆå§‹å€¼
+                        // Êı×éÉùÃ÷Îª¿ÕÊ±£¬È«²¿¸³¸ø³õÊ¼Öµ
                         if (type.equals("int")) {
                             while (i-- > 0)
                                 vals.add(String.valueOf(0));
@@ -618,11 +618,11 @@ public class Translator {
                                 vals.add(String.valueOf('\0'));
                         }
                     } else {
-                        // æ•°ç»„é‡Œçš„å€¼ O->{ Y }
+                        // Êı×éÀïµÄÖµ O->{ Y }
                         ArrayList<SimpleVariable> array_values = translateY(Y_node);
                         vals = convertArray(array_values, type);
                         if (vals.size() > total) {
-                            messages.add("ç”¨äºåˆå§‹åŒ–çš„æ•°ç»„å†…å…ƒç´ è¿‡å¤šï¼Œè‡ªåŠ¨å…¨éƒ¨èµ‹äº†åˆå€¼");
+                            messages.add("ÓÃÓÚ³õÊ¼»¯µÄÊı×éÄÚÔªËØ¹ı¶à£¬×Ô¶¯È«²¿¸³ÁË³õÖµ");
                             vals = new ArrayList<>();
                             if (type.equals("int")) {
                                 while (i-- > 0)
@@ -634,8 +634,8 @@ public class Translator {
                                 while (i-- > 0)
                                     vals.add(String.valueOf('\0'));
                         } else if (vals.size() < total) {
-                            // æ•°ç»„å…ƒç´ ä¸è¶³æ—¶ï¼Œè‡ªåŠ¨å¡«å……åˆå§‹å€¼
-                            messages.add("ç”¨äºåˆå§‹åŒ–çš„æ•°ç»„å†…å…ƒç´ è¿‡å°‘ï¼Œè‡ªåŠ¨ç”¨åˆå€¼å¡«å……äº†å‰©ä¸‹çš„å…ƒç´ ");
+                            // Êı×éÔªËØ²»×ãÊ±£¬×Ô¶¯Ìî³ä³õÊ¼Öµ
+                            messages.add("ÓÃÓÚ³õÊ¼»¯µÄÊı×éÄÚÔªËØ¹ıÉÙ£¬×Ô¶¯ÓÃ³õÖµÌî³äÁËÊ£ÏÂµÄÔªËØ");
                             i = vals.size();
                             while (i < total) {
                                 vals.add(type.equals("int") ? String.valueOf(0) :
@@ -647,11 +647,11 @@ public class Translator {
                     ArrayVariable arrayVariable = new ArrayVariable(identifier, type,
                             dimension_index, vals, level);
                     if (arrayTable.addVariable(arrayVariable))
-                        messages.add("æ•°ç»„å˜é‡" + identifier + "è¢«å£°æ˜ä¸º" + type +
-                                "å‹å¹¶è¢«åˆå§‹åŒ–ä¸º " + arrayVariable.getValues().toString());
+                        messages.add("Êı×é±äÁ¿" + identifier + "±»ÉùÃ÷Îª" + type +
+                                "ĞÍ²¢±»³õÊ¼»¯Îª " + arrayVariable.getValues().toString());
                     else
-                        //TODO è€ƒè™‘å£°æ˜æ—¶å…¨éƒ¨åˆå§‹åŒ–ä¸º åˆå§‹å€¼
-                        messages.add("æ•°ç»„å˜é‡" + identifier + "å·²è¢«å£°æ˜è¿‡,æ— æ³•è¿›è¡Œåˆå§‹åŒ–ï¼");
+                        //TODO ¿¼ÂÇÉùÃ÷Ê±È«²¿³õÊ¼»¯Îª ³õÊ¼Öµ
+                        messages.add("Êı×é±äÁ¿" + identifier + "ÒÑ±»ÉùÃ÷¹ı,ÎŞ·¨½øĞĞ³õÊ¼»¯£¡");
                 }
             }
 
@@ -666,14 +666,14 @@ public class Translator {
         variables.add(logic_value);
 
         ASTNode C_ = Y.getChildren()[1];
-        // å¯ä»¥åœ¨å¤šä¸ªæ•°æœ€ååŠ ä¸€ä¸ª é€—å·
+        // ¿ÉÒÔÔÚ¶à¸öÊı×îºó¼ÓÒ»¸ö ¶ººÅ
         if (C_.getMaxChildNum() != 0 && C_.getChildren()[1].getMaxChildNum() != 0) {
             variables.addAll(translateY(C_.getChildren()[1]));
         }
         return variables;
     }
 
-    // TODO logical expression éœ€è¦è¿›è¡ŒçŸ­è·¯æ±‚å€¼
+    // TODO logical expression ĞèÒª½øĞĞ¶ÌÂ·ÇóÖµ
 //    private SimpleVariable translateLogic(ASTNode logic){
 //        SimpleVariable log = null;
 //
@@ -681,35 +681,35 @@ public class Translator {
 //        return log;
 //    }
 
-    // ç¿»è¯‘ æ‰€æœ‰è¡¨è¾¾å¼ exp,å¤„ç†ç±»å‹é”™è¯¯å’Œç±»å‹è½¬æ¢
+    // ·­Òë ËùÓĞ±í´ïÊ½ exp,´¦ÀíÀàĞÍ´íÎóºÍÀàĞÍ×ª»»
     private SimpleVariable translateExp(ASTNode arithmetic) {
         SimpleVariable arith_val = null;
-        LinkedList<SimpleVariable> varStack = new LinkedList<>(); //å˜é‡æ ˆ
-        LinkedList<String> symStack = new LinkedList<>(); //ç¬¦å·æ ˆ
+        LinkedList<SimpleVariable> varStack = new LinkedList<>(); //±äÁ¿Õ»
+        LinkedList<String> symStack = new LinkedList<>(); //·ûºÅÕ»
         HashMap<String, Integer> prioMap = CodeTable.opPriority();
 
-        // èµ·å§‹å˜é‡
+        // ÆğÊ¼±äÁ¿
         ASTNode var = arithmetic.findNextNodeWithValueOrTip("Variable");
         SimpleVariable variable = translateVariable(var);
         varStack.addFirst(variable);
         ASTNode sym;
-        // æ²¡æœ‰ä¸‹ä¸€ä¸ªè¿ç®—ç¬¦å·äº† , ç»“æŸæ¡ä»¶çš„é€‰æ‹©ï¼Œæ‰€æœ‰è¿ç®—çš„tokenï¼Œæ•°+ç¬¦å·+æ•°+...+
+        // Ã»ÓĞÏÂÒ»¸öÔËËã·ûºÅÁË , ½áÊøÌõ¼şµÄÑ¡Ôñ£¬ËùÓĞÔËËãµÄtoken£¬Êı+·ûºÅ+Êı+...+
         while ((sym = arithmetic.findNextNodeWithValueOrTip("symbol")) != null) {
             String sym_value = sym.getValue();
-            // è¿ç»­åˆ¤æ–­ä¼˜å…ˆçº§
+            // Á¬ĞøÅĞ¶ÏÓÅÏÈ¼¶
             while (symStack.size() > 0 && prioMap.get(sym_value) <= prioMap.get(symStack.get(0))) {
-                // æ ˆé¡¶ç¬¦å·çš„ä¼˜å…ˆçº§æ›´é«˜æˆ–ç›¸ç­‰ï¼ˆå·¦ç»“åˆï¼‰ TODO çŸ­è·¯æ±‚å€¼
+                // Õ»¶¥·ûºÅµÄÓÅÏÈ¼¶¸ü¸ß»òÏàµÈ£¨×ó½áºÏ£© TODO ¶ÌÂ·ÇóÖµ
                 SimpleVariable v2 = varStack.pop();
                 SimpleVariable v1 = varStack.pop();
                 String top = symStack.pop();
                 varStack.addFirst(calculate(v1, v2, top));
             }
-            // æ ˆé¡¶ç¬¦å·çš„ä¼˜å…ˆçº§æ›´å°,åˆ™æ–°ç¬¦å·å…¥æ ˆ
+            // Õ»¶¥·ûºÅµÄÓÅÏÈ¼¶¸üĞ¡,ÔòĞÂ·ûºÅÈëÕ»
             symStack.addFirst(sym_value);
             variable = translateVariable(arithmetic.findNextNodeWithValueOrTip("Variable"));
             varStack.addFirst(variable);
         }
-        // åˆ°è¿™é‡Œå·²ç»æ²¡æœ‰ç¬¦å·å†è¿›æ ˆäº†
+        // µ½ÕâÀïÒÑ¾­Ã»ÓĞ·ûºÅÔÙ½øÕ»ÁË
         while (symStack.size() != 0) {
             String top = symStack.pop();
             SimpleVariable v2 = varStack.pop();
@@ -720,24 +720,24 @@ public class Translator {
         return arith_val;
     }
 
-    // ä¸¤ä¸ªæ•°ä¹‹é—´çš„è¿ç®—ï¼Œå¯ä»¥åŒ…æ‹¬ ç®—æœ¯ã€å…³ç³»å’Œé€»è¾‘è¿ç®—, å­—ç¬¦èƒ½å‚ä¸æ‰€æœ‰è¿ç®—ï¼Œè€Œå­—ç¬¦ä¸²åªèƒ½å‚ä¸ åŠ æ³•è¿ç®— TODO mod operandæœªå®ç°
+    // Á½¸öÊıÖ®¼äµÄÔËËã£¬¿ÉÒÔ°üÀ¨ ËãÊõ¡¢¹ØÏµºÍÂß¼­ÔËËã, ×Ö·ûÄÜ²ÎÓëËùÓĞÔËËã£¬¶ø×Ö·û´®Ö»ÄÜ²ÎÓë ¼Ó·¨ÔËËã TODO mod operandÎ´ÊµÏÖ
     private SimpleVariable calculate(SimpleVariable v1, SimpleVariable v2, String top) {
         SimpleVariable reVar = null;
-        // æœ‰å­—ç¬¦ä¸²å­˜åœ¨çš„æƒ…å†µä¸‹
+        // ÓĞ×Ö·û´®´æÔÚµÄÇé¿öÏÂ
         if (v1.getType().equals("string") || v2.getType().equals("string")) {
             if (!top.equals("+")) {
-                messages.add(top + " æ“ä½œä¸­ä¸èƒ½å­˜åœ¨å­—ç¬¦ä¸²,è‡ªåŠ¨è¿”å›é»˜è®¤å€¼ ç©º");
+                messages.add(top + " ²Ù×÷ÖĞ²»ÄÜ´æÔÚ×Ö·û´®,×Ô¶¯·µ»ØÄ¬ÈÏÖµ ¿Õ");
                 return new SimpleVariable(null, "string", "", level);
             } else {
-                // åº”è¯¥å–ä¸‹æ ‡ä¸º 0 è€Œä¸æ˜¯ 1 ï¼Œvalueå·²ç»é™¤å»äº† åŒå¼•å·
+                // Ó¦¸ÃÈ¡ÏÂ±êÎª 0 ¶ø²»ÊÇ 1 £¬valueÒÑ¾­³ıÈ¥ÁË Ë«ÒıºÅ
                 String val = v1.getValue() + v2.getValue();
                 return new SimpleVariable(v1.getName(), "string", val, level);
             }
         }
         if (!v1.getType().equals("real") && !v2.getType().equals("real")) {
-            // æ²¡æœ‰ real å­˜åœ¨æ—¶ï¼Œæ“ä½œç±»ä¼¼
+            // Ã»ÓĞ real ´æÔÚÊ±£¬²Ù×÷ÀàËÆ
             if (v1.getType().equals("char") || v2.getType().equals("char"))
-                messages.add("char ç±»å‹æ•°" + v1.getValue() + "å’Œ" + v2.getValue() + "è¿›è¡Œè¿ç®—æ—¶ï¼Œè‡ªåŠ¨è¿›è¡Œç±»å‹è½¬æ¢æˆ intå†è¿›è¡Œè¿ç®—");
+                messages.add("char ÀàĞÍÊı" + v1.getValue() + "ºÍ" + v2.getValue() + "½øĞĞÔËËãÊ±£¬×Ô¶¯½øĞĞÀàĞÍ×ª»»³É intÔÙ½øĞĞÔËËã");
 
             int a1 = v1.getType().equals("int") ? Integer.parseInt(v1.getValue()) : (int) v1.getValue().charAt(0);
             int a2 = v2.getType().equals("int") ? Integer.parseInt(v2.getValue()) : (int) v2.getValue().charAt(0);
@@ -746,7 +746,7 @@ public class Translator {
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 * a2), level);
             } else if (top.equals("/")) {
                 if (a2 == 0) {
-                    messages.add("å‘ç”Ÿé™¤é›¶é”™è¯¯ï¼Œå€¼è‡ªåŠ¨å˜ä¸º0");
+                    messages.add("·¢Éú³ıÁã´íÎó£¬Öµ×Ô¶¯±äÎª0");
                     reVar = new SimpleVariable(v1.getName(), "int", "0", level);
                 } else {
                     messages.add(a1 + " / " + a2 + " = " + (a1 / a2));
@@ -767,8 +767,12 @@ public class Translator {
             } else if (top.equals("^")) {
                 messages.add(a1 + " ^ " + a2 + " = " + (a1 ^ a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 ^ a2), level);
+            } else if (top.equals("%")){
+                // È¡Ä£ÔËËãÖ»ÄÜÊÊÓÃÓÚÁ½¸öÕûÊı
+                messages.add(a1 + " % " + a2 + " = " + (a1 % a2));
+                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 % a2), level);
             } else {
-                // å…³ç³»å’Œé€»è¾‘è¿ç®—
+                // ¹ØÏµºÍÂß¼­ÔËËã
                 int val = 0;
                 if (top.equals("=="))
                     val = a1 == a2 ? 1 : 0;
@@ -784,25 +788,25 @@ public class Translator {
                     val = a1 >= a2 ? 1 : 0;
                 else if (top.equals("||")) {
                     val = a1 != 0 ? 1 : 0;
-                    if (val == 0) // ç‰©ç†ä¸Šçš„çŸ­è·¯æ±‚å€¼, val==1å°±ä¸ç”¨åˆ¤æ–­ a2äº†
+                    if (val == 0) // ÎïÀíÉÏµÄ¶ÌÂ·ÇóÖµ, val==1¾Í²»ÓÃÅĞ¶Ï a2ÁË
                         val = a2 != 0 ? 1 : 0;
                 } else if (top.equals("&&")) {
                     val = a1 != 0 ? 1 : 0;
-                    if (val == 1) // ç‰©ç†ä¸Šçš„çŸ­è·¯æ±‚å€¼ï¼Œval==0å°±ä¸ç”¨åˆ¤æ–­ a2äº†
+                    if (val == 1) // ÎïÀíÉÏµÄ¶ÌÂ·ÇóÖµ£¬val==0¾Í²»ÓÃÅĞ¶Ï a2ÁË
                         val = a2 != 0 ? 1 : 0;
                 } else
-                    messages.add("è¿ç®—calculateå‡ºé”™ï¼ï¼ï¼");
+                    messages.add("ÔËËãcalculate³ö´í£¡£¡£¡");
                 messages.add(a1 + top + a2 + " = " + val);
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(val), level);
             }
 
-        }// ä¸¤è€…ç±»å‹ä¸­å­˜åœ¨ real çš„æƒ…å†µ
+        }// Á½ÕßÀàĞÍÖĞ´æÔÚ real µÄÇé¿ö
         else {
-            // ä¸¤ä¸ªä¹‹ä¸­æœ‰realå‹å­˜åœ¨
+            // Á½¸öÖ®ÖĞÓĞrealĞÍ´æÔÚ
             if (v1.getType().equals("real"))
-                messages.add("ç±»å‹" + v1.getType() + "ä¸" + v2.getType() + "ä¸åŒ¹é…,è‡ªåŠ¨å¯¹ " + v2.getValue() + "è¿›è¡Œç±»å‹è½¬æ¢");
+                messages.add("ÀàĞÍ" + v1.getType() + "Óë" + v2.getType() + "²»Æ¥Åä,×Ô¶¯¶Ô " + v2.getValue() + "½øĞĞÀàĞÍ×ª»»");
             else
-                messages.add("ç±»å‹" + v1.getType() + "ä¸" + v2.getType() + "ä¸åŒ¹é…,è‡ªåŠ¨å¯¹ " + v1.getValue() + "è¿›è¡Œç±»å‹è½¬æ¢");
+                messages.add("ÀàĞÍ" + v1.getType() + "Óë" + v2.getType() + "²»Æ¥Åä,×Ô¶¯¶Ô " + v1.getValue() + "½øĞĞÀàĞÍ×ª»»");
 
             double a1 = v1.getType().equals("char") ? Double.parseDouble(String.valueOf((int) v1.getValue().charAt(0))) :
                     Double.parseDouble(v1.getValue());
@@ -814,8 +818,8 @@ public class Translator {
                 reVar = new SimpleVariable(v1.getName(), "real", String.valueOf(a1 * a2), level);
             } else if (top.equals("/")) {
                 if (a2 == 0.0) {
-                    messages.add("å‘ç”Ÿé™¤é›¶é”™è¯¯ï¼Œå€¼è‡ªåŠ¨å˜ä¸º 0.0");
-                    System.err.println("å‘ç”Ÿé™¤é›¶é”™è¯¯ï¼Œå€¼è‡ªåŠ¨å˜ä¸º 0.0");
+                    messages.add("·¢Éú³ıÁã´íÎó£¬Öµ×Ô¶¯±äÎª 0.0");
+                    System.err.println("·¢Éú³ıÁã´íÎó£¬Öµ×Ô¶¯±äÎª 0.0");
                     reVar = new SimpleVariable(v1.getName(), "real", "0.0", level);
                 } else {
                     messages.add(a1 + " / " + a2 + " = " + (a1 / a2));
@@ -828,7 +832,7 @@ public class Translator {
                 messages.add(a1 + " - " + a2 + " = " + (a1 - a2));
                 reVar = new SimpleVariable(v1.getName(), "real", String.valueOf(a1 - a2), level);
             } else if (top.equals("&")) {
-                // å¼ºåˆ¶è½¬ä¸º int å†è¿›è¡Œä½è¿ç®—
+                // Ç¿ÖÆ×ªÎª int ÔÙ½øĞĞÎ»ÔËËã
                 messages.add(a1 + " & " + a2 + " = " + ((int) a1 & (int) a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int) a1 & (int) a2), level);
             } else if (top.equals("|")) {
@@ -837,9 +841,12 @@ public class Translator {
             } else if (top.equals("^")) {
                 messages.add(a1 + " ^ " + a2 + " = " + ((int) a1 ^ (int) a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int) a1 ^ (int) a2), level);
-            } else {
-                //TODO æ˜¯å¦ä¼šæœ‰å…¶ä»–æƒ…å†µæ²¡æœ‰è€ƒè™‘åˆ°
-                // å…³ç³»å’Œé€»è¾‘è¿ç®—
+            } else if (top.equals("%")){
+                // È¡Ä£ÔËËãÖ»ÄÜÊÊÓÃÓÚÁ½¸öÕûÊı
+                messages.add(a1 + " % " + a2 + " = " + ((int)a1 % (int)a2));
+                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int)a1 % (int)a2), level);
+            }else {
+                // ¹ØÏµºÍÂß¼­ÔËËã
                 int val = 0;
                 if (top.equals("=="))
                     val = a1 == a2 ? 1 : 0;
@@ -855,14 +862,14 @@ public class Translator {
                     val = a1 >= a2 ? 1 : 0;
                 else if (top.equals("||")) {
                     val = a1 != 0.0 ? 1 : 0;
-                    if (val == 0) // ç‰©ç†ä¸Šçš„çŸ­è·¯æ±‚å€¼
+                    if (val == 0) // ÎïÀíÉÏµÄ¶ÌÂ·ÇóÖµ
                         val = a2 != 0.0 ? 1 : 0;
                 } else if (top.equals("&&")) {
                     val = a1 != 0.0 ? 1 : 0;
-                    if (val == 1) // ç‰©ç†ä¸Šçš„çŸ­è·¯æ±‚å€¼
+                    if (val == 1) // ÎïÀíÉÏµÄ¶ÌÂ·ÇóÖµ
                         val = a2 != 0.0 ? 1 : 0;
                 } else
-                    messages.add("è¿ç®—calculateå‡ºé”™ï¼ï¼ï¼");
+                    messages.add("ÔËËãcalculate³ö´í£¡£¡£¡");
                 messages.add(a1 + top + a2 + " = " + val);
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(val), level);
             }
@@ -870,7 +877,7 @@ public class Translator {
         return reVar;
     }
 
-    // "Variable-> ..." TODO å–å€¼çš„æ—¶å€™æ²¡æœ‰ï¼Œå°±è¿”å›é»˜è®¤å€¼ï¼ˆè€ƒè™‘ Null ä¼šç»™ä¸Šå±‚å¸¦æ¥ä¸ä¾¿ï¼‰
+    // "Variable-> ..." TODO È¡ÖµµÄÊ±ºòÃ»ÓĞ£¬¾Í·µ»ØÄ¬ÈÏÖµ£¨¿¼ÂÇ Null »á¸øÉÏ²ã´øÀ´²»±ã£©
     private SimpleVariable translateVariable(ASTNode variable_node) {
         SimpleVariable variable = null;
         if (variable_node.getMaxChildNum() == 1) {
@@ -881,22 +888,22 @@ public class Translator {
                 ASTNode positive_node = digit_node.getChildren()[digit_node.getMaxChildNum() - 1];
                 String symbol = digit_node.getChildren()[0].getName();
                 if (positive_node.getChildren()[0].getName().equals("integer")) {
-                    // æ­£æ•´æ•°
+                    // ÕıÕûÊı
                     int value = (int) Double.parseDouble(positive_node.getChildren()[0].getValue());
-                    if (symbol.equals("-")) //è´Ÿæ•°
+                    if (symbol.equals("-")) //¸ºÊı
                         value = -1 * value;
                     else if (symbol.equals("~"))
                         value = ~value;
                     variable = new SimpleVariable(null, "int", String.valueOf(value), level);
                 } else if (positive_node.getChildren()[0].getName().equals("hexadecimal")) {
-                    // åå…­è¿›åˆ¶æ•° è½¬æˆ åè¿›åˆ¶çš„ intå‹æ•°
+                    // Ê®Áù½øÖÆÊı ×ª³É Ê®½øÖÆµÄ intĞÍÊı
                     String raw = positive_node.getChildren()[0].getValue();
                     raw = raw.substring(2, raw.length());
                     int value = 0;
                     char ch;
                     for (int i = 0; i < raw.length(); i++) {
                         ch = raw.charAt(i);
-                        // éœ€è¦æŠŠ a-f (ascii code from 97 to 102)è½¬æ¢æˆ 10-15
+                        // ĞèÒª°Ñ a-f (ascii code from 97 to 102)×ª»»³É 10-15
                         if (ch >= 97 && ch <= 102)
                             value = (value << 4) + (ch - 87);
                         else
@@ -904,29 +911,29 @@ public class Translator {
                     }
                     variable = new SimpleVariable(null, "int", String.valueOf(value), level);
                 } else {
-                    // å°æ•°
+                    // Ğ¡Êı
                     double value = Double.parseDouble(positive_node.getChildren()[0].getValue());
-                    if (symbol.equals("-")) {//è´Ÿæ•°
+                    if (symbol.equals("-")) {//¸ºÊı
                         value = -1.0 * value;
                         variable = new SimpleVariable(null, "real", String.valueOf(value), level);
                     } else if (symbol.equals("~")) {
                         int val = ~(int) value;
-                        messages.add("~ ä½è¿ç®—ä½¿realå‹æ•°" + value + "è½¬å˜ä¸ºintå‹æ•° " + val);
+                        messages.add("~ Î»ÔËËãÊ¹realĞÍÊı" + value + "×ª±äÎªintĞÍÊı " + val);
                         variable = new SimpleVariable(null, "int", String.valueOf(val), level);
                     } else
                         variable = new SimpleVariable(null, "real", String.valueOf(value), level);
                 }
             } else if (name.equals("character")) {
-                // character,æ­¤å¤„è¿›è¡Œè¯æ³•åˆ†ææ²¡æœ‰è¿›è¡Œçš„ å­—ç¬¦é•¿åº¦çš„æ£€æŸ¥
+                // character,´Ë´¦½øĞĞ´Ê·¨·ÖÎöÃ»ÓĞ½øĞĞµÄ ×Ö·û³¤¶ÈµÄ¼ì²é
                 String char_value = variable_node.getChildren()[0].getValue().split("\'")[1];
-                if (char_value.length() > 2) { // è€ƒè™‘è½¬ä¹‰å­—ç¬¦é•¿åº¦ä¸º 2
-                    messages.add("å­—ç¬¦" + char_value + "é•¿åº¦éæ³•ï¼Œè‡ªåŠ¨è¿”å›é»˜è®¤å€¼ '\\0' ");
+                if (char_value.length() > 2) { // ¿¼ÂÇ×ªÒå×Ö·û³¤¶ÈÎª 2
+                    messages.add("×Ö·û" + char_value + "³¤¶È·Ç·¨£¬×Ô¶¯·µ»ØÄ¬ÈÏÖµ '\\0' ");
                     variable = new SimpleVariable(null, "char", String.valueOf('\0'), level);
                 } else
                     variable = new SimpleVariable(null, "char",
                             String.valueOf(StringEscapeUtils.unescapeJava(char_value)), level);
             } else if (name.equals("string")) {
-                // TODO string éœ€è¦è€ƒè™‘åˆ°è½¬ä¹‰å­—ç¬¦å­˜åœ¨çš„æƒ…å†µä¸‹
+                // TODO string ĞèÒª¿¼ÂÇµ½×ªÒå×Ö·û´æÔÚµÄÇé¿öÏÂ
                 String val = StringEscapeUtils.unescapeJava(variable_node.getChildren()[0].getValue().split("\"")[1]);
                 variable = new SimpleVariable(null, "string", val, level);
             } else if (name.equals("SymbolVar")) {
@@ -934,56 +941,56 @@ public class Translator {
                 SimpleVariable id = simpleTable.getVar(identifier);
                 String symbol = variable_node.getChildren()[0].getChildren()[0].getValue();
                 if (id == null) {
-                    messages.add("å˜é‡ " + identifier + "æœªè¢«å£°æ˜ï¼Œæ— æ³•ä½¿ç”¨,è‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
-                    //TODO è¿™äº›å˜é‡æ˜¯å¦åº”è¯¥éƒ½æœ‰åå­—,å‡ºé”™çš„åœ°æ–¹æˆ–è€…å‡ºç° setValue çš„åœ°æ–¹åº”è¯¥ä¸ºåŒ¿å
+                    messages.add("±äÁ¿ " + identifier + "Î´±»ÉùÃ÷£¬ÎŞ·¨Ê¹ÓÃ,×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
+                    //TODO ÕâĞ©±äÁ¿ÊÇ·ñÓ¦¸Ã¶¼ÓĞÃû×Ö,³ö´íµÄµØ·½»òÕß³öÏÖ setValue µÄµØ·½Ó¦¸ÃÎªÄäÃû
                     variable = new SimpleVariable(identifier, "int", "0", level);
                 } else {
                     if (id.getValue() == null) {
-                        messages.add("å˜é‡ " + identifier + "æ²¡æœ‰è¢«åˆå§‹åŒ–ï¼Œè‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
+                        messages.add("±äÁ¿ " + identifier + "Ã»ÓĞ±»³õÊ¼»¯£¬×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
                         variable = new SimpleVariable(identifier, "int", "0", level);
                     } else {
-                        // ä¸ç”¨è€ƒè™‘ æ­£å·
+                        // ²»ÓÃ¿¼ÂÇ ÕıºÅ
                         if (symbol.equals("-")) {
                             if (!id.getType().equals("char")) {
-                                //TODO ä¼ ä¸€ä¸ªæ·±æ‹·è´çš„å¯¹è±¡ï¼Œä»¥å…å¯¼è‡´èµ‹å€¼äº§ç”Ÿå˜é‡è¡¨ä¸­å˜é‡çš„å€¼è¢«æ”¹å˜çš„é—®é¢˜
-                                //ä¸èƒ½ç®€å•åœ°æŠŠè´Ÿå·åŠ ä¸Šå»ï¼Œå¯èƒ½å‡ºç° â€œ--2.14â€ æ— æ³•è½¬åŒ–çš„æƒ…å†µ
+                                //TODO ´«Ò»¸öÉî¿½±´µÄ¶ÔÏó£¬ÒÔÃâµ¼ÖÂ¸³Öµ²úÉú±äÁ¿±íÖĞ±äÁ¿µÄÖµ±»¸Ä±äµÄÎÊÌâ
+                                //²»ÄÜ¼òµ¥µØ°Ñ¸ººÅ¼ÓÉÏÈ¥£¬¿ÉÄÜ³öÏÖ ¡°--2.14¡± ÎŞ·¨×ª»¯µÄÇé¿ö
                                 String val = null;
                                 if (id.getType().equals("real"))
                                     val = String.valueOf(-1.0 * Double.parseDouble(id.getValue()));
                                 else if (id.getType().equals("int"))
                                     val = String.valueOf(-1 * Integer.parseInt(id.getValue()));
                                 else
-                                    System.err.println("- æ“ä½œæ—¶ç±»å‹é”™è¯¯ï¼");
+                                    System.err.println("- ²Ù×÷Ê±ÀàĞÍ´íÎó£¡");
                                 variable = new SimpleVariable(identifier, id.getType(), val, level);
                             } else {
-                                // char å•ç‹¬å¤„ç†,è½¬æˆ int
+                                // char µ¥¶À´¦Àí,×ª³É int
                                 int val = (int) id.getValue().charAt(0) * -1;
-                                messages.add("charå˜é‡" + identifier + "çš„å€¼" + id.getValue() + "è‡ªåŠ¨è½¬ä¸º int");
+                                messages.add("char±äÁ¿" + identifier + "µÄÖµ" + id.getValue() + "×Ô¶¯×ªÎª int");
                                 variable = new SimpleVariable(identifier, "int", String.valueOf(val), level);
                             }
                         } else if (symbol.equals("~")) {
-                            // ä½è¿ç®—ä¸æ”¯æŒ real å‹æ•°
+                            // Î»ÔËËã²»Ö§³Ö real ĞÍÊı
                             if (id.getType().equals("real") || id.getType().equals("string")) {
                                 int val = (int) Double.parseDouble(id.getValue());
-                                messages.add("~ ä½è¿ç®—ä»…æ”¯æŒ intæˆ–charå‹æ•°,realå‹æ•°" + id.getValue() + "å¼ºåˆ¶è½¬æ¢ä¸ºintæ•° " + val);
+                                messages.add("~ Î»ÔËËã½öÖ§³Ö int»òcharĞÍÊı,realĞÍÊı" + id.getValue() + "Ç¿ÖÆ×ª»»ÎªintÊı " + val);
                                 variable = new SimpleVariable(null, "int", String.valueOf(~val), level);
                             } else {
                                 if (id.getType().equals("char")) {
                                     int val = ~(int) id.getValue().charAt(0);
-                                    messages.add("char ç±»å‹æ•°" + id.getValue() + "ç»~è¿ç®—è‡ªåŠ¨è½¬ä¸º" + val);
+                                    messages.add("char ÀàĞÍÊı" + id.getValue() + "¾­~ÔËËã×Ô¶¯×ªÎª" + val);
                                     variable = new SimpleVariable(identifier, id.getType(), String.valueOf(val), level);
                                 } else if (id.getType().equals("int")) {
                                     int val = ~Integer.parseInt(id.getValue());
                                     variable = new SimpleVariable(identifier, id.getType(), String.valueOf(val), level);
                                 } else
-                                    System.err.println("~ ä½è¿ç®—æ—¶å‘ç°è¯­æ³•åˆ†æé”™è¯¯ï¼");
+                                    System.err.println("~ Î»ÔËËãÊ±·¢ÏÖÓï·¨·ÖÎö´íÎó£¡");
                             }
                         } else
-                            System.err.println("ç‰¹æ®Šç¬¦å·è¿ç®—æ—¶å‘ç°è¯­æ³•åˆ†æå‡ºé”™ï¼");
+                            System.err.println("ÌØÊâ·ûºÅÔËËãÊ±·¢ÏÖÓï·¨·ÖÎö³ö´í£¡");
                     }
                 }
             } else
-                System.err.println("è¯­æ³•åˆ†ææœªé€šè¿‡ï¼");
+                System.err.println("Óï·¨·ÖÎöÎ´Í¨¹ı£¡");
         } else if (variable_node.getMaxChildNum() == 2) {
             // "Variable->identifier Call"
             ASTNode call_node = variable_node.getChildren()[1];
@@ -991,14 +998,14 @@ public class Translator {
             if (call_node.getChildren()[0].getName().equals("Index")) {
                 ASTNode index_node = call_node.getChildren()[0];
                 if (index_node.getMaxChildNum() == 0) {
-                    // æœ‰å¯èƒ½æ˜¯å­—ç¬¦æ•°ç»„å–æ•´ä¸ª stringï¼Œå¦‚print(a),è¿™é‡Œä¼˜å…ˆè€ƒè™‘ char æ•°ç»„
+                    // ÓĞ¿ÉÄÜÊÇ×Ö·ûÊı×éÈ¡Õû¸ö string£¬Èçprint(a),ÕâÀïÓÅÏÈ¿¼ÂÇ char Êı×é
                     ArrayVariable array = arrayTable.getArray(identifier);
                     if (array != null) {
                         if (!array.getType().equals("char")) {
-                            messages.add("ä¸èƒ½å•ç‹¬ä½¿ç”¨é charå‹æ•°ç»„çš„åç§°!è¿”å›é»˜è®¤å€¼ 0");
+                            messages.add("²»ÄÜµ¥¶ÀÊ¹ÓÃ·Ç charĞÍÊı×éµÄÃû³Æ!·µ»ØÄ¬ÈÏÖµ 0");
                             variable = new SimpleVariable(identifier, "int", "0", level);
                         } else {
-                            // æ‹¿åˆ° char æ•°ç»„æ‰€æœ‰æ•°æ®ï¼Œæ‹¼æ¥å¹¶è¿”å›
+                            // ÄÃµ½ char Êı×éËùÓĞÊı¾İ£¬Æ´½Ó²¢·µ»Ø
                             String s = "";
                             for (String v : array.getValues())
                                 s += v;
@@ -1007,32 +1014,32 @@ public class Translator {
                     } else {
                         SimpleVariable id = simpleTable.getVar(identifier);
                         if (id == null) {
-                            messages.add("å˜é‡ " + identifier + "æœªè¢«å£°æ˜ï¼Œæ— æ³•ä½¿ç”¨,è‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
-                            //TODO è¿™äº›å˜é‡æ˜¯å¦åº”è¯¥éƒ½æœ‰åå­—,å‡ºé”™çš„åœ°æ–¹åº”è¯¥ä¸ºåŒ¿å
+                            messages.add("±äÁ¿ " + identifier + "Î´±»ÉùÃ÷£¬ÎŞ·¨Ê¹ÓÃ,×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
+                            //TODO ÕâĞ©±äÁ¿ÊÇ·ñÓ¦¸Ã¶¼ÓĞÃû×Ö,³ö´íµÄµØ·½Ó¦¸ÃÎªÄäÃû
                             variable = new SimpleVariable(identifier, "int", "0", level);
                         } else {
                             if (id.getValue() == null) {
-                                messages.add("å˜é‡ " + identifier + "æ²¡æœ‰è¢«åˆå§‹åŒ–ï¼Œè‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
+                                messages.add("±äÁ¿ " + identifier + "Ã»ÓĞ±»³õÊ¼»¯£¬×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
                                 variable = new SimpleVariable(identifier, "int", "0", level);
                             } else
                                 variable = id;
                         }
                     }
                 } else {
-                    // æ•°ç»„å–ä¸‹æ ‡çš„å€¼, ä¸æ­£ç¡®åˆ™è¿”å› é»˜è®¤å€¼ 0
+                    // Êı×éÈ¡ÏÂ±êµÄÖµ, ²»ÕıÈ·Ôò·µ»Ø Ä¬ÈÏÖµ 0
 //                    SimpleVariable index = translateExp(index_node.getChildren()[1]); //Logical expression
                     ArrayList<SimpleVariable> dimension_logics = translateIndex(index_node);
-                    ArrayList<Integer> dimension_index = new ArrayList<>();// ä¸‹æ ‡åˆ—è¡¨
-                    // æ£€æŸ¥ä¸‹æ ‡æ˜¯å¦åˆæ³•,ä¸åˆæ³•åˆ™è‡ªåŠ¨é€€å‡º
+                    ArrayList<Integer> dimension_index = new ArrayList<>();// ÏÂ±êÁĞ±í
+                    // ¼ì²éÏÂ±êÊÇ·ñºÏ·¨,²»ºÏ·¨Ôò×Ô¶¯ÍË³ö
                     for (SimpleVariable s : dimension_logics) {
                         if (s.getType().equals("real")) {
-                            messages.add("å–å€¼æ—¶æ•°ç»„ä¸‹æ ‡ä¸å…è®¸ä¸ºå°æ•°" + s.getValue() + " ï¼Œåªèƒ½ä¸ºæ­£æ•´æ•°,è‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
+                            messages.add("È¡ÖµÊ±Êı×éÏÂ±ê²»ÔÊĞíÎªĞ¡Êı" + s.getValue() + " £¬Ö»ÄÜÎªÕıÕûÊı,×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
                             variable = new SimpleVariable(null, "int", "0", level);
                             return variable;
                         } else {
                             int ix = Integer.parseInt(s.getValue());
                             if (ix < 0) {
-                                messages.add("å–å€¼æ—¶æ•°ç»„æ—¶ä¸‹æ ‡ä¸å…è®¸ä¸ºè´Ÿæ•°" + s.getValue() + " ï¼Œåªèƒ½ä¸ºæ­£æ•´æ•°ï¼Œè‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
+                                messages.add("È¡ÖµÊ±Êı×éÊ±ÏÂ±ê²»ÔÊĞíÎª¸ºÊı" + s.getValue() + " £¬Ö»ÄÜÎªÕıÕûÊı£¬×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
                                 variable = new SimpleVariable(null, "int", "0", level);
                                 return variable;
                             } else
@@ -1042,26 +1049,26 @@ public class Translator {
 
                     ArrayVariable arrayVariable = arrayTable.getArray(identifier);
                     if (arrayVariable == null) {
-                        messages.add("æ•°ç»„å˜é‡" + identifier + "æœªå£°æ˜ï¼Œæ— æ³•ä½¿ç”¨ï¼Œè‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
+                        messages.add("Êı×é±äÁ¿" + identifier + "Î´ÉùÃ÷£¬ÎŞ·¨Ê¹ÓÃ£¬×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
                         variable = new SimpleVariable(null, "int", "0", level);
                     } else {
-                        // æ£€æµ‹ä¸‹æ ‡è¶Šç•Œï¼Œæœªèµ‹å€¼ç­‰é—®é¢˜
+                        // ¼ì²âÏÂ±êÔ½½ç£¬Î´¸³ÖµµÈÎÊÌâ
                         if (arrayVariable.getValues() == null || arrayVariable.getValues().size() == 0) {
-                            messages.add("æ•°ç»„" + identifier + "æœªè¢«èµ‹å€¼ï¼Œæ— æ³•ä½¿ç”¨ï¼Œè‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
+                            messages.add("Êı×é" + identifier + "Î´±»¸³Öµ£¬ÎŞ·¨Ê¹ÓÃ£¬×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
                             variable = new SimpleVariable(null, "int", "0", level);
                         } else {
-                            // åˆ¤æ–­ä¸‹æ ‡æ˜¯å¦è¿‡å¤š
+                            // ÅĞ¶ÏÏÂ±êÊÇ·ñ¹ı¶à
                             if (dimension_index.size() != arrayVariable.getDimensionList().size()) {
-                                messages.add("æ•°ç»„ä¸‹æ ‡æ•°é‡ä¸åŒ¹é…,æ— æ³•å–æ•°ç»„ä¸­çš„å€¼ï¼Œè‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
+                                messages.add("Êı×éÏÂ±êÊıÁ¿²»Æ¥Åä,ÎŞ·¨È¡Êı×éÖĞµÄÖµ£¬×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
                                 return new SimpleVariable(null, "int", "0", level);
                             }
                             ArrayList<Integer> dimensionList = arrayVariable.getDimensionList();
-                            // åˆ¤æ–­ä¸‹æ ‡æ˜¯å¦è¶Šç•Œï¼Œ åŒæ—¶è®¡ç®—"ç‰©ç†"å­˜å‚¨çš„ä¸‹æ ‡
+                            // ÅĞ¶ÏÏÂ±êÊÇ·ñÔ½½ç£¬ Í¬Ê±¼ÆËã"ÎïÀí"´æ´¢µÄÏÂ±ê
                             int real_index = 0;
                             for (int i = 0; i < dimensionList.size(); i++) {
                                 int temp = 1;
                                 if (dimension_index.get(i) >= dimensionList.get(i)) {
-                                    messages.add("ç¬¬ " + i + " ä¸ªæ•°ç»„ä¸‹æ ‡è¶Šç•Œ!è‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
+                                    messages.add("µÚ " + i + " ¸öÊı×éÏÂ±êÔ½½ç!×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
                                     return new SimpleVariable(null, "int", "0", level);
                                 } else {
                                     for (int j = i + 1; j < dimensionList.size(); j++)
@@ -1071,7 +1078,7 @@ public class Translator {
                             }
                             ArrayList<String> array = arrayVariable.getValues();
 
-                            // å‡è®¾æ•°ç»„é‡Œä¸€å®šæœ‰å€¼, name è´Ÿè´£ä¼ é€’æ•°ç»„çš„ç»´åº¦åˆ—è¡¨ä¿¡æ¯ï¼Œä»¥ä¾› scan æ—¶ä½¿ç”¨
+                            // ¼ÙÉèÊı×éÀïÒ»¶¨ÓĞÖµ, name ¸ºÔğ´«µİÊı×éµÄÎ¬¶ÈÁĞ±íĞÅÏ¢£¬ÒÔ¹© scan Ê±Ê¹ÓÃ
                             SimpleVariable temp = new SimpleVariable(identifier, arrayVariable.getType(), array.get(real_index), level);
                             temp.setDimensionIndex(dimension_index);
                             variable = temp;
@@ -1081,52 +1088,52 @@ public class Translator {
                     }
                 }
             } else {
-                // å‡½æ•°è°ƒç”¨ TODO add  array
+                // º¯Êıµ÷ÓÃ TODO add  array
                 ArrayList<SimpleVariable> arguments = translateArgument(call_node.getChildren()[1]);
                 FunctionVariable func = functionTable.getVar(identifier);
                 if (func == null) {
-                    messages.add("å‡½æ•°" + identifier + "æœªå£°æ˜æ— æ³•è°ƒç”¨ï¼Œè‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
+                    messages.add("º¯Êı" + identifier + "Î´ÉùÃ÷ÎŞ·¨µ÷ÓÃ£¬×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
                     variable = new SimpleVariable(null, "int", "0", level);
                 } else {
                     ArrayList<Object> parameters = func.getParameters();
                     if (parameters.size() != arguments.size()) {
-                        messages.add("å‡½æ•°" + identifier + "è°ƒç”¨æ—¶å‚æ•°ä¸ªæ•°ä¸åŒ¹é…ï¼Œè‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
+                        messages.add("º¯Êı" + identifier + "µ÷ÓÃÊ±²ÎÊı¸öÊı²»Æ¥Åä£¬×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
                         variable = new SimpleVariable(null, "int", "0", level);
                     } else {
                         boolean canExecute = true;
                         for (int i = 0; i < arguments.size(); i++) {
                             if (parameters.get(i) instanceof ArrayVariable) {
-                                messages.add("å‡½æ•°" + identifier + "çš„ç¬¬" + i + "ä¸ªå‚æ•°"
-                                        + ((ArrayVariable) parameters.get(i)).getArrayName() + "å£°æ˜ä¸ºæ•°ç»„å˜é‡ï¼Œä¸è°ƒç”¨å‚æ•°ç±»å‹ä¸åŒ¹é…ï¼Œè‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 0");
+                                messages.add("º¯Êı" + identifier + "µÄµÚ" + i + "¸ö²ÎÊı"
+                                        + ((ArrayVariable) parameters.get(i)).getArrayName() + "ÉùÃ÷ÎªÊı×é±äÁ¿£¬Óëµ÷ÓÃ²ÎÊıÀàĞÍ²»Æ¥Åä£¬×Ô¶¯·µ»ØÄ¬ÈÏÖµ 0");
                                 canExecute = false;
                                 variable = new SimpleVariable(null, "int", "0", level);
                                 break;
                             }
                             SimpleVariable par = (SimpleVariable) parameters.get(i);
                             SimpleVariable arg = arguments.get(i);
-                            // å‡½æ•°é‡Œçš„å±€éƒ¨å˜é‡ï¼Œä¸å‚æ•°çš„åç§°ç›¸åŒ
+                            // º¯ÊıÀïµÄ¾Ö²¿±äÁ¿£¬Óë²ÎÊıµÄÃû³ÆÏàÍ¬
                             SimpleVariable local = new SimpleVariable(par.getName(), par.getType(), null, level + 1);
 
                             local = typeHandle(local, arg);
-                            simpleTable.addVariable(local); // æ·»åŠ è¿›å˜é‡è¡¨ä¸­ï¼Œå½“å‰çš„é«˜ level
+                            simpleTable.addVariable(local); // Ìí¼Ó½ø±äÁ¿±íÖĞ£¬µ±Ç°µÄ¸ß level
                         }
                         if (canExecute) {
-                            // æ‰§è¡Œå‡½æ•°ä¸­çš„ç¨‹åº
+                            // Ö´ĞĞº¯ÊıÖĞµÄ³ÌĞò
                             level++;
-                            proNum++; //å­ç¨‹åºä¸ªæ•°åŠ ä¸€
-                            messages.add("æ­£åœ¨è°ƒç”¨å‡½æ•°" + identifier);
-                            // è¿”å›ç±»å‹å…¥æ ˆ
+                            proNum++; //×Ó³ÌĞò¸öÊı¼ÓÒ»
+                            messages.add("ÕıÔÚµ÷ÓÃº¯Êı" + identifier);
+                            // ·µ»ØÀàĞÍÈëÕ»
                             returnTypeStack.addFirst(func.getType());
 
-                            // ä¼ å…¥ä¸€ä¸ªæ·±æ‹·è´
+                            // ´«ÈëÒ»¸öÉî¿½±´
                             translate(new ASTNode(func.getPro_node()));
                             proNum--;
-                            // æŠŠè¿”å›å€¼ç½®å…¥ variableå˜é‡ä¸­
+                            // °Ñ·µ»ØÖµÖÃÈë variable±äÁ¿ÖĞ
                             if (returnVal == null) {
-                                messages.add("å‡½æ•°è°ƒç”¨åæ²¡æœ‰è¿”å›å€¼ï¼Œè‡ªåŠ¨è¿”å›é»˜è®¤å€¼ 1");
+                                messages.add("º¯Êıµ÷ÓÃºóÃ»ÓĞ·µ»ØÖµ£¬×Ô¶¯·µ»ØÄ¬ÈÏÖµ 1");
                                 variable = new SimpleVariable(null, "int", "1", level - 1);
                             } else {
-                                messages.add("å‡½æ•°è°ƒç”¨åè¿”å›äº†å€¼ï¼š" + returnVal.getValue());
+                                messages.add("º¯Êıµ÷ÓÃºó·µ»ØÁËÖµ£º" + returnVal.getValue());
                                 variable = returnVal;
                             }
                             simpleTable.deleteVariable(level);
@@ -1146,102 +1153,102 @@ public class Translator {
             variable = translateExp(variable_node.getChildren()[1]);
         } else if (variable_node.getMaxChildNum() == 4) {
             ASTNode id = variable_node.getChildren()[0];
-            // printå‡½æ•°è°ƒç”¨, print charæ•°ç»„æ—¶ï¼Œç›´æ¥æ‰“å°å‡ºæ•´ä¸ªå­—ç¬¦ä¸²
+            // printº¯Êıµ÷ÓÃ, print charÊı×éÊ±£¬Ö±½Ó´òÓ¡³öÕû¸ö×Ö·û´®
             if (id.getValue().equals("print")) {
                 ASTNode logic = variable_node.getChildren()[2];
                 SimpleVariable log = translateExp(logic);
-                messages.add("è°ƒç”¨äº† printå‡½æ•°ï¼Œåœ¨å±å¹•ä¸Šè¾“å‡º" + log.getValue() + ",è¿”å›é»˜è®¤å€¼ 1");
-                printList.add(log.getValue()); // å­˜å…¥è¾“å‡ºæ ˆ
-                System.out.println(log.getValue()); //è¾“å‡ºåˆ°å±å¹•ä¸Š
+                messages.add("µ÷ÓÃÁË printº¯Êı£¬ÔÚÆÁÄ»ÉÏÊä³ö" + log.getValue() + ",·µ»ØÄ¬ÈÏÖµ 1");
+                printList.add(log.getValue()); // ´æÈëÊä³öÕ»
+                System.out.println(log.getValue()); //Êä³öµ½ÆÁÄ»ÉÏ
                 variable = new SimpleVariable(null, "int", "1", level);
             }
-            // scanå‡½æ•°è°ƒç”¨
+            // scanº¯Êıµ÷ÓÃ
             else if (id.getValue().equals("scan")) {
 //                Scanner scanner = new Scanner(System.in);
-                // æ‹¿åˆ°è¦èµ‹å€¼çš„å˜é‡ logic expression
+                // ÄÃµ½Òª¸³ÖµµÄ±äÁ¿ logic expression
                 SimpleVariable var = translateExp(variable_node.getChildren()[2]);
                 ArrayVariable array = arrayTable.getArray(var.getName());
-                String scanVal = scanList.pop(); // æ‹¿åˆ°è¾“å…¥çš„æ•°æ®
+                String scanVal = scanList.pop(); // ÄÃµ½ÊäÈëµÄÊı¾İ
                 if (array != null) {
-                    // è€ƒè™‘ char æ•°ç»„å˜é‡ç›´æ¥æ¥æ”¶å­—ç¬¦ä¸²,ä¼ é€’è¿‡æ¥çš„ç´¢å¼•ä¿¡æ¯ä¸ºç©º
+                    // ¿¼ÂÇ char Êı×é±äÁ¿Ö±½Ó½ÓÊÕ×Ö·û´®,´«µİ¹ıÀ´µÄË÷ÒıĞÅÏ¢Îª¿Õ
                     if (array.getType().equals("char") && var.getDimensionIndex() == null) {
-                        // æ¥å— å­—ç¬¦ä¸²
+                        // ½ÓÊÜ ×Ö·û´®
                         ArrayList<String> values = new ArrayList<>();
-                        int total = 1; //æ€»çš„æ•°ç»„å†…å…ƒç´ æ•°é‡
+                        int total = 1; //×ÜµÄÊı×éÄÚÔªËØÊıÁ¿
                         for (Integer ix : array.getDimensionList())
                             total *= ix;
-                        // åŒ…æ‹¬ä¸Šæœ€åçš„ä¸€ä¸ª \0
+                        // °üÀ¨ÉÏ×îºóµÄÒ»¸ö \0
                         if (scanVal.length() > total - 1) {
-                            messages.add("æ¥æ”¶çš„å­—ç¬¦ä¸²è¿‡é•¿ï¼");
+                            messages.add("½ÓÊÕµÄ×Ö·û´®¹ı³¤£¡");
                             variable = new SimpleVariable(null, "int", "0", level);
                         } else {
                             for (int i = 0; i < scanVal.length(); i++)
                                 values.add(String.valueOf(scanVal.charAt(i)));
-                            values.add(String.valueOf('\0')); // TODO åŠ ä¸Šæœ€åçš„ \0
+                            values.add(String.valueOf('\0')); // TODO ¼ÓÉÏ×îºóµÄ \0
                             array.setValues(values);
-                            messages.add("char æ•°ç»„å˜é‡" + array.getArrayName() + "æ¥å—å­—ç¬¦ä¸²è¾“å…¥è¢«èµ‹å€¼ä¸º " + array.getValues() + " ,è¿”å›é»˜è®¤å€¼ 1");
+                            messages.add("char Êı×é±äÁ¿" + array.getArrayName() + "½ÓÊÜ×Ö·û´®ÊäÈë±»¸³ÖµÎª " + array.getValues() + " ,·µ»ØÄ¬ÈÏÖµ 1");
                             variable = new SimpleVariable(null, "int", "1", level);
                         }
                     } else if (!array.getType().equals("char") && var.getDimensionIndex() == null) {
-                        // TODO æ•°ç»„ä¸ç®€å•å˜é‡åŒåæ—¶ï¼Œå¯èƒ½å‡ºç°æ­§ä¹‰
-                        messages.add("é char å­—ç¬¦æ•°ç»„çš„æ•°ç»„å˜é‡ä¸èƒ½ç›´æ¥æ¥æ”¶è¾“å…¥ï¼");
+                        // TODO Êı×éÓë¼òµ¥±äÁ¿Í¬ÃûÊ±£¬¿ÉÄÜ³öÏÖÆçÒå
+                        messages.add("·Ç char ×Ö·ûÊı×éµÄÊı×é±äÁ¿²»ÄÜÖ±½Ó½ÓÊÕÊäÈë£¡");
                         variable = new SimpleVariable(null, "int", "0", level);
                     } else {
-                        // æ•°ç»„ä¸‹æ ‡çš„ä½ç½®æ¥æ”¶ å€¼
+                        // Êı×éÏÂ±êµÄÎ»ÖÃ½ÓÊÕ Öµ
                         ArrayList<Integer> dimension_index = var.getDimensionIndex();
 
-                        // åˆ¤æ–­ä¸‹æ ‡æ˜¯å¦è¿‡å¤š or è¿‡å°‘
+                        // ÅĞ¶ÏÏÂ±êÊÇ·ñ¹ı¶à or ¹ıÉÙ
                         if (dimension_index.size() != array.getDimensionList().size()) {
-                            messages.add("æ•°ç»„ä¸‹æ ‡æ•°é‡ä¸åŒ¹é…ï¼Œæ— æ³•scanæ¥æ”¶å€¼ï¼Œè¿”å› 0");
+                            messages.add("Êı×éÏÂ±êÊıÁ¿²»Æ¥Åä£¬ÎŞ·¨scan½ÓÊÕÖµ£¬·µ»Ø 0");
                             variable = new SimpleVariable(null, "int", "0", level);
                         }
                         ArrayList<Integer> dimensionList = array.getDimensionList();
-                        // åˆ¤æ–­ä¸‹æ ‡æ˜¯å¦è¶Šç•Œï¼Œ åŒæ—¶è®¡ç®—"ç‰©ç†"å­˜å‚¨çš„ä¸‹æ ‡
+                        // ÅĞ¶ÏÏÂ±êÊÇ·ñÔ½½ç£¬ Í¬Ê±¼ÆËã"ÎïÀí"´æ´¢µÄÏÂ±ê
                         int real_index = 0;
                         for (int i = 0, ji = 2, c = 10; i < dimensionList.size(); i++) {
                             int temp = 1;
                             if (dimension_index.get(i) >= dimensionList.get(i)) {
-                                messages.add("ç¬¬ " + i + " ä¸ªæ•°ç»„ä¸‹æ ‡è¶Šç•Œ!æ— æ³•scanæ¥æ”¶å€¼ï¼Œè¿”å› 0");
+                                messages.add("µÚ " + i + " ¸öÊı×éÏÂ±êÔ½½ç!ÎŞ·¨scan½ÓÊÕÖµ£¬·µ»Ø 0");
                                 return new SimpleVariable(null, "int", "0", level);
                             } else {
-                                // æœ€åä¸€ä¸ªç»´åº¦ä¸èƒ½ä¹˜
+                                // ×îºóÒ»¸öÎ¬¶È²»ÄÜ³Ë
                                 for (int j = i + 1; j < dimensionList.size(); j++)
                                     temp *= dimensionList.get(j);
                                 real_index += dimension_index.get(i) * temp;
                             }
                         }
 
-                        // å‡å®š scanVal çš„å€¼åªæœ‰ charï¼Œintï¼Œreal
+                        // ¼Ù¶¨ scanVal µÄÖµÖ»ÓĞ char£¬int£¬real
                         if (array.getType().equals("char") && scanVal.length() > 2) {
-                            messages.add("è¾“å…¥çš„å­—ç¬¦è¿‡é•¿! scan è¿”å› 0"); // ç”±äºè¯æ³•å±‚çº§æ²¡æœ‰è¿›è¡Œé•¿åº¦åˆ¤æ–­é•¿åº¦,è½¬ä¹‰å­—ç¬¦é•¿åº¦ä¸º 2
+                            messages.add("ÊäÈëµÄ×Ö·û¹ı³¤! scan ·µ»Ø 0"); // ÓÉÓÚ´Ê·¨²ã¼¶Ã»ÓĞ½øĞĞ³¤¶ÈÅĞ¶Ï³¤¶È,×ªÒå×Ö·û³¤¶ÈÎª 2
                             return new SimpleVariable(null, "int", "0", level);
                         } else {
 //                        Double inp = scanner.nextDouble();
                             Double inp = Double.valueOf(scanVal);
                             if (array.getType().equals("char")) {
-                                // è€ƒè™‘åˆ°è½¬ä¹‰å­—ç¬¦çš„å¤„ç†
+                                // ¿¼ÂÇµ½×ªÒå×Ö·ûµÄ´¦Àí
                                 char c = StringEscapeUtils.unescapeJava(scanVal).charAt(0);
                                 scanVal = String.valueOf(c);
                             } else if (array.getType().equals("int")) {
-                                messages.add("scanæ—¶å¼ºåˆ¶è½¬æ¢");
+                                messages.add("scanÊ±Ç¿ÖÆ×ª»»");
                                 int i = (int) inp.doubleValue();
                                 scanVal = String.valueOf(i);
                             } else
                                 scanVal = String.valueOf(inp);
                         }
                         array.getValues().set(real_index, scanVal);
-                        messages.add("æ•°ç»„å˜é‡" + array.getArrayName() + "ç¬¬" + real_index + "ä¸ª'ç‰©ç†'ä½ç½®è¢«èµ‹å€¼ä¸º" + array.getValues().get(real_index)
-                                + ",æ•°ç»„å½“å‰å€¼ä¸º" + array.getValues() + " scanè¿”å› 1"); //TODO ä¿®æ”¹å¤šç»´æ•°æ®çš„æ˜¾ç¤ºæ–¹å¼
+                        messages.add("Êı×é±äÁ¿" + array.getArrayName() + "µÚ" + real_index + "¸ö'ÎïÀí'Î»ÖÃ±»¸³ÖµÎª" + array.getValues().get(real_index)
+                                + ",Êı×éµ±Ç°ÖµÎª" + array.getValues() + " scan·µ»Ø 1"); //TODO ĞŞ¸Ä¶àÎ¬Êı¾İµÄÏÔÊ¾·½Ê½
                         variable = new SimpleVariable(null, "int", "1", level);
                     }
                 } else {
-                    // è€ƒè™‘ä¼ å…¥ä¸€ä¸ªç®€å•çš„å€¼ï¼Œå¯èƒ½ æ˜¯ç®€å•å˜é‡æ¥æ”¶ï¼Œä¹Ÿå¯èƒ½æ˜¯æ•°ç»„ä¸­æŸå…ƒç´ æ¥å—
-                    SimpleVariable vvv = simpleTable.getVar(var.getName()); // æ‹¿åˆ°è¡¨é‡Œå·²ç»å£°æ˜çš„å˜é‡
+                    // ¿¼ÂÇ´«ÈëÒ»¸ö¼òµ¥µÄÖµ£¬¿ÉÄÜ ÊÇ¼òµ¥±äÁ¿½ÓÊÕ£¬Ò²¿ÉÄÜÊÇÊı×éÖĞÄ³ÔªËØ½ÓÊÜ
+                    SimpleVariable vvv = simpleTable.getVar(var.getName()); // ÄÃµ½±íÀïÒÑ¾­ÉùÃ÷µÄ±äÁ¿
                     if (vvv != null) {
-                        System.out.println("æ­£åœ¨æ‰§è¡Œ scanï¼Œå¼€å§‹æ¥å—å€¼ç»™å˜é‡" + var.getName());
+                        System.out.println("ÕıÔÚÖ´ĞĞ scan£¬¿ªÊ¼½ÓÊÜÖµ¸ø±äÁ¿" + var.getName());
                         if (vvv.getType().equals("char")) {
                             if (scanVal.length() > 2) {
-                                messages.add("è¾“å…¥çš„å­—ç¬¦è¿‡é•¿!");
+                                messages.add("ÊäÈëµÄ×Ö·û¹ı³¤!");
                                 variable = new SimpleVariable(null, "int", "0", level);
                             } else
                                 vvv.setValue(String.valueOf(StringEscapeUtils.unescapeJava(scanVal).charAt(0)));
@@ -1249,16 +1256,16 @@ public class Translator {
 //                        Double inp = scanner.nextDouble();
                             Double inp = Double.valueOf(scanVal);
                             if (vvv.getType().equals("int")) {
-                                messages.add("scanæ—¶å¼ºåˆ¶è½¬æ¢");
+                                messages.add("scanÊ±Ç¿ÖÆ×ª»»");
                                 int i = (int) inp.doubleValue();
                                 vvv.setValue(String.valueOf(i));
                             } else
                                 vvv.setValue(String.valueOf(inp));
                         }
-                        messages.add("å˜é‡" + var.getName() + "æ¥å—å¹¶è¢«èµ‹å€¼ä¸º" + vvv.getValue() + ",è¿”å›é»˜è®¤å€¼ 1");
+                        messages.add("±äÁ¿" + var.getName() + "½ÓÊÜ²¢±»¸³ÖµÎª" + vvv.getValue() + ",·µ»ØÄ¬ÈÏÖµ 1");
                         variable = new SimpleVariable(null, "int", "1", level);
                     } else {
-                        messages.add("å˜é‡" + var.getName() + "æœªå£°æ˜ï¼Œæ— æ³•scanå¾—åˆ°å€¼ï¼Œè¿”å›é»˜è®¤å€¼ 0");
+                        messages.add("±äÁ¿" + var.getName() + "Î´ÉùÃ÷£¬ÎŞ·¨scanµÃµ½Öµ£¬·µ»ØÄ¬ÈÏÖµ 0");
                         variable = new SimpleVariable(null, "int", "0", level);
                     }
                 }
@@ -1267,7 +1274,7 @@ public class Translator {
         return variable;
     }
 
-    // TODO å¦‚æœè¦ä¼ æ•°ç»„å‚æ•°çš„è¯ï¼Œå°±éœ€è¦æ–‡æ³•ä¸­å®ç° æŒ‡é’ˆåŠŸèƒ½ï¼Œè¿™é‡Œæš‚å®šä¼ å…¥çš„å‚æ•°ä¸ºç®€å•å˜é‡
+    // TODO Èç¹ûÒª´«Êı×é²ÎÊıµÄ»°£¬¾ÍĞèÒªÎÄ·¨ÖĞÊµÏÖ Ö¸Õë¹¦ÄÜ£¬ÕâÀïÔİ¶¨´«ÈëµÄ²ÎÊıÎª¼òµ¥±äÁ¿
     private ArrayList<SimpleVariable> translateArgument(ASTNode argument) {
         ArrayList<SimpleVariable> args = new ArrayList<>();
         if (argument.getMaxChildNum() != 0) {
@@ -1280,9 +1287,9 @@ public class Translator {
         return args;
     }
 
-    //æŠŠå˜é‡åˆ—è¡¨è½¬æˆ Valueçš„ Stringåˆ—è¡¨ï¼Œå¯ä»¥æ£€æŸ¥å˜é‡ç±»å‹æ˜¯å¦åŒ¹é…ï¼Œè¿›è¡Œè‡ªåŠ¨è½¬æ¢å’Œå¼ºåˆ¶è½¬æ¢ï¼Œå¹¶è½¬æ¢åŸå§‹çš„å€¼
+    //°Ñ±äÁ¿ÁĞ±í×ª³É ValueµÄ StringÁĞ±í£¬¿ÉÒÔ¼ì²é±äÁ¿ÀàĞÍÊÇ·ñÆ¥Åä£¬½øĞĞ×Ô¶¯×ª»»ºÍÇ¿ÖÆ×ª»»£¬²¢×ª»»Ô­Ê¼µÄÖµ
     private ArrayList<String> convertArray(ArrayList<SimpleVariable> arrayList, String type) {
-        // è¿™é‡Œæ•°ç»„é‡Œå€¼çš„ç±»å‹éƒ½æ˜¯ match type çš„
+        // ÕâÀïÊı×éÀïÖµµÄÀàĞÍ¶¼ÊÇ match type µÄ
         ArrayList<String> list = new ArrayList<>();
         for (SimpleVariable var : arrayList)
             list.add(typeHandle(new SimpleVariable(null, type, null, level), var).getValue());
