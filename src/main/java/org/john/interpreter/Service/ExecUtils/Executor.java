@@ -4,6 +4,7 @@ import org.john.interpreter.dto.Wrapper;
 import org.springframework.util.ResourceUtils;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -117,16 +118,14 @@ public class Executor {
 
             // 程序文件的每个程序都用 "-----" 来分隔
 //            String[] pros = readCodeFile(fis).split("-----");
-            String[] scan_inputs = readCodeFile(scanInputs).split(" "); // 空格分隔
 
-            int index = 0;
             List<LexiNode> lexiNodes = LexicalAnalysis.lexicalScan(readCodeFile(fis));
 
             GramParser parser = new GramParser();
             ASTNode astNode = parser.LLParse(LexicalAnalysis.preprocess(lexiNodes));
 
             Translator t = new Translator();
-            LinkedList<String> scanList = new LinkedList<>(Arrays.asList(scan_inputs));
+            LinkedList<String> scanList = new LinkedList<>(splitProgram(readCodeFile(scanInputs)));
             t.setScanList(scanList);  // 注入输入的数据
             t.translate(astNode);
             System.out.println("--------msg-------");
@@ -136,6 +135,21 @@ public class Executor {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    private static ArrayList<String> splitProgram(String pro){
+        // 换行符 和 空格 分割
+        ArrayList<String> inputs = new ArrayList<>();
+        List<String> tmp = new ArrayList<>(Arrays.asList(pro.split("\n")));
+        List<String> t;
+        for (String input:tmp) {
+            t = Arrays.asList(input.split(" "));
+            for (String s : t){
+                if (s.length() != 0)
+                    inputs.add(s);
+            }
+        }
+        return inputs;
     }
 
     public static void main(String[] args) {

@@ -1,10 +1,10 @@
 package org.john.interpreter.Service.ExecUtils;
 
-import org.apache.el.lang.ELArithmetic;
+import ch.qos.logback.core.util.StringCollectionUtil;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.john.interpreter.Service.SemanticUtils.*;
 import org.john.interpreter.dto.Wrapper;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 @SuppressWarnings("ALL")
@@ -270,7 +270,7 @@ public class Translator {
                     String type = returnTypeStack.pop();
                     //返回值置入 returnVal中
                     SimpleVariable tmp = new SimpleVariable(null, type, null, level);
-                    tmp = typeHandle(tmp,log);
+                    tmp = typeHandle(tmp, log);
                     returnVal = tmp;
                 }
                 // 没有返回值则不加理会
@@ -489,7 +489,7 @@ public class Translator {
             } else {
                 // X ->= O，伴随着初始化（赋值）的情况
                 ASTNode O_node = X_node.getChildren()[1];
-                if (O_node.getMaxChildNum() != 3) { //TODO add string
+                if (O_node.getMaxChildNum() != 3) {
                     if (type != null) {
                         ArrayList<String> zeroValues = new ArrayList<>();
                         SimpleVariable log_val = translateExp(O_node.getChildren()[0]);
@@ -565,20 +565,6 @@ public class Translator {
 
                             SimpleVariable log = translateExp(O_node.getChildren()[0]);
                             if (log != null) {
-//                                if (!v.getType().equals(log.getType())) { TODO 未经过测试
-//                                    if (v.getType().equals("int")) {
-//                                        // 强制转换
-//                                        int val = (int) Double.parseDouble(log.getValue());
-//                                        messages.add("类型不匹配，" + log.getValue() + "强制转换为" + val);
-//                                        v.getValues().set(real_index, String.valueOf(val));
-//                                    } else if (v.getType().equals("real")) {
-//                                        double val = Double.parseDouble(log.getValue());
-//                                        messages.add("类型不匹配，" + log.getValue() + "自动类型转换为" + val);
-//                                        v.getValues().set(real_index, String.valueOf(val));
-//                                    }
-//                                } else
-//                                    v.getValues().set(real_index, log.getValue());
-
                                 SimpleVariable val_variable = typeHandle(new SimpleVariable(null, v.getType(), null, level), log);
                                 v.getValues().set(real_index, val_variable.getValue());
                                 messages.add("数组变量" + identifier + "第" + real_index + "个'物理'位置被赋值为" + v.getValues().get(real_index)
@@ -824,19 +810,18 @@ public class Translator {
                 reVar = new SimpleVariable(v1.getName(), "real", String.valueOf(a1 - a2), level);
             } else if (top.equals("&")) {
                 // 强制转为 int 再进行位运算
-                messages.add(a1 + " & " + a2 + " = " + ((int)a1 & (int)a2));
-                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int)a1 & (int)a2), level);
+                messages.add(a1 + " & " + a2 + " = " + ((int) a1 & (int) a2));
+                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int) a1 & (int) a2), level);
             } else if (top.equals("|")) {
-                messages.add(a1 + " | " + a2 + " = " + ((int)a1 | (int)a2));
-                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int)a1 | (int)a2), level);
+                messages.add(a1 + " | " + a2 + " = " + ((int) a1 | (int) a2));
+                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int) a1 | (int) a2), level);
             } else if (top.equals("^")) {
-                messages.add(a1 + " ^ " + a2 + " = " + ((int)a1 ^ (int)a2));
-                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int)a1 ^ (int)a2), level);
-            }
-            else {
+                messages.add(a1 + " ^ " + a2 + " = " + ((int) a1 ^ (int) a2));
+                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int) a1 ^ (int) a2), level);
+            } else {
                 //TODO 是否会有其他情况没有考虑到
                 // 关系和逻辑运算
-                 int val = 0;
+                int val = 0;
                 if (top.equals("=="))
                     val = a1 == a2 ? 1 : 0;
                 else if (top.equals("<>"))
@@ -1065,15 +1050,18 @@ public class Translator {
                                 }
                             }
                             ArrayList<String> array = arrayVariable.getValues();
-                            // 假设数组里一定有值
-                            variable = new SimpleVariable(null, arrayVariable.getType(), array.get(real_index), level);
+
+                            // 假设数组里一定有值, name 负责传递数组的维度列表信息，以供 scan 时使用
+                            SimpleVariable temp = new SimpleVariable(identifier, arrayVariable.getType(), array.get(real_index), level);
+                            temp.setDimensionIndex(dimension_index);
+                            variable = temp;
 
                         }
 
                     }
                 }
             } else {
-                // 函数调用 TODO add char and array
+                // 函数调用 TODO add  array
                 ArrayList<SimpleVariable> arguments = translateArgument(call_node.getChildren()[1]);
                 FunctionVariable func = functionTable.getVar(identifier);
                 if (func == null) {
@@ -1099,7 +1087,7 @@ public class Translator {
                             // 函数里的局部变量，与参数的名称相同
                             SimpleVariable local = new SimpleVariable(par.getName(), par.getType(), null, level + 1);
 
-                            local = typeHandle(local,arg);
+                            local = typeHandle(local, arg);
                             simpleTable.addVariable(local); // 添加进变量表中，当前的高 level
                         }
                         if (canExecute) {
@@ -1149,14 +1137,14 @@ public class Translator {
             }
             // scan函数调用
             else if (id.getValue().equals("scan")) {
-                Scanner scanner = new Scanner(System.in);
+//                Scanner scanner = new Scanner(System.in);
                 // 拿到要赋值的变量 logic expression
                 SimpleVariable var = translateExp(variable_node.getChildren()[2]);
                 ArrayVariable array = arrayTable.getArray(var.getName());
                 String scanVal = scanList.pop(); // 拿到输入的数据
                 if (array != null) {
-                    // 考虑数组变量,直接接收字符串，不用判断
-                    if (array.getType().equals("char")) {
+                    // 考虑 char 数组变量直接接收字符串,传递过来的索引信息为空
+                    if (array.getType().equals("char") && var.getDimensionIndex() == null) {
                         // 接受 字符串
                         ArrayList<String> values = new ArrayList<>();
                         int total = 1; //总的数组内元素数量
@@ -1174,13 +1162,60 @@ public class Translator {
                             messages.add("char 数组变量" + array.getArrayName() + "接受字符串输入被赋值为 " + array.getValues() + " ,返回默认值 1");
                             variable = new SimpleVariable(null, "int", "1", level);
                         }
-                    } else {
-                        messages.add("非字符数组的数组变量不能直接接收输入！");
+                    } else if (!array.getType().equals("char") && var.getDimensionIndex() == null) {
+                        // TODO 数组与简单变量同名时，可能出现歧义
+                        messages.add("非 char 字符数组的数组变量不能直接接收输入！");
                         variable = new SimpleVariable(null, "int", "0", level);
+                    } else {
+                        // 数组下标的位置接收 值
+                        ArrayList<Integer> dimension_index = var.getDimensionIndex();
+
+                        // 判断下标是否过多 or 过少
+                        if (dimension_index.size() != array.getDimensionList().size()) {
+                            messages.add("数组下标数量不匹配，无法scan接收值，返回 0");
+                            variable = new SimpleVariable(null, "int", "0", level);
+                        }
+                        ArrayList<Integer> dimensionList = array.getDimensionList();
+                        // 判断下标是否越界， 同时计算"物理"存储的下标
+                        int real_index = 0;
+                        for (int i = 0, ji = 2, c = 10; i < dimensionList.size(); i++) {
+                            int temp = 1;
+                            if (dimension_index.get(i) >= dimensionList.get(i)) {
+                                messages.add("第 " + i + " 个数组下标越界!无法scan接收值，返回 0");
+                                return new SimpleVariable(null, "int", "0", level);
+                            } else {
+                                // 最后一个维度不能乘
+                                for (int j = i + 1; j < dimensionList.size(); j++)
+                                    temp *= dimensionList.get(j);
+                                real_index += dimension_index.get(i) * temp;
+                            }
+                        }
+
+                        // 假定 scanVal 的值只有 char，int，real
+                        if (array.getType().equals("char") && scanVal.length() > 2) {
+                            messages.add("输入的字符过长! scan 返回 0"); // 由于词法层级没有进行长度判断长度,转义字符长度为 2
+                            return new SimpleVariable(null, "int", "0", level);
+                        } else {
+//                        Double inp = scanner.nextDouble();
+                            Double inp = Double.valueOf(scanVal);
+                            if (array.getType().equals("char")) {
+                                // 考虑到转义字符的处理
+                                char c = StringEscapeUtils.unescapeJava(scanVal).charAt(0);
+                                scanVal = String.valueOf(c);
+                            } else if (array.getType().equals("int")) {
+                                messages.add("scan时强制转换");
+                                int i = (int) inp.doubleValue();
+                                scanVal = String.valueOf(i);
+                            } else
+                                scanVal = String.valueOf(inp);
+                        }
+                        array.getValues().set(real_index, scanVal);
+                        messages.add("数组变量" + array.getArrayName() + "第" + real_index + "个'物理'位置被赋值为" + array.getValues().get(real_index)
+                                + ",数组当前值为" + array.getValues() + " scan返回 1"); //TODO 修改多维数据的显示方式
+                        variable = new SimpleVariable(null, "int", "1", level);
                     }
                 } else {
                     // 考虑传入一个简单的值，可能 是简单变量接收，也可能是数组中某元素接受
-                    // TODO add scan( a[i][j] )
                     SimpleVariable vvv = simpleTable.getVar(var.getName()); // 拿到表里已经声明的变量
                     if (vvv != null) {
                         System.out.println("正在执行 scan，开始接受值给变量" + var.getName());
@@ -1337,11 +1372,17 @@ public class Translator {
     }
 
     public static void main(String[] args) {
-        String s = "-1e-10";
+        String s = "\\\n";
         int a = 12;
-        double d = Double.parseDouble(s);
         char x = 'w';
         a = -x;
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Please input the value of c: ");
+        char c = 'P';
+        c = StringEscapeUtils.unescapeJava(scanner.next()).charAt(0);
+
+        System.out.println("A = " + a);
+        System.out.println("C = " + c);
 //        testWhileIf();
     }
 }

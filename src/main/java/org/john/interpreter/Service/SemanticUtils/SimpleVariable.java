@@ -1,10 +1,13 @@
 package org.john.interpreter.Service.SemanticUtils;
 
+import java.util.ArrayList;
+
 public class SimpleVariable {
     private String name;
     private String type;
     private String value;
     private int level; // 作用域级别
+    private ArrayList<Integer> dimensionIndex = null; // 为了传递数组的维度信息，以供 scan 时使用
     public SimpleVariable(){}
     public SimpleVariable(String name, String type, String value, int level){
         this.name = name;
@@ -35,5 +38,13 @@ public class SimpleVariable {
     }
     public int getLevel(){
         return level;
+    }
+
+    public ArrayList<Integer> getDimensionIndex() {
+        return dimensionIndex;
+    }
+
+    public void setDimensionIndex(ArrayList<Integer> dimensionIndex) {
+        this.dimensionIndex = dimensionIndex;
     }
 }
