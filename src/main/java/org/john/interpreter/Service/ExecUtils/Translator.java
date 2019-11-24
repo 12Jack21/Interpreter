@@ -75,12 +75,19 @@ public class Translator {
             if (!F.getChildren()[0].getName().equals("(")) {
                 // 不是函数声明
                 ASTNode index_node = F.getChildren()[0]; // Index
-                ASTNode X_node = F.getChildren()[1]; // X
+                ASTNode X_node = F.getChildren()[2]; // X
                 translateIndexWithX(index_node, X_node, identifier, type);
 
-                ASTNode C_node = F.getChildren()[2];
+                // 声明时多赋值
+                ASTNode Con = F.getChildren()[1];
+                while (Con.getMaxChildNum() != 0){
+                    X_node.flushFindTag();
+                    translateIndexWithX(Con.getChildren()[2],X_node,Con.getChildren()[1].getValue(),null);// null 以供赋值
+                    Con = Con.getChildren()[3];
+                }
+                ASTNode C_node = F.getChildren()[3];
                 while (C_node.getMaxChildNum() != 0) {
-                    translateAssignment(C_node.getChildren()[1], type); // 处理Assignment
+                    translateAssignment(C_node.getChildren()[1], type); // 处理Assignment TODO 不需要 flush吗
                     C_node = C_node.getChildren()[2];
                 }
             } else {//  函数定义 TODO add char and array parameters
@@ -337,7 +344,15 @@ public class Translator {
 
     private void translateAssignment(ASTNode assignment, String type) {
         String identifier = assignment.getChildren()[0].getValue();
-        translateIndexWithX(assignment.getChildren()[1], assignment.getChildren()[2], identifier, type);
+        ASTNode X_node = assignment.getChildren()[3];
+        translateIndexWithX(assignment.getChildren()[1], X_node, identifier, type);
+        // 处理 Con 节点后的多赋值
+        ASTNode Con = assignment.getChildren()[2];
+        while (Con.getMaxChildNum() != 0){
+            X_node.flushFindTag(); // 刷新以供多次赋值
+            translateIndexWithX(Con.getChildren()[2],X_node,Con.getChildren()[1].getValue(),null);//null 以供赋值
+            Con = Con.getChildren()[3];
+        }
     }
 
     // 翻译 Index 节点判断为几维数组
@@ -396,7 +411,7 @@ public class Translator {
         return v;
     }
 
-    // if type == null,则为 Assignment调用的，否则为 Declare调用
+    // if type == null,则为 Assignment调用的，否则为 Declare调用 TODO add Con a = b = 3;
     private void translateIndexWithX(ASTNode index_node, ASTNode X_node, String identifier, String type) {
         if (index_node.getMaxChildNum() == 0) {
             // 声明或者赋值一个简单变量

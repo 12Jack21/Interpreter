@@ -56,6 +56,7 @@ public class CodeTable {
             "Statement->Logic ;", "Statement->Assignment ;",
             "ELSEIF->else if ( Logic ) H ELSEIF", "ELSEIF->",
             "Variable->SymbolVar","Variable->Digit",
+            "Con->= identifier Index Con","Con->"
     };
     public static String[] value_contain_token = {
             "identifier", "integer", "fraction"
@@ -68,14 +69,15 @@ public class CodeTable {
             "Statement->Declare", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE",
             "Statement->Interrupt", "Statement->Logic ;","Statement->FOR","Statement->;",
 
-            "Assignment->identifier Index X", // Single Assignment
+            "Assignment->identifier Index Con X", // Single Assignment
+            "Con->= identifier Index Con","Con->",// like  a = b = 3;
             "Declare->Type Assign",           // Declaration
             "Type->int", "Type->real", "Type->char", "Type->void", // Type Specifier
             "Index->[ Logic ] Index", "Index->", //TODO index allows expression
             "C->, Assignment C", "C->",        // Multiple declare or assign
 
             "Assign->identifier F",
-            "F->( Parameter ) { Pro }", "F->Index X C ;",         // define function
+            "F->( Parameter ) { Pro }", "F->Index Con X C ;",         // define function
             "Parameter->Type identifier Index CC", "Parameter->", //function parameters no.24
             "CC->, Parameter", "CC->",     // can replace CC with original non-terminal
             "ConAssign->Assignment C",     // continuing assignment
@@ -110,7 +112,7 @@ public class CodeTable {
             "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->SymbolVar",
             "Variable->print ( Logic )", "Variable->scan ( Logic )","Variable->character","Variable->string",
             "SymbolVar->+ identifier","SymbolVar->- identifier","SymbolVar->~ identifier",
-            "Call->( Argument )", "Call->Index X", //TODO add c1 = c2 = c3 = 0 Error in LL table
+            "Call->( Argument )", "Call->Index", //TODO add c1 = c2 = c3 = 0 Error in LL table
 
             "Argument->Logic CCC", "Argument->",
             "CCC->, Argument", "CCC->", //no.73

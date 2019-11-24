@@ -110,14 +110,13 @@ public class GramParser {
                              * 扫描分号之前遇到的符号，遇到 逻辑符、关系符、运算符前遇到 赋值符号则选择 赋值语句的产生式，否则反之*/
                             int t_index = index;
                             LexiNode temp = nodes.get(t_index++);
-                            String[] p1 = {"||", "&&", "<", "<=", "<>", ">", ">=", "==", "+", "-", "*", "/", "(", ")"};
+                            String[] p1 = {"||", "&&", "<", "<=", "<>", ">", ">=", "==", "+", "-", "*", "/", "(", ")","|","&","^","~"};
                             String selection = null;
-                            int mode = top.equals("Statement") ? 0 : (top.equals("ELSEIF") ? 1 : 2);
+                            int mode = top.equals("Statement") ? 0 : (top.equals("ELSEIF") ? 1 : (top.equals("Variable") ? 2 : 3));
 
                             if (mode == 1) {
-                                // else if 产生式 判断下一个符号是否是 if 即可
-                                temp = nodes.get(t_index);
-                                if (temp.getSymbol().equals("if"))
+                                // else if 产生式 判断下一个符号是否是 if 的同时要判定当前是不是 else,否则可能有 if() sta } 类似的情况
+                                if (temp.getSymbol().equals("else") && nodes.get(t_index).getSymbol().equals("if"))
                                     selection = special_production[mode * 2];
                                 else
                                     selection = special_production[mode * 2 + 1];
@@ -128,7 +127,7 @@ public class GramParser {
                                     selection = special_production[mode * 2];
                                 else
                                     selection = special_production[mode * 2 + 1];
-                            } else {
+                            } else if (mode == 0) {
                                 // statement 产生式
                                 while (!temp.getSymbol().trim().equals(";")) {
                                     for (String p : p1) {
@@ -145,6 +144,18 @@ public class GramParser {
                                     }
                                     temp = nodes.get(t_index++);
                                 }
+                            } else {
+                                // Con 多重赋值产生式，看后面的等号数量 1 or 2
+                                int assCount = 0;
+                                List<String> diffSymbol = Arrays.asList(p1);// 用以区分的符号，只有表达式中才会出现
+                                while (!temp.getSymbol().trim().equals(";") && !diffSymbol.contains(temp.getSymbol().trim())) {
+                                    if ("=".equals(temp.getSymbol().trim()))
+                                        assCount++;
+                                    if (assCount >= 2)
+                                        break;
+                                    temp = nodes.get(t_index++);
+                                }
+                                selection = assCount >= 2 ? special_production[mode * 2] : special_production[mode * 2 + 1];
                             }
                             if (selection == null)
                                 selection = special_production[mode * 2];
@@ -281,7 +292,7 @@ public class GramParser {
     }
 
     public static void main(String[] args) {
-        int a=1,b=2,c=3;
+        int a = 1, b = 2, c = 3;
         int c1 = a = b = 2 + 1 + 2;
         System.out.println(a);
         System.out.println(b);
