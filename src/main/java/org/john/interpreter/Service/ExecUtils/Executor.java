@@ -24,14 +24,11 @@ public class Executor {
         }
         if (sbuf.indexOf("\n") != -1)
             sbuf.deleteCharAt(sbuf.lastIndexOf("\n"));//删除最后一个换行符
-        // 程序文件的每个程序都用 "-----" 来分隔
-//        String[] pros = sbuf.toString().split("-----\n");
-
         return sbuf.toString();
     }
 
     /* all the analysis set here */
-    public static Wrapper analyze(String pro) {
+    public static Wrapper analyze(String pro,String scans) {
         if (!pro.endsWith("\n"))
             pro += "\n";
         List<LexiNode> lexiNodes = LexicalAnalysis.lexicalScan(pro);
@@ -46,10 +43,11 @@ public class Executor {
             lexiResult.deleteCharAt(lexiResult.length() - 1);
 
         Translator t = new Translator();
-        t.translate(astNode);
         if (astNode != null) {
-            // 语义分析里不能执行
-//            astNode.addNullTips();
+            t.setScanList(new LinkedList<>(splitScanString(scans)));
+            t.translate(astNode);
+            // 语义分析前 不能执行
+            astNode.addNullTips();
             astNode.setParentNull();
         }
         Wrapper wrapper = new Wrapper(lexiResult.toString(), astNode, gramParser.getErrorStack(), t.getMessages(), t.getPrintList());
@@ -83,14 +81,14 @@ public class Executor {
 //                }
 //            }
 
-            Wrapper w = analyze(pros[0]);
+            Wrapper w = analyze(pros[0],"12");
             for (String msg : w.getMessages()) {
                 out.write(msg + "\n");
                 System.out.println(msg);
             }
 
             System.out.println("\nprint 输出信息如下：");
-            for (String m : w.getPrintList()) {
+            for (String m : w.getOutputList()) {
                 System.out.println(m);
             }
             out.flush(); // 把缓存区内容压入文件
@@ -125,7 +123,7 @@ public class Executor {
             ASTNode astNode = parser.LLParse(LexicalAnalysis.preprocess(lexiNodes));
 
             Translator t = new Translator();
-            LinkedList<String> scanList = new LinkedList<>(splitProgram(readCodeFile(scanInputs)));
+            LinkedList<String> scanList = new LinkedList<>(splitScanString(readCodeFile(scanInputs)));
             t.setScanList(scanList);  // 注入输入的数据
             t.translate(astNode);
             System.out.println("--------msg-------");
@@ -137,10 +135,10 @@ public class Executor {
         }
     }
 
-    private static ArrayList<String> splitProgram(String pro){
+    private static ArrayList<String> splitScanString(String scans){
         // 换行符 和 空格 分割
         ArrayList<String> inputs = new ArrayList<>();
-        List<String> tmp = new ArrayList<>(Arrays.asList(pro.split("\n")));
+        List<String> tmp = new ArrayList<>(Arrays.asList(scans.split("\n")));
         List<String> t;
         for (String input:tmp) {
             t = Arrays.asList(input.split(" "));

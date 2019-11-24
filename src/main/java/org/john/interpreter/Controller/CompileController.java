@@ -34,8 +34,6 @@ public class CompileController {
     public String displayFile(@RequestParam("code") MultipartFile file){
         String s;
         try {
-//            String[] pros = Executor.readCodeFile(file.getInputStream());
-//            s = pros[0];
             s = Executor.readCodeFile(file.getInputStream());
         } catch (IOException e) {
             e.printStackTrace();
@@ -46,8 +44,9 @@ public class CompileController {
 
     @ResponseBody
     @RequestMapping(value = "/analyze",method = RequestMethod.POST)
-    public Wrapper analyzeResult(@RequestParam(value = "codes") String codes,@RequestParam("index")int index){
-        Wrapper wrapper = Executor.analyze(codes.split("-----")[index - 1]);
+    public Wrapper analyzeResult(@RequestParam(value = "codes") String codes,@RequestParam("index")int index,@RequestParam("scans")String scans){
+        // 分割的 regex 可能会对分析造成影响！
+        Wrapper wrapper = Executor.analyze(codes.split("--@--")[index - 1],scans);
         System.out.println(wrapper);
         return wrapper;
     }

@@ -148,7 +148,8 @@ public class GramParser {
                                 // Con 多重赋值产生式，看后面的等号数量 1 or 2
                                 int assCount = 0;
                                 List<String> diffSymbol = Arrays.asList(p1);// 用以区分的符号，只有表达式中才会出现
-                                while (!temp.getSymbol().trim().equals(";") && !diffSymbol.contains(temp.getSymbol().trim())) {
+                                while (!temp.getSymbol().trim().equals(";") && !temp.getSymbol().trim().equals(",")
+                                        && !diffSymbol.contains(temp.getSymbol().trim())) {
                                     if ("=".equals(temp.getSymbol().trim()))
                                         assCount++;
                                     if (assCount >= 2)

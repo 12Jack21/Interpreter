@@ -59,10 +59,12 @@ $(document).ready(function () {
         let index = $("#index-picker").val();
         let code = $("#code_area").val();
         let code_seg = code.split("-----");
+
+        let scanInputs = $("#input_area").val();
         if (code_seg.length === undefined || code_seg.length === 0) {
             alert("Please input the program!");
             return;
-        } else if (code_seg.length  < index) {
+        } else if (code_seg.length < index) {
             alert("Illegal index of program!");
             return;
         }
@@ -72,7 +74,8 @@ $(document).ready(function () {
             url: "analyze", //relative path
             data: {
                 codes: code,
-                index: index
+                index: index,
+                scans: scanInputs
             },
             dataType: 'json', //expected return json format data
             cache: false,
@@ -129,7 +132,7 @@ $(document).ready(function () {
                 }
             });
             // expand all the nodes
-            tree.treeview('expandAll',{
+            tree.treeview('expandAll', {
                 silent: true
             });
 
@@ -137,11 +140,12 @@ $(document).ready(function () {
             // 语法错误消息展示
             alertGramError(errorList);
             // 语义消息填充
-            showSemanticMsg(data.messages);
+            showSemanticMsg(data.messages, data.outputList);
             console.log("Messages:", data.messages);
+            console.log("Outputs:", data.outputList);
 
         }).fail(function () {
-            alert("upload code failed!");
+            alert("Upload code failed!");
         }).always(function () {
 
         });
@@ -149,14 +153,40 @@ $(document).ready(function () {
 
 });
 
-function showSemanticMsg(msgList) {
-    let semantic_span = $("#semantic span");
+function showSemanticMsg(msgList, outList) {
+    let debug = $("#debug_area");
+    let out = $("#output_area");
     let inner = "";
-    $.each(msgList,function (key,value) {
+    $.each(msgList, function (key, value) {
         inner += value + "\n\r";
     });
-    semantic_span.text(inner);
+    debug.text(inner);
+    let len = msgList.length;
+    if (len >= 5)
+        debug.attr("rows", len + 1);
+    else
+        debug.attr("rows", 5);
+
+    inner = "";
+    $.each(outList, function (key, value) {
+        inner += value; // 不用加 换行，保留原本的样子
+    });
+    out.text(inner);
+    len = inner.split("\n").length;
+    if (len >= 5)
+        out.attr("rows", len + 1);
+    else
+        out.attr("rows", 5);
 }
+
+// function showSemanticMsg(msgList,outList) {
+//     let semantic_span = $("#semantic span");
+//     let inner = "";
+//     $.each(msgList,function (key,value) {
+//         inner += value + "\n\r";
+//     });
+//     semantic_span.text(inner);
+// }
 function showLexiResult(result) {
     let list = result.split("\n");
     let lexical = $("#lexical span");

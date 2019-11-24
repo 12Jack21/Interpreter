@@ -32,3 +32,6 @@ for(int i = 0 ; i < n;i = i + 1){
  }
 
 print(a[n-1][m]);
+
+// 6 3 5 4 6 value
+// 2 2 6 5 4 weight
