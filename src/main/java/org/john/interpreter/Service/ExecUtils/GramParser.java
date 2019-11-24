@@ -281,6 +281,10 @@ public class GramParser {
     }
 
     public static void main(String[] args) {
-
+        int a=1,b=2,c=3;
+        int c1 = a = b = 2 + 1 + 2;
+        System.out.println(a);
+        System.out.println(b);
+        System.out.println(c1);
     }
 }

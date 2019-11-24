@@ -911,8 +911,8 @@ public class Translator {
                     variable = new SimpleVariable(null, "char",
                             String.valueOf(StringEscapeUtils.unescapeJava(char_value)), level);
             } else if (name.equals("string")) {
-                // string
-                String val = variable_node.getChildren()[0].getValue().split("\"")[1];
+                // TODO string 需要考虑到转义字符存在的情况下
+                String val = StringEscapeUtils.unescapeJava(variable_node.getChildren()[0].getValue().split("\"")[1]);
                 variable = new SimpleVariable(null, "string", val, level);
             } else if (name.equals("SymbolVar")) {
                 String identifier = variable_node.getChildren()[0].getChildren()[1].getValue();

@@ -82,7 +82,7 @@ public class CodeTable {
 
             "X->= O", "X->", //no.28
             "O->Logic", "O->{ Y }",     // array assignment
-            "Y->Logic C'", "Y->",//TODO 删掉空数组初始化 ？
+            "Y->Logic C'", "Y->",//TODO 是否删掉空数组初始化
             "C'->, Y", "C'->",             // for array assignment {}
 
             "IF->if ( Logic ) H ELSEIF ELSE",    //if
@@ -110,7 +110,7 @@ public class CodeTable {
             "Variable->( Relation )", "Variable->identifier Call", "Variable->Digit","Variable->SymbolVar",
             "Variable->print ( Logic )", "Variable->scan ( Logic )","Variable->character","Variable->string",
             "SymbolVar->+ identifier","SymbolVar->- identifier","SymbolVar->~ identifier",
-            "Call->( Argument )", "Call->Index",
+            "Call->( Argument )", "Call->Index X", //TODO add c1 = c2 = c3 = 0 Error in LL table
 
             "Argument->Logic CCC", "Argument->",
             "CCC->, Argument", "CCC->", //no.73
