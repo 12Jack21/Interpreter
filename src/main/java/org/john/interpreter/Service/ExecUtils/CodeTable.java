@@ -93,8 +93,8 @@ public class CodeTable {
             "FOR->for ( DA LO ; AS ) H",   //for loop,can be null in any position
             "DA->Declare","DA->ConAssign ;","DA->;", //for the reason that Declare takes ;
             "LO->Logic","LO->",
-            "AS->ConAssign","AS->", //TODO ¶à¸³ÖµÓï¾ä
-            "Interrupt->break ;", "Interrupt->continue ;", "Interrupt->return Result ;", //break & continue
+            "AS->ConAssign","AS->",
+            "Interrupt->break ;" ,"Interrupt->continue ;", "Interrupt->return Result ;", //break & continue
             "Result->Logic", "Result->",
 
             "Logic->Relation L",        //logic expression

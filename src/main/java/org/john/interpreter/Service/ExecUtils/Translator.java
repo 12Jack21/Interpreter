@@ -182,7 +182,7 @@ public class Translator {
                 re = (int) Double.parseDouble(translateExp(logic).getValue()) == 1;
                 logic.flushFindTag();
                 toContinue = false;
-                root.getChildren()[4].flushFindTag();
+                root.getChildren()[4].flushFindTag(); // flush H_node
             }
             if (toBreak)
                 toBreak = false;
@@ -197,9 +197,10 @@ public class Translator {
                 ASTNode LO = root.getChildren()[3];
                 ASTNode AS = root.getChildren()[5];
                 if (DA.getMaxChildNum() == 1) {
-                    level++;
+                    // 利用 level += large num 创造一个暂存空间给在 for () 里声明的变量
+                    level += 1000;
                     translate(DA.getChildren()[0]); // 为了进入里面的作用域来声明
-                    level--;
+                    level -= 1000;
                 } else if (DA.getMaxChildNum() == 2) {
                     ASTNode C_node = DA.getChildren()[0].getChildren()[1];
                     translate(DA.getChildren()[0].getChildren()[0]); // translate assignment
@@ -213,9 +214,9 @@ public class Translator {
                 SimpleVariable log = translateExp(logic);
                 boolean re = (int) Double.parseDouble(log.getValue()) == 1;
                 logic.flushFindTag();
-                level++;
                 while (re) {
                     messages.add("满足for循环条件，执行循环体程序");
+                    level++;
                     // 拉出处理 H_node 的逻辑
                     ASTNode H_node = root.getChildren()[7];
                     translate(H_node.getMaxChildNum() == 1 ? H_node.getChildren()[0] : H_node.getChildren()[1]);
@@ -230,17 +231,20 @@ public class Translator {
                         // 刷新以供下次运行
                         AS.flushFindTag();
                     }
+                    simpleTable.deleteVariable(level);
+                    arrayTable.deleteArrays(level);
+                    level--;
 
-                    if (toBreak)
+                    if (toBreak) {
                         break;
+                    }
                     re = (int) Double.parseDouble(translateExp(logic).getValue()) == 1;
                     logic.flushFindTag();
                     toContinue = false;
                     root.getChildren()[7].flushFindTag(); // 刷新 for 循环中的程序
                 }
-                simpleTable.deleteVariable(level);
-                arrayTable.deleteArrays(level);
-                level--;
+                simpleTable.deleteVariable(level + 1000); // 删除 for括号里声明的变量
+                arrayTable.deleteArrays(level + 1000);
                 if (toBreak) //TODO 多个 while 嵌套的情况下需要用栈来存取 break 吗
                     toBreak = false;
                 else
@@ -1221,11 +1225,11 @@ public class Translator {
                     if (vvv != null) {
                         System.out.println("正在执行 scan，开始接受值给变量" + var.getName());
                         if (vvv.getType().equals("char")) {
-                            if (scanVal.length() > 1) {
+                            if (scanVal.length() > 2) {
                                 messages.add("输入的字符过长!");
                                 variable = new SimpleVariable(null, "int", "0", level);
                             } else
-                                vvv.setValue(scanVal);
+                                vvv.setValue(String.valueOf(StringEscapeUtils.unescapeJava(scanVal).charAt(0)));
                         } else {
 //                        Double inp = scanner.nextDouble();
                             Double inp = Double.valueOf(scanVal);
@@ -1373,16 +1377,97 @@ public class Translator {
     }
 
     public static void main(String[] args) {
+        // ox game
+        Scanner s = new Scanner(System.in);
+        char h = '-';
+        char z = '+';
+
+        String err = "\nerr-------err------err\n";
+        String hint = " please enter for rows cols: ";
+        String clear = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+        int win = 1;
+        char white = 'o'; // -1
+        int w = -1;
+        char black = 'x'; // 1
+        int b = 1;
+        char curc = white;
+        int cur = w;
         int n = 3;
-        double[][] c = new double[n][n];
-        for(int i = 0,k = 1;i < n;i = i + 1)
-            for(int j = 0;j < n;j =j + 1){
-                c[i][j] = 0;
-                for(k = 0;k < n;k = k + 1){
-                    c[i][j] = c[i][j] + 1;
+        int[][] chess = new int[n][n];
+        int total = 0;
+        while (win != 0){
+            total = total + 1;
+            System.out.print("+--+--+--+\n");
+            for (int i = 0; i < n; i = i + 1) {
+                System.out.print(z);
+                for (int j = 0; j < n; j = j + 1) {
+                    if (chess[i][j] == w)
+                        System.out.print(white);
+                    else if (chess[i][j] == b)
+                        System.out.print(black);
+                    else System.out.print(' ');
+                    System.out.print(' ');
+                    System.out.print(z);
                 }
-                System.out.println(c[i][j]);
+                System.out.print("\n+--+--+--+\n");
             }
+            System.out.print(curc);
+            System.out.print(hint);
+            int i, j;
+            i = s.nextInt();
+            j = s.nextInt();
+
+            if (i < 0 || i > n || j < 0 || j > n) {
+                System.out.print(err);
+                System.out.print("out of border\n");
+                break;
+            }
+            if (chess[i][j] != 0){
+                System.out.print(err);
+                System.out.print("illegal step\n");
+                break;
+            }
+
+            chess[i][j] = cur;
+
+            // search for win
+            int count1, count2, count3, count4 = 0;
+            count1 = count2 = count3 = 0;
+            for (int k = 0; k < n; k = k + 1) {
+                if (chess[i][k] == cur)
+                    count1 = count1 + 1;
+                if (chess[k][j] == cur)
+                    count2 = count2 + 1;
+                if (chess[k][k] == cur)
+                    count3 = count3 + 1;
+                if (chess[k][n - k - 1] == cur)
+                    count4 = count4 + 1;
+            }
+
+            if (count4 == n || count1 == n || count2 == n || count3 == n) {
+                win = cur;
+            }
+
+            // invert
+            curc = (char)(black + white - curc);
+            cur = -cur;
+
+            if (total == n * n) {
+                // win-win
+                break;
+            } else {
+                System.out.print(clear);
+            }
+            continue;
+        }
+
+
+        if (win == 0) {
+            System.out.print("no one wins\n");
+        } else {
+            System.out.print(curc);
+            System.out.print(" has won!Congratulation!\n");
+        }
 
 //        testWhileIf();
     }

@@ -56,7 +56,7 @@ public class SimpleTable {
     /* delete all variables in any level*/
     public void deleteVariable(int level){
         // 遍历过程中删除有副作用
-        SimpleVariable[] variables = table.toArray(new SimpleVariable[table.size()]);
+        SimpleVariable[] variables = table.toArray(new SimpleVariable[0]);
         for (SimpleVariable var:variables){
             if (var.getLevel() == level)
                 table.remove(var);

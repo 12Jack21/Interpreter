@@ -59,7 +59,12 @@
 
 ### Passed Test
 1. implicitly cast, operation test(without overflow exception throw) and CHAR & STRING (without explicitly type transfer)in type.c
-
-
+2. matrix operation but some code error in the original file
+3. bisearch and stack have passes before
+4. pass sum (don't know the meaning of id totalreal)
+5. limitation runs out of memory
+6. pass insert sort
+7. pass gcd but it cannot calculate when a = n* b while n is a integer
+8. pass 01 bag problem, has many error in original code
 ### Solved problem
 - 用深拷贝解决了函数递归调用时的ASTNode 共享问题，但在逻辑表达式中依然保留 flushfindtag()
