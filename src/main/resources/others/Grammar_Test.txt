@@ -1,6 +1,2 @@
-char c(char p[1][2]){
-    return p[0][1];
-}
-char x[1][2] = {'a','b'};
-char o = c(x);
-print("o = " + o);
+char c[3] = "cv";
+print(c[1] + ' ');

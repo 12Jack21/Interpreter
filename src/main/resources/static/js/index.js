@@ -169,7 +169,7 @@ function showSemanticMsg(msgList, outList) {
 
     inner = "";
     $.each(outList, function (key, value) {
-        inner += value; // 不用加 换行，保留原本的样子
+        inner += value + " "; // 不用加 换行，保留原本的样子
     });
     out.text(inner);
     len = inner.split("\n").length;
