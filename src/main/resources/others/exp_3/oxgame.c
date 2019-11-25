@@ -1,0 +1,95 @@
+// ox game
+// test with char for no.2
+
+char h = '-';
+char z = '+';
+
+char err = "\nerr-------err------err\n";
+char hint = " please enter for rows cols: ";
+char clear = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+int win = 0;
+char white = 'o'; // -1
+int w = -1;
+char black = 'x'; // 1
+int b = 1;
+char curc = white;
+int cur = w;
+int n = 3;
+int chess[n][n];
+int total = 0;
+while(win <> 0){
+  total = total + 1;
+  print("+--+--+--+\n");
+  for(int i = 0;i < n;i = i + 1){
+    print(z);
+    for(int j = 0; j < n;j = j + 1){
+      if(chess[i][j] == w)
+        print(white);
+      else if(chess[i][j] == b)
+        print(black);
+      else print(' ');
+      print(' ');
+      print(z);
+    }
+      print("+--+--+--+\n");
+  }
+
+
+
+  print(curc);
+  print(hint);
+  int i,j;
+  scan(i);
+  scan(j);
+
+  if(i < 0 || i > n || j < 0 || j > n){
+    print(err);
+    print("out of border\n");
+    break;
+  }
+  if(chess[i][j] <> 0){
+    print(err);
+    print("illegal step\n");
+    break;
+  }
+
+  chess[i][j] = cur;
+
+  // search for win
+  int count1,count2 ,count3 ,count4 = 0;
+  count1 = count2 = count3 = 0;
+  for(int k = 0; k < n;k  = k + 1){
+    if(chess[i][k] == cur)
+      count1 = count1 + 1;
+    if(chess[k][j] == cur)
+      count2 = count2 + 1;
+    if(chess[k][k] == cur)
+      count3 = count3 + 1;
+    if(chess[k][n - k - 1] == cur)
+      count4 = count4 + 1;
+  }
+
+  if(count4 == n || count1 == n || count2 == n || count3 == n ){
+    win = cur;
+  }
+
+  // invert
+  curc = black + white - curc;
+  cur = -cur;
+
+  if (total == n * n){
+    // win-win
+    break;
+  }else {
+    print(clear);
+  }
+  continue;
+ }
+
+
+if(win == 0){
+  print("no one wins\n");
+ }else {
+  print(curc);
+  print(" has won!Congratulation!\n");
+ }
