@@ -80,9 +80,9 @@ public class Translator {
 
                 // 声明时多赋值
                 ASTNode Con = F.getChildren()[1];
-                while (Con.getMaxChildNum() != 0){
+                while (Con.getMaxChildNum() != 0) {
                     X_node.flushFindTag();
-                    translateIndexWithX(Con.getChildren()[2],X_node,Con.getChildren()[1].getValue(),null);// null 以供赋值
+                    translateIndexWithX(Con.getChildren()[2], X_node, Con.getChildren()[1].getValue(), null);// null 以供赋值
                     Con = Con.getChildren()[3];
                 }
                 ASTNode C_node = F.getChildren()[3];
@@ -100,13 +100,19 @@ public class Translator {
                     if (parameters.size() == 0)
                         msg += "没有参数";
                     else {
+                        if (parameters.contains(null)) {
+                            messages.add("参数不合法，无法定义函数！");
+                            return;
+                        }
                         msg += "参数列表为(";
                         for (Object param : parameters) {
                             if (param instanceof SimpleVariable)
                                 msg += ((SimpleVariable) param).getType() + " " + ((SimpleVariable) param).getName();
-                            else if (param instanceof ArrayVariable)
+                            else if (param instanceof ArrayVariable) {
                                 msg += ((ArrayVariable) param).getType() + " " + ((ArrayVariable) param).getArrayName()
-                                        + "[" + ((ArrayVariable) param).getLength() + "]";
+                                        + ((ArrayVariable) param).getDimensionList().toString();
+
+                            }
                             msg += ",";
                         }
                         if (msg.endsWith(","))
@@ -117,6 +123,7 @@ public class Translator {
                     messages.add(msg);
                 } catch (Exception e) {
                     messages.add("函数" + identifier + "声明失败！");
+                    e.printStackTrace();
                 }
             }
         } else if (name.equals("Assignment")) {
@@ -197,7 +204,6 @@ public class Translator {
                 messages.add("不满足while循环条件，循环退出");
             whileNum--;
         } else if (name.equals("FOR")) {
-            // TODO like while
             whileNum++;
             if (root.getChildren()[3].getMaxChildNum() != 0) {
                 ASTNode DA = root.getChildren()[2];
@@ -318,22 +324,26 @@ public class Translator {
                 parameters.add(v);
             } else {
                 // TODO 数组变量的参数，有错误就无法成功声明，考虑throw , ---没有涉及到 多维数组！！！
-                ASTNode logic = index_node.getChildren()[1];
-                SimpleVariable log = translateExp(logic);
-                int len = 0;
-                if (log.getType().equals("real")) {
-                    len = (int) Double.parseDouble(log.getValue());
-                    messages.add("作为参数的数组长度不能为小数" + log.getValue() + "，将强制转换为" + len);
-                    if (len < 0) {
-                        messages.add("作为参数的数组长度不能为负数" + len);
-                        throw new Exception();
+                ArrayList<SimpleVariable> dimension_logics = translateIndex(index_node);
+                ArrayList<Integer> dimensionList = new ArrayList<>();// 下标列表
+                boolean legal = true;
+                // 检查下标是否合法,不合法则自动退出
+                for (SimpleVariable s : dimension_logics) {
+                    if (!s.getType().equals("int")) {
+                        messages.add("定义的参数数组下标不允许为 " + s.getValue() + " ，只能为正整数");
+                        legal = false;
+                    } else {
+                        int ix = Integer.parseInt(s.getValue());
+                        if (ix <= 0) {
+                            messages.add("定义的参数数组时下标不允许为负数或0： " + s.getValue() + " ，只能为正整数");
+                            legal = false;
+                        } else
+                            dimensionList.add(ix);
                     }
-                } else if (log.getType().equals("int"))//int型
-                    len = Integer.parseInt(log.getValue());
-                else {
-                    // char 型
                 }
-                ArrayVariable v = new ArrayVariable(identifier, type, len, null, level);
+                ArrayVariable v = null; // TODO 表示出错
+                if (legal)
+                    v = new ArrayVariable(identifier, type, dimensionList, null, level);
                 parameters.add(v);
             }
             if (CC_node.getMaxChildNum() != 0)
@@ -348,9 +358,9 @@ public class Translator {
         translateIndexWithX(assignment.getChildren()[1], X_node, identifier, type);
         // 处理 Con 节点后的多赋值
         ASTNode Con = assignment.getChildren()[2];
-        while (Con.getMaxChildNum() != 0){
+        while (Con.getMaxChildNum() != 0) {
             X_node.flushFindTag(); // 刷新以供多次赋值
-            translateIndexWithX(Con.getChildren()[2],X_node,Con.getChildren()[1].getValue(),null);//null 以供赋值
+            translateIndexWithX(Con.getChildren()[2], X_node, Con.getChildren()[1].getValue(), null);//null 以供赋值
             Con = Con.getChildren()[3];
         }
     }
@@ -469,7 +479,7 @@ public class Translator {
                 } else {
                     int ix = Integer.parseInt(s.getValue());
                     if (ix < 0) {
-                        messages.add("数组时下标不允许为负数" + s.getValue() + " ，只能为正整数");
+                        messages.add("数组下标不允许为负数 " + s.getValue() + " ，只能为正整数");
                         return;
                     } else
                         dimension_index.add(ix);
@@ -767,7 +777,7 @@ public class Translator {
             } else if (top.equals("^")) {
                 messages.add(a1 + " ^ " + a2 + " = " + (a1 ^ a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 ^ a2), level);
-            } else if (top.equals("%")){
+            } else if (top.equals("%")) {
                 // 取模运算只能适用于两个整数
                 messages.add(a1 + " % " + a2 + " = " + (a1 % a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf(a1 % a2), level);
@@ -841,11 +851,11 @@ public class Translator {
             } else if (top.equals("^")) {
                 messages.add(a1 + " ^ " + a2 + " = " + ((int) a1 ^ (int) a2));
                 reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int) a1 ^ (int) a2), level);
-            } else if (top.equals("%")){
+            } else if (top.equals("%")) {
                 // 取模运算只能适用于两个整数
-                messages.add(a1 + " % " + a2 + " = " + ((int)a1 % (int)a2));
-                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int)a1 % (int)a2), level);
-            }else {
+                messages.add(a1 + " % " + a2 + " = " + ((int) a1 % (int) a2));
+                reVar = new SimpleVariable(v1.getName(), "int", String.valueOf((int) a1 % (int) a2), level);
+            } else {
                 // 关系和逻辑运算
                 int val = 0;
                 if (top.equals("=="))
@@ -1001,9 +1011,9 @@ public class Translator {
                     // 有可能是字符数组取整个 string，如print(a),这里优先考虑 char 数组
                     ArrayVariable array = arrayTable.getArray(identifier);
                     if (array != null) {
-                        if (!array.getType().equals("char")) {
-                            messages.add("不能单独使用非 char型数组的名称!返回默认值 0");
-                            variable = new SimpleVariable(identifier, "int", "0", level);
+                        if (!array.getType().equals("char")) { //TODO char数组也得考虑---
+                            // 数组则返回 level == -1
+                            variable = new SimpleVariable(array.getArrayName(), "int", "0", -1);
                         } else {
                             // 拿到 char 数组所有数据，拼接并返回
                             String s = "";
@@ -1036,10 +1046,14 @@ public class Translator {
                             messages.add("取值时数组下标不允许为小数" + s.getValue() + " ，只能为正整数,自动返回默认值 0");
                             variable = new SimpleVariable(null, "int", "0", level);
                             return variable;
+                        } else if (s.getType().equals("char")) {
+                            messages.add("取值时数组下标不允许为字符 " + s.getValue() + " ，只能为正整数,自动返回默认值 0");
+                            variable = new SimpleVariable(null, "int", "0", level);
+                            return variable;
                         } else {
                             int ix = Integer.parseInt(s.getValue());
                             if (ix < 0) {
-                                messages.add("取值时数组时下标不允许为负数" + s.getValue() + " ，只能为正整数，自动返回默认值 0");
+                                messages.add("取值时数组时下标不允许为负数 " + s.getValue() + " ，只能为正整数，自动返回默认值 0");
                                 variable = new SimpleVariable(null, "int", "0", level);
                                 return variable;
                             } else
@@ -1089,7 +1103,7 @@ public class Translator {
                 }
             } else {
                 // 函数调用 TODO add  array
-                ArrayList<SimpleVariable> arguments = translateArgument(call_node.getChildren()[1]);
+                ArrayList<Object> arguments = translateArgument(call_node.getChildren()[1]);
                 FunctionVariable func = functionTable.getVar(identifier);
                 if (func == null) {
                     messages.add("函数" + identifier + "未声明无法调用，自动返回默认值 0");
@@ -1101,21 +1115,34 @@ public class Translator {
                         variable = new SimpleVariable(null, "int", "0", level);
                     } else {
                         boolean canExecute = true;
+                        ArrayVariable tmp = null;
                         for (int i = 0; i < arguments.size(); i++) {
                             if (parameters.get(i) instanceof ArrayVariable) {
-                                messages.add("函数" + identifier + "的第" + i + "个参数"
-                                        + ((ArrayVariable) parameters.get(i)).getArrayName() + "声明为数组变量，与调用参数类型不匹配，自动返回默认值 0");
-                                canExecute = false;
-                                variable = new SimpleVariable(null, "int", "0", level);
-                                break;
-                            }
-                            SimpleVariable par = (SimpleVariable) parameters.get(i);
-                            SimpleVariable arg = arguments.get(i);
-                            // 函数里的局部变量，与参数的名称相同
-                            SimpleVariable local = new SimpleVariable(par.getName(), par.getType(), null, level + 1);
+                                if (!(arguments.get(i) instanceof ArrayVariable)){
+                                    messages.add("第" + i + "个参数定义为数组但调用时没有传递数组!函数调用失败, 自动返回默认值 0");
+                                    return new SimpleVariable(null, "int", "0", level);
+                                }else {
+                                    ArrayVariable par = (ArrayVariable) parameters.get(i);
+                                    ArrayVariable arg = (ArrayVariable) arguments.get(i);
+                                    // TODO 判断 type 和维度列表是否匹配！！！放入typehandle转化也可
+                                    tmp = new ArrayVariable(par.getArrayName(),par.getType(),par.getDimensionList(),
+                                            arg.getValues(), level + 1);
+                                    arrayTable.addVariable(tmp); // 添加数组进作用域
+                                }
+                            } else {
+                                if (!(arguments.get(i) instanceof SimpleVariable)){
+                                    messages.add("第" + i + "个参数定义为简单变量但调用时没有传递简单变量!函数调用失败, 自动返回默认值 0");
+                                    return new SimpleVariable(null, "int", "0", level);
+                                }else {
+                                    SimpleVariable par = (SimpleVariable) parameters.get(i);
+                                    SimpleVariable arg = (SimpleVariable) arguments.get(i);
+                                    // 函数里的局部变量，与参数的名称相同
+                                    SimpleVariable local = new SimpleVariable(par.getName(), par.getType(), null, level + 1);
 
-                            local = typeHandle(local, arg);
-                            simpleTable.addVariable(local); // 添加进变量表中，当前的高 level
+                                    local = typeHandle(local, arg);
+                                    simpleTable.addVariable(local); // 添加进变量表中，当前的高 level
+                                }
+                            }
                         }
                         if (canExecute) {
                             // 执行函数中的程序
@@ -1275,12 +1302,17 @@ public class Translator {
     }
 
     // TODO 如果要传数组参数的话，就需要文法中实现 指针功能，这里暂定传入的参数为简单变量
-    private ArrayList<SimpleVariable> translateArgument(ASTNode argument) {
-        ArrayList<SimpleVariable> args = new ArrayList<>();
+    private ArrayList<Object> translateArgument(ASTNode argument) {
+        ArrayList<Object> args = new ArrayList<>();
         if (argument.getMaxChildNum() != 0) {
             ASTNode logic = argument.getChildren()[0];
             SimpleVariable log = translateExp(logic);
-            args.add(log);
+            if (log.getLevel() == -1) {
+                // 是数组变量
+                ArrayVariable v = arrayTable.getArray(log.getName()); // 拿到就说明已经有了，在variable时已判断过
+                args.add(v);
+            } else
+                args.add(log);
             if (argument.getChildren()[1].getMaxChildNum() != 0) // CCC->, Argument
                 args.addAll(translateArgument(argument.getChildren()[1].getChildren()[1]));
         }
@@ -1304,7 +1336,7 @@ public class Translator {
                 "scan(c);\n" +
                 "print(\"c=\" + c);";
 
-        Wrapper w = Executor.analyze(pro,"123");
+        Wrapper w = Executor.analyze(pro, "123");
         t.simpleTable.addVariable(new SimpleVariable("p", "int", "0", 1));
         ArrayList<String> values = new ArrayList<>();
         values.add("43");
@@ -1386,7 +1418,7 @@ public class Translator {
         int n = 3;
         int[][] chess = new int[n][n];
         int total = 0;
-        while (win != 0){
+        while (win != 0) {
             total = total + 1;
             System.out.print("+--+--+--+\n");
             for (int i = 0; i < n; i = i + 1) {
@@ -1413,7 +1445,7 @@ public class Translator {
                 System.out.print("out of border\n");
                 break;
             }
-            if (chess[i][j] != 0){
+            if (chess[i][j] != 0) {
                 System.out.print(err);
                 System.out.print("illegal step\n");
                 break;
@@ -1440,7 +1472,7 @@ public class Translator {
             }
 
             // invert
-            curc = (char)(black + white - curc);
+            curc = (char) (black + white - curc);
             cur = -cur;
 
             if (total == n * n) {

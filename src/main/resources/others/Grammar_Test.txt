@@ -1,2 +1,9 @@
-int a = 10 % 6;
-print("a = " + a);
+int factorial(char a,int n[1][4]){
+    int k = n[0][2];
+    return k;
+}
+
+int io[1][4];
+io[0][1] = 20;
+io[0][2] = 100;
+int ko = factorial('A',io);

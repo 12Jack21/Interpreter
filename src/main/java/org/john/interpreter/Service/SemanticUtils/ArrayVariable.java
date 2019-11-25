@@ -10,50 +10,85 @@ public class ArrayVariable {
     private ArrayList<String> values;
     private int level; // 作用域
 
-    public ArrayVariable(){}
-    public ArrayVariable(String arrayName, String type, int length, ArrayList<String> values, int level){
-        this.arrayName = arrayName;
-        this.type = type;
-        this.length = length;
-        this.values = values;
-        this.level = level;
+    public ArrayVariable() {
     }
-    public ArrayVariable(String arrayName, String type, ArrayList<Integer> dimensionList, ArrayList<String> values,int level){
-        this.arrayName = arrayName;
-        this.type = type;
-        this.dimensionList = dimensionList;
-        this.values = values;
+
+    public ArrayVariable(ArrayVariable src, int level) {
+        arrayName = src.arrayName;
+        type = src.type;
+        if (src.dimensionList == null)
+            this.dimensionList = null;
+        else
+            this.dimensionList = new ArrayList<>(src.dimensionList);
+        if (src.values == null)
+            this.values = null;
+        else
+            this.values = new ArrayList<>(src.values);
         this.level = level;
     }
 
-    public void setArrayName(String arrayName){
+    public ArrayVariable(String arrayName, String type, int length, ArrayList<String> values, int level) {
         this.arrayName = arrayName;
-    }
-    public void setType(String type){
         this.type = type;
-    }
-    public void setLength(int length){
         this.length = length;
-    }
-    public void setValues(ArrayList<String> values){
-        this.values = values;
-    }
-    public void setLevel(int level){
+        if (values == null)
+            this.values = null;
+        else
+            this.values = new ArrayList<>(values);
         this.level = level;
     }
-    public String getArrayName(){
+
+    public ArrayVariable(String arrayName, String type, ArrayList<Integer> dimensionList, ArrayList<String> values, int level) {
+        this.arrayName = arrayName;
+        this.type = type;
+        if (dimensionList == null)
+            this.dimensionList = null;
+        else
+            this.dimensionList = new ArrayList<>(dimensionList);
+        if (values == null)
+            this.values = null;
+        else
+            this.values = new ArrayList<>(values);
+        this.level = level;
+    }
+
+    public void setArrayName(String arrayName) {
+        this.arrayName = arrayName;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    public void setValues(ArrayList<String> values) {
+        this.values = values;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public String getArrayName() {
         return arrayName;
     }
-    public String getType(){
+
+    public String getType() {
         return type;
     }
-    public int getLength(){
+
+    public int getLength() {
         return length;
     }
-    public ArrayList<String> getValues(){
+
+    public ArrayList<String> getValues() {
         return values;
     }
-    public int getLevel(){
+
+    public int getLevel() {
         return level;
     }
 
@@ -65,7 +100,7 @@ public class ArrayVariable {
         this.dimensionList = dimensionList;
     }
 
-    public Integer getMaxLengthByDimension(int dimension){
+    public Integer getMaxLengthByDimension(int dimension) {
         // 从第0维开始
         return dimensionList.get(dimension);
     }
