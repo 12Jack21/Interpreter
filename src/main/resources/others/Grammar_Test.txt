@@ -1,9 +1,6 @@
-int factorial(char a,int n[1][4]){
-    int k = n[0][2];
-    return k;
+char c(char p[1][2]){
+    return p[0][1];
 }
-
-int io[1][4];
-io[0][1] = 20;
-io[0][2] = 100;
-int ko = factorial('A',io);
+char x[1][2] = {'a','b'};
+char o = c(x);
+print("o = " + o);

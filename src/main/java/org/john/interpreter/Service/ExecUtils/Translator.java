@@ -1019,7 +1019,8 @@ public class Translator {
                             String s = "";
                             for (String v : array.getValues())
                                 s += v;
-                            variable = new SimpleVariable(identifier, "string", s, level);
+                            // 取-1给函数传char数组类型的参数
+                            variable = new SimpleVariable(identifier, "string", s, -1);
                         }
                     } else {
                         SimpleVariable id = simpleTable.getVar(identifier);
