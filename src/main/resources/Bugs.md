@@ -68,3 +68,7 @@
 8. pass 01 bag problem, has many error in original code
 ### Solved problem
 - 用深拷贝解决了函数递归调用时的ASTNode 共享问题，但在逻辑表达式中依然保留 flushfindtag()
+
+### JavaCC 
+- [javacc LOOKAHEAD analysis](http://www.voidcn.com/article/p-dlmrztul-xs.html)
+- JJtree tools to generate AST

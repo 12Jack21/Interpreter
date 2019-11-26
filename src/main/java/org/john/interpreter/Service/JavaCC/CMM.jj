@@ -1,0 +1,426 @@
+options {
+  JAVA_UNICODE_ESCAPE = true;
+}
+
+PARSER_BEGIN(CMMParser)
+
+public class CMMParser {
+
+  public static void main(String args[]) {
+    CMMParser parser;
+    if (args.length == 0) {
+      System.out.println("CMM Parser:  Reading from standard input . . .");
+      parser = new CMMParser(System.in);
+    } else if (args.length == 1) {
+      System.out.println("CMM Parser:  Reading from file " + args[0] + " . . .");
+      try {
+        parser = new CMMParser(new CMM.io.FileInputStream(args[0]));
+      } catch (CMM.io.FileNotFoundException e) {
+        System.out.println("CMM Parser:  File " + args[0] + " not found.");
+        return;
+      }
+    } else {
+      System.out.println("CMM Parser:  Usage is one of:");
+      System.out.println("         CMM CMMParser < inputfile");
+      System.out.println("OR");
+      System.out.println("         CMM CMMParser inputfile");
+      return;
+    }
+    try {
+      parser.Procedure();
+      System.out.println("CMM Parser:  CMM program parsed successfully.");
+    } catch (ParseException e) {
+      System.out.println("CMM Parser:  Encountered errors during parse.");
+    }
+  }
+
+}
+
+PARSER_END(CMMParser)
+
+SKIP : /* WHITE SPACE */
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| "\f"
+}
+
+SPECIAL_TOKEN : /* 注释相关 */
+{
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+| <FORMAL_COMMENT: "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+| <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+}
+
+TOKEN :
+{
+  <IF: "if">
+  | <ELSE: "else">
+  | <WHILE: "while">
+  | <DO: "do">
+  | <INT: "int">
+  | <REAL: "real">
+  | <CHAR: "char">
+  | <VOID: "void">
+  | <FOR: "for">
+  | <PRINT: "print">
+  | <SCAN: "scan">
+  | <BREAK: "break">
+  | <CONTINUE: "continue">
+  | <RETURN: "return">
+}
+
+TOKEN : /* LITERALS */
+{
+  < INTEGER_LITERAL:
+        <DECIMAL_LITERAL> // 十进制数
+      | <HEX_LITERAL>  // 十六进制数
+  >
+|
+  < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
+|
+  < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
+|
+  < REAL_LITERAL:
+        (<DIGIT>)+ "." (<DIGIT>)* (<EXPONENT>)?
+      | "." (<DIGIT>)+ (<EXPONENT>)?
+      | (<DIGIT>)+ (<EXPONENT>)?
+  >
+|
+  < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
+|
+  < CHARACTER_LITERAL:
+      "'"
+      (   (~["'","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]   /* 考虑转义字符 */
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )
+      "'"
+  >
+|
+  < STRING_LITERAL:
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+  >
+}
+
+TOKEN : /* 标识符 */
+{
+  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
+|
+  <#LETTER: ["a"-"z","A"-"Z"] >
+|
+  <#DIGIT: ["0"-"9"]>
+}
+
+TOKEN : /* 分隔符 */
+{
+  < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LBRACE: "{" >
+| < RBRACE: "}" >
+| < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < SEMICOLON: ";" >
+| < COMMA: "," >
+| < DOT: "." >
+}
+
+TOKEN : { /*操作符*/
+  <UNDERSCORE:"_"> // put it in another place
+   | <ASSIGN:"=">
+   | <PLUS:"+">
+   | <MINUS:"-">
+   | <TIMES:"*">
+   | <DIVIDE:"/">
+   | <MOD:"%">
+   | <BIT_OR:"|">
+   | <BIT_AND:"&">
+   | <XOR: "^" >
+   | <TILDE:"~">
+   | <EQ:"==">
+   | <NEQ:"<>">
+   | <GT: ">">
+   | <LT:"<">
+   | <GE:">=">
+   | <LE:"<=">
+   | <SC_OR:"||">
+   | <SC_AND:"&&">
+}
+
+void Procedure():
+{}
+{
+  Statement()
+  Procedure()
+  | ["{" Procedure() "}" Procedure()]   //TODO 空如何表示
+}
+
+void Statement():
+{}
+{
+  Declare()
+  | LOOKAHEAD(Assignment() <SEMICOLON>)
+    Logic() <SEMICOLON>
+  | IF()
+  | WHILE()
+  | FOR()
+  | Interrupt()
+  | <SEMICOLON>
+}
+
+void Declare():
+{}
+{
+  Type() Assign()
+}
+
+void Assignment():
+{}
+{
+  LOOKAHEAD(<IDENTIFIER> Index() Con() X())
+  <IDENTIFIER> Index() X()
+}
+void Con():
+{}
+{
+  <EQ> <IDENTIFIER> Index()  Con()
+  | <EQ> <IDENTIFIER> Con()
+}
+void Type():
+{}
+{
+  <INT>
+  | <REAL>
+  | <CHAR>
+  | <VOID>
+}
+void Index():
+{}
+{
+  <LBRACKET> Logic() <RBRACKET> Index() 
+}
+void C():
+{}
+{
+  [ <COMMA> Assignment() C() ]
+}
+void Assign():
+{}
+{
+  <IDENTIFIER> F()
+}
+void F():
+{}
+{
+  <LPAREN> Parameter() <RPAREN>
+  | Index() Con() X() C() <SEMICOLON>
+}
+void Parameter():
+{}
+{
+  [ Type() <IDENTIFIER> Index() CC() ]
+}
+void CC():
+{}
+{
+  [ <COMMA> Parameter() ]
+}
+void ConAssign():
+{}
+{
+  Assignment() C()
+}
+void X():
+{}
+{
+  [ <ASSIGN> O() ]
+}
+void O():
+{}
+{
+  Logic()
+  | <LBRACE> Y() <RBRACE>
+}
+void Y():
+{}
+{
+  [Logic() C1() ]
+}
+void C1():
+{}
+{
+  [ <COMMA> Y() ]
+}
+void IF():
+{}
+{
+  <IF> <LPAREN> Logic() <RPAREN> H() ELSEPART()
+}
+void ELSEPART():
+{}
+{
+  LOOKAHEAD(2)
+  ( ELSEIF() )+ ELSE()
+  | ELSE()
+}
+void ELSEIF():
+{}
+{
+   <ELSE> <IF> <LPAREN> Logic() <RPAREN> H()
+}
+void ELSE():
+{}
+{
+  [ <ELSE> H() ]
+}
+void WHILE():
+{}
+{
+  <WHILE> <LPAREN> Logic() <RPAREN> H()
+}
+void H():
+{}
+{
+  Statement()
+  | <LBRACE> Procedure() <RBRACE>  // procedure block
+}
+void FOR():
+{}
+{
+  <FOR> <LPAREN> DA() LO() <SEMICOLON> AS() <RPAREN> H()
+}
+void DA():
+{}
+{
+  Declare()
+  | [ConAssign() ]
+}
+void LO():
+{}
+{
+  [Logic()]
+}
+void AS():
+{}
+{
+  [ConAssign() ]
+}
+void Interrupt():
+{}
+{
+  <BREAK> <SEMICOLON>
+  | <CONTINUE> <SEMICOLON>
+  | <RETURN> <SEMICOLON> Result()
+}
+void Result():
+{}
+{
+  [Logic()]
+}
+void Logic():
+{}
+{
+  Relation() L()
+}
+void L():
+{}
+{
+  <SC_OR> Logic()
+  | [ <SC_AND> Logic() ]
+}
+void Relation():
+{}
+{
+  Arithmetic() R()
+}
+void RelationOp():
+{}
+{
+  <EQ> | <NEQ> | <GE> |<LE> | <GT> | <LT>
+}
+void R():
+{}
+{
+  [RelationOp() Relation() ]
+}
+
+void Arithmetic():
+{}
+{
+  Variable() Operation()
+}
+void ArithOp():
+{}
+{
+  <PLUS> | <MINUS> | <TIMES> | <DIVIDE> | <MOD> | <XOR> | <TILDE> | <BIT_AND> | <BIT_OR>
+}
+void Operation():
+{}
+{
+  [ ArithOp() Arithmetic() ]
+}
+void Variable():
+{}
+{
+  <LPAREN> Relation() <RPAREN>
+  | <IDENTIFIER> Call()
+  | LOOKAHEAD(2)
+    Digit()
+  | SymbolVar()    //TODO look details of LOOKAHEAD
+  | <PRINT> <LPAREN> Logic() <RPAREN>
+  | <SCAN> <LPAREN> Logic() <RPAREN>
+  | <CHARACTER_LITERAL>
+  | <STRING_LITERAL>
+}
+void SymbolVar():
+{}
+{
+  <PLUS> <IDENTIFIER>
+  | <MINUS> <IDENTIFIER>
+  | <TILDE> <IDENTIFIER>
+}
+void Call():
+{}
+{
+  <LPAREN> Argument() <RPAREN>
+  | Index()
+}
+void Argument():
+{}
+{
+  [ Logic() CCC() ]
+}
+void CCC():
+{}
+{
+  [ <COMMA> Argument() ]
+}
+void Digit():
+{}
+{
+  Positive()
+  | <MINUS> Positive()
+  | <PLUS> Positive()
+  | <TILDE> Positive()
+}
+void Positive():
+{}
+{
+  <INTEGER_LITERAL>
+  | <REAL_LITERAL>
+}
