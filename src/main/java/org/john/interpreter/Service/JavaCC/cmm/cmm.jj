@@ -331,7 +331,6 @@ void Assignment():{/*@bgen(jjtree) Assignment */
 {/*@bgen(jjtree) Assignment */
   try {
 /*@egen*/
-  // \u6769\u70b5\u753b\u9351\u8679\u5e47\u6d93\u3084\u91dc \u74a7\u5b2a\ufffd\u80a9\ue0c1\u9359\u950b\u6902\u93b5\u5d89\ufffd\u590b\u5ae8\u6fb6\u6c36\u5678\u74a7\u5b2a\ufffd\ufffd
   MyID() Index() <ASSIGN> O()/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
@@ -408,10 +407,10 @@ void Index():{/*@bgen(jjtree) Index */
   }
 /*@egen*/
 }
-void C()     : {}
-{
-  [ <COMMA> Assignment() C() ]
-}
+//void C()#void: {}
+//{
+//  [ <COMMA> Assignment() C() ]
+//}
 void Assign():{/*@bgen(jjtree) Assign */
   ASTAssign jjtn000 = new ASTAssign(JJTASSIGN);
   boolean jjtc000 = true;
@@ -444,8 +443,9 @@ void Assign():{/*@bgen(jjtree) Assign */
 }
 void F()     :{}
 {
-  <LPAREN> Parameter() <RPAREN>
-  | Index() [Con()] C() <SEMICOLON>
+  <LPAREN> Parameter() <RPAREN> <LBRACE> Procedure() <RBRACE>
+  | (LOOKAHEAD(1) <LBRACKET> Logic() <RBRACKET> )+ [LOOKAHEAD(1) <ASSIGN> O() ] ( LOOKAHEAD(1) <COMMA> Assignment() )* <SEMICOLON>
+  | [ <ASSIGN> O() ] ( LOOKAHEAD(1) <COMMA> <IDENTIFIER> Index() [<ASSIGN> O() ] )* <SEMICOLON>
 }
 void Parameter():{/*@bgen(jjtree) Parameter */
   ASTParameter jjtn000 = new ASTParameter(JJTPARAMETER);
@@ -455,7 +455,7 @@ void Parameter():{/*@bgen(jjtree) Parameter */
 {/*@bgen(jjtree) Parameter */
   try {
 /*@egen*/
-  [ Type() MyID() Index() CC() ]/*@bgen(jjtree)*/
+  [ Type() MyID() Index() ( LOOKAHEAD(1) <COMMA> Parameter() )*]/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -477,10 +477,10 @@ void Parameter():{/*@bgen(jjtree) Parameter */
   }
 /*@egen*/
 }
-void CC()     :{}
-{
-  [ <COMMA> Parameter() ]
-}
+//void CC()#void:{}
+//{
+//  [ <COMMA> Parameter() ]
+//}
 void ConAssign():{/*@bgen(jjtree) ConAssign */
   ASTConAssign jjtn000 = new ASTConAssign(JJTCONASSIGN);
   boolean jjtc000 = true;
@@ -489,7 +489,7 @@ void ConAssign():{/*@bgen(jjtree) ConAssign */
 {/*@bgen(jjtree) ConAssign */
   try {
 /*@egen*/
-  Assignment() C()/*@bgen(jjtree)*/
+  Assignment() ( LOOKAHEAD(1) <COMMA> Assignment() )*/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);

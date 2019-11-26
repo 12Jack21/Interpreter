@@ -212,7 +212,6 @@ void Declare():{}
 
 void Assignment():{}
 {
-  // 连续出现两个 赋值符号时才选择多重赋值
   MyID() Index() <ASSIGN> O()
   // 满足 Con() 才选择 Con() 来推导
 }
@@ -231,30 +230,31 @@ void Index():{}
 {
   [ <LBRACKET> Logic() <RBRACKET> Index() ]
 }
-void C()#void: {}
-{
-  [ <COMMA> Assignment() C() ]
-}
+//void C()#void: {}
+//{
+//  [ <COMMA> Assignment() C() ]
+//}
 void Assign():{}
 {
   MyID() F()
 }
 void F()#void:{}
 {
-  <LPAREN> Parameter() <RPAREN>
-  | Index() [Con()] C() <SEMICOLON>
+  <LPAREN> Parameter() <RPAREN> <LBRACE> Procedure() <RBRACE>
+  | (LOOKAHEAD(1) <LBRACKET> Logic() <RBRACKET> )+ [LOOKAHEAD(1) <ASSIGN> O() ] ( LOOKAHEAD(1) <COMMA> Assignment() )* <SEMICOLON>
+  | [ <ASSIGN> O() ] ( LOOKAHEAD(1) <COMMA> <IDENTIFIER> Index() [<ASSIGN> O() ] )* <SEMICOLON>
 }
 void Parameter():{}
 {
-  [ Type() MyID() Index() CC() ]
+  [ Type() MyID() Index() ( LOOKAHEAD(1) <COMMA> Parameter() )*]
 }
-void CC()#void:{}
-{
-  [ <COMMA> Parameter() ]
-}
+//void CC()#void:{}
+//{
+//  [ <COMMA> Parameter() ]
+//}
 void ConAssign():{}
 {
-  Assignment() C()
+  Assignment() ( LOOKAHEAD(1) <COMMA> Assignment() )*
 }
 void O()#void:{}
 {
