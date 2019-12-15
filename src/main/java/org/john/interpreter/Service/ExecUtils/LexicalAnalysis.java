@@ -22,7 +22,7 @@ public class LexicalAnalysis {
     }
 
     private static boolean isHex(char ch) {
-        return isDigit(ch) || ch >= 'a' && ch <= 'f';
+        return isDigit(ch) || ch >= 'a' && ch <= 'f' || ch >= 'A' && ch <= 'F';
     }
 
     private static LexiNode oneScan(char[] pro, LexiNode node) {
@@ -44,11 +44,13 @@ public class LexicalAnalysis {
             if (ch == ' ')
                 ch = pro[p++];
         }
-        // char字符的判定
+        // char字符和str字符串的判定
         if (ch == '\'' || ch == '\"') {
             token[i++] = ch;
+            char left = ch;
             ch = pro[p++];
-            while (ch != '\n' && ch != '\'' && ch != '\"' && p < pro.length) {
+            // 扫描任何除了该引号之外的字符，同时注意程序字符数组可能溢出
+            while (ch != '\n' && ch != left && p < pro.length) {
                 token[i++] = ch;
                 ch = pro[p++];
             }
@@ -67,7 +69,7 @@ public class LexicalAnalysis {
                 }
             }
         }
-        //检测到符号 (最高优先级的判定),加号和减号单独拿出来考虑 TODO 已删去 ch == '|' || ch == '&' ||
+        //检测到符号
         else if (signList.contains(String.valueOf(ch)) || ch == '\\') {
             token[i++] = ch;
             ch = pro[p++]; //拿到扫描的起始符号
@@ -90,7 +92,7 @@ public class LexicalAnalysis {
             token[i++] = ch;
             ch = pro[p++];
             while (isLetter(ch) || isDigit(ch)) {
-                //判断是否以下划线结尾,可能会有 AB_12_a 这样的标识符,这里 p 就是向前看了一位
+                //判断是否以下划线结尾,可能会有 AB_12_a 这样的标识符,这里 p 就是向后看了一位
                 if (ch == '_' && !isLetter(pro[p]) && !isDigit(pro[p]))
                     break;
                 token[i++] = ch;
@@ -102,27 +104,24 @@ public class LexicalAnalysis {
                 special = "identifier";
         } else if (isDigit(ch)) { //数字的判定
             int mode = 0;
-            boolean legal = true;
-            boolean hasE = false; // 科学计数法的 自然对数 e
-
             if (ch == '0' && (pro[p] == 'x' || pro[p] == 'X')) {
                 mode = 2;
                 // 十六进制数
                 token[i++] = ch; //存入 0
                 token[i++] = pro[p++]; // 存入 x or X
                 ch = pro[p++]; // 下一个字符
-                if (!isDigit(ch)) // 后面不跟着数字的话，报错
+                if (!isHex(ch)) // 后面不跟着数字的话，报错
                     mode = -1;
                 else
                     while (isHex(ch)) {
                         token[i++] = ch;
                         ch = pro[p++];
                     }
-                p--;
             } else {
                 //跟着数字或者数字开头
                 while (isDigit(ch) || ch == '.') {
-                    if (ch == '.' && mode == 1) //圆点数量超过规定
+                    //圆点数量超过规定
+                    if (ch == '.' && mode == 1)
                         break;
                     else {
                         if (ch == '.')
@@ -148,8 +147,8 @@ public class LexicalAnalysis {
                     if (mode != -1)
                         mode = 1;
                 }
-                p--;
             }
+            p--;
             if (mode == 2)
                 special = "hexadecimal"; //识别为十六进制数
             else if (mode == 1)
@@ -183,8 +182,8 @@ public class LexicalAnalysis {
             special = special.trim();
 
         // for debug...
-        Integer code2 = str2Code.get(special.trim());
         Integer code = str2Code.get(special);
+        Integer code_trim = str2Code.get(special.trim());
         return new LexiNode(String.valueOf(newArray), str2Code.get(special), row, col, p);
     }
 
@@ -194,7 +193,8 @@ public class LexicalAnalysis {
             return null;
         while (pro.endsWith("\n")) //除去最后的换行
             pro = pro.substring(0, pro.length() - 1);
-        pro += " ";     //TODO 防止 indexOutOfBound,尚未完全解决
+        pro += " ";     // 防止 indexOutOfBound
+        char[] program = pro.toCharArray();
         List<LexiNode> nodes = new ArrayList<>();
         HashMap<String, Integer> str2Code = str2IntMap();
         //起始节点
@@ -203,7 +203,7 @@ public class LexicalAnalysis {
         boolean singleCom = false;
         boolean multiCom = false;
         do {
-            node = oneScan(pro.toCharArray(), node); //单词扫描
+            node = oneScan(program, node); //单词扫描
 
             // 注释的判定
             if (node.getSymbol().equals("//"))
@@ -214,11 +214,10 @@ public class LexicalAnalysis {
                 multiCom = true;
             else if (node.getSymbol().equals("*/"))
                 multiCom = false;
-
             if (!singleCom && !multiCom && !node.getSymbol().equals("*/"))
-                nodes.add(node); // 浅拷贝?
+                nodes.add(node);
         } while (node.getP() < pro.length() - 1);
-        if (node.getSymbol().equals(""))
+        if (node.getSymbol().equals("")) //除去最后可能出现的空格
             nodes.remove(node);
         return nodes;
     }
@@ -244,13 +243,11 @@ public class LexicalAnalysis {
 
         System.err.println(k);
 
-        String pro = "double b = 1.2e-023;int a =0x12;";
+        String pro = "char c = \"qweqe''''wqeq\";char";
 
         List<LexiNode> nodes = lexicalScan(pro);
         System.out.println(nodes);
 
-        int m = 'a';
-        System.out.println("m = " + m + "    " + (int)'f');
     }
 
 }

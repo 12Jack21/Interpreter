@@ -5,7 +5,6 @@ public class LexiNode {
     private int code;
     private int row;
     private int col;
-
     private int p; //词法扫描的指针位置
 
     public LexiNode(String symbol, int code, int row, int col, int p) {

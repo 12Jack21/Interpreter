@@ -73,7 +73,7 @@ public class CodeTable {
             "Con->= identifier Index Con", "Con->",// like  a = b = 3;
             "Declare->Type Assign",           // Declaration
             "Type->int", "Type->real", "Type->char", "Type->void", // Type Specifier
-            "Index->[ Logic ] Index", "Index->", //TODO index allows expression
+            "Index->[ Logic ] Index", "Index->",
             "C->, Assignment C", "C->",        // Multiple declare or assign
 
             "Assign->identifier F",
@@ -160,5 +160,14 @@ public class CodeTable {
         map.put("%", 9);
         map.put("(", 10);
         return map;
+    }
+
+    public static void main(String[]args){
+        HashMap<Integer,String> map = int2StrMap();
+        for (int i = 1;i < map.size();i++) {
+            System.out.print(map.get(i) + " : " + i + '\t');
+            if (i % 10 == 0)
+                System.out.println();
+        }
     }
 }

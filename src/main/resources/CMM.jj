@@ -7,25 +7,7 @@ PARSER_BEGIN(CMMParser)
 public class CMMParser {
 
   public static void main(String args[]) {
-    CMMParser parser;
-    if (args.length == 0) {
-      System.out.println("CMM Parser:  Reading from standard input . . .");
-      parser = new CMMParser(System.in);
-    } else if (args.length == 1) {
-      System.out.println("CMM Parser:  Reading from file " + args[0] + " . . .");
-      try {
-        parser = new CMMParser(new CMM.io.FileInputStream(args[0]));
-      } catch (CMM.io.FileNotFoundException e) {
-        System.out.println("CMM Parser:  File " + args[0] + " not found.");
-        return;
-      }
-    } else {
-      System.out.println("CMM Parser:  Usage is one of:");
-      System.out.println("         CMM CMMParser < inputfile");
-      System.out.println("OR");
-      System.out.println("         CMM CMMParser inputfile");
-      return;
-    }
+    CMMParser parser = new CMMParser(System.in);
     try {
       parser.Procedure();
       System.out.println("CMM Parser:  CMM program parsed successfully.");
@@ -116,6 +98,7 @@ TOKEN : /* LITERALS */
       )*
       "\""
   >
+
 }
 
 TOKEN : /* 标识符 */
@@ -161,21 +144,21 @@ TOKEN : { /*操作符*/
    | <SC_OR:"||">
    | <SC_AND:"&&">
 }
+// 定义在最下方，优先级最低
 
-void Procedure():
-{}
+void Procedure():{}
 {
   Statement()
   Procedure()
   | ["{" Procedure() "}" Procedure()]   //TODO 空如何表示
 }
 
-void Statement():
-{}
+void Statement():{}
 {
   Declare()
-  | LOOKAHEAD(Assignment() <SEMICOLON>)
-    Logic() <SEMICOLON>
+  | LOOKAHEAD( Assignment() )  //分号之前出现赋值则选择赋值语句
+    Assignment() <SEMICOLON>
+  | Logic() <SEMICOLON>
   | IF()
   | WHILE()
   | FOR()
@@ -183,199 +166,158 @@ void Statement():
   | <SEMICOLON>
 }
 
-void Declare():
-{}
+void Declare():{}
 {
   Type() Assign()
 }
 
-void Assignment():
-{}
+void Assignment():{}
 {
-  LOOKAHEAD(<IDENTIFIER> Index() Con() X())
-  <IDENTIFIER> Index() X()
+  // 连续出现两个 赋值符号时才选择多重赋值
+  <IDENTIFIER> Index()
+  ( LOOKAHEAD(Con()) Con())*   // 满足 Con() 才选择 Con() 来推导
+  X()
 }
-void Con():
-{}
+void Con():{}
 {
-  <EQ> <IDENTIFIER> Index()  Con()
-  | <EQ> <IDENTIFIER> Con()
+  <EQ> <IDENTIFIER> Index()
 }
-void Type():
-{}
+void Type():{}
 {
   <INT>
   | <REAL>
   | <CHAR>
   | <VOID>
 }
-void Index():
-{}
+void Index():{}
 {
-  <LBRACKET> Logic() <RBRACKET> Index() 
+  [ <LBRACKET> Logic() <RBRACKET> Index() ]
 }
-void C():
-{}
+void C():{}
 {
   [ <COMMA> Assignment() C() ]
 }
-void Assign():
-{}
+void Assign():{}
 {
   <IDENTIFIER> F()
 }
-void F():
-{}
+void F():{}
 {
   <LPAREN> Parameter() <RPAREN>
   | Index() Con() X() C() <SEMICOLON>
 }
-void Parameter():
-{}
+void Parameter():{}
 {
   [ Type() <IDENTIFIER> Index() CC() ]
 }
-void CC():
-{}
+void CC():{}
 {
   [ <COMMA> Parameter() ]
 }
-void ConAssign():
-{}
+void ConAssign():{}
 {
   Assignment() C()
 }
-void X():
-{}
+void X():{}
 {
   [ <ASSIGN> O() ]
 }
-void O():
-{}
+void O():{}
 {
   Logic()
   | <LBRACE> Y() <RBRACE>
 }
-void Y():
-{}
+void Y():{}
 {
   [Logic() C1() ]
 }
-void C1():
-{}
+void C1():{}
 {
   [ <COMMA> Y() ]
 }
-void IF():
-{}
+void IF():{}
 {
-  <IF> <LPAREN> Logic() <RPAREN> H() ELSEPART()
+  <IF> <LPAREN> Logic() <RPAREN> H() ( LOOKAHEAD(2) ELSEIF() )* [ LOOKAHEAD(1) <ELSE> H() ]
 }
-void ELSEPART():
-{}
-{
-  LOOKAHEAD(2)
-  ( ELSEIF() )+ ELSE()
-  | ELSE()
-}
-void ELSEIF():
-{}
+
+void ELSEIF():{}
 {
    <ELSE> <IF> <LPAREN> Logic() <RPAREN> H()
 }
-void ELSE():
-{}
-{
-  [ <ELSE> H() ]
-}
-void WHILE():
-{}
+
+void WHILE():{}
 {
   <WHILE> <LPAREN> Logic() <RPAREN> H()
 }
-void H():
-{}
+void H():{}
 {
   Statement()
   | <LBRACE> Procedure() <RBRACE>  // procedure block
 }
-void FOR():
-{}
+void FOR():{}
 {
-  <FOR> <LPAREN> DA() LO() <SEMICOLON> AS() <RPAREN> H()
+  <FOR> <LPAREN> DA() LO() AS() <RPAREN> H()
 }
-void DA():
-{}
+void DA():{}
 {
   Declare()
-  | [ConAssign() ]
+  | ConAssign() <SEMICOLON>
+  | <SEMICOLON>
 }
-void LO():
-{}
+void LO():{}
 {
-  [Logic()]
+  Logic() <SEMICOLON>
+  | <SEMICOLON>
 }
-void AS():
-{}
+void AS():{}
 {
   [ConAssign() ]
 }
-void Interrupt():
-{}
+void Interrupt():{}
 {
   <BREAK> <SEMICOLON>
   | <CONTINUE> <SEMICOLON>
-  | <RETURN> <SEMICOLON> Result()
+  | <RETURN> Result() <SEMICOLON>
 }
-void Result():
-{}
+void Result():{}
 {
   [Logic()]
 }
-void Logic():
-{}
+void Logic():{}
 {
   Relation() L()
 }
-void L():
-{}
+void L():{}
 {
   <SC_OR> Logic()
   | [ <SC_AND> Logic() ]
 }
-void Relation():
-{}
+void Relation():{}
 {
   Arithmetic() R()
 }
-void RelationOp():
-{}
+void RelationOp():{}
 {
   <EQ> | <NEQ> | <GE> |<LE> | <GT> | <LT>
 }
-void R():
-{}
+void R():{}
 {
   [RelationOp() Relation() ]
 }
 
-void Arithmetic():
-{}
+void Arithmetic():{}
 {
   Variable() Operation()
 }
-void ArithOp():
-{}
+void ArithOp():{}
 {
   <PLUS> | <MINUS> | <TIMES> | <DIVIDE> | <MOD> | <XOR> | <TILDE> | <BIT_AND> | <BIT_OR>
 }
-void Operation():
-{}
+void Operation():{}
 {
   [ ArithOp() Arithmetic() ]
 }
-void Variable():
-{}
+void Variable():{}
 {
   <LPAREN> Relation() <RPAREN>
   | <IDENTIFIER> Call()
@@ -387,39 +329,33 @@ void Variable():
   | <CHARACTER_LITERAL>
   | <STRING_LITERAL>
 }
-void SymbolVar():
-{}
+void SymbolVar():{}
 {
   <PLUS> <IDENTIFIER>
   | <MINUS> <IDENTIFIER>
   | <TILDE> <IDENTIFIER>
 }
-void Call():
-{}
+void Call():{}
 {
   <LPAREN> Argument() <RPAREN>
   | Index()
 }
-void Argument():
-{}
+void Argument():{}
 {
   [ Logic() CCC() ]
 }
-void CCC():
-{}
+void CCC():{}
 {
   [ <COMMA> Argument() ]
 }
-void Digit():
-{}
+void Digit():{}
 {
   Positive()
   | <MINUS> Positive()
   | <PLUS> Positive()
   | <TILDE> Positive()
 }
-void Positive():
-{}
+void Positive():{}
 {
   <INTEGER_LITERAL>
   | <REAL_LITERAL>

@@ -28,7 +28,7 @@ public class Nullable {
             isStart = false;
             num = nullableList.size();
             if (production == null || production.length == 0) {
-                System.err.println("Error: 未设置产生式");
+                System.err.println("Error!!! 未设置产生式");
                 break;
             }
             for (String p : production) {
