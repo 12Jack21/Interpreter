@@ -14,10 +14,9 @@ public class GramParser {
     private LLDrive llDrive;
     private int[][] llTable;
     private HashMap<Integer, String> int2StrMap = int2StrMap();
-    private LinkedList<String> stack = new LinkedList<>(); //·ÖÎö·ûºÅÕ»
-    private LinkedList<String> errorStack = new LinkedList<>(); // ´íÎóĞÅÏ¢Õ»
-
-    private LinkedList<String> matchStack = new LinkedList<>(); //À¨ºÅÆ¥ÅäÕ»
+    private LinkedList<String> stack = new LinkedList<>(); //åˆ†æç¬¦å·æ ˆ
+    private LinkedList<String> errorStack = new LinkedList<>(); // é”™è¯¯ä¿¡æ¯æ ˆ
+    private LinkedList<String> matchStack = new LinkedList<>(); //æ‹¬å·åŒ¹é…æ ˆ
 
     public GramParser() {
         try {
@@ -32,105 +31,96 @@ public class GramParser {
         return errorStack;
     }
 
-    //´íÎó´úÂë
-    public static final int IDerror = -3; //±êÊ¶·ûµÄ´íÎó±àÂë
-
-    // LL ·ÖÎö¹ı³Ì
+    // LL åˆ†æè¿‡ç¨‹
     public ASTNode LLParse(List<LexiNode> nodes) {
         try {
             boolean legal = true;
 
-            //³õÊ¼»¯Õ»ÖĞÓĞÒ»¸ö ¿ªÊ¼·ûºÅ ÔªËØ + # ºÅ
+            //åˆå§‹åŒ–æ ˆä¸­æœ‰ä¸€ä¸ª å¼€å§‹ç¬¦å· å’Œ #å·
             stack.addFirst("Pro");
             stack.add("#");
 
-            // µ±Ç°Ö´ĞĞ²Ù×÷µÄÓï·¨Ê÷½Úµã
+            // å½“å‰æ‰§è¡Œæ“ä½œçš„è¯­æ³•æ ‘èŠ‚ç‚¹
             ASTNode curNode = null;
-            //¸ù½Úµã
+            //æ ¹èŠ‚ç‚¹
             ASTNode rootNode = null;
             int childNum;
 
-            String top, symbol; //Õ»¶¥Ö¸Õë£¬É¨Ãèµ½µÄtoken
-            int y, x, pos; //LL·ÖÎö±íµÄ ĞĞºÍÁĞÎ»ÖÃ
-            int index = 0; //É¨ÃèµÄË÷Òı
+            String top, symbol; //æ ˆé¡¶æŒ‡é’ˆï¼Œæ‰«æåˆ°çš„token
+            int y, x, pos; //LLåˆ†æè¡¨çš„ è¡Œå’Œåˆ—ä½ç½®
+            int index = 0; //æ‰«æçš„ç´¢å¼•
             LexiNode node;
             List<String> symList = signList.subList(0, signList.indexOf("&") + 1);
             while (index < nodes.size()) {
-
                 node = nodes.get(index);
                 top = stack.pop();
-
                 while (node.getCode() == -1) {
                     legal = false;
-                    errorStack.add("µÚ" + node.getRow() + "ĞĞ£¬µÚ" + node.getCol() + "ÁĞ " + node.getSymbol() + " ³öÏÖÎŞ·¨Ê¶±ğµÄ token");
+                    errorStack.add("ç¬¬" + node.getRow() + "è¡Œï¼Œç¬¬" + node.getCol() + "åˆ— " +
+                            node.getSymbol() + " å‡ºç°æ— æ³•è¯†åˆ«çš„ token");
                     index++;
                     if (index >= nodes.size())
                         break;
-                    node = nodes.get(index); // ºöÂÔµôÎŞ·¨Ê¶±ğµÄ token
+                    node = nodes.get(index); // å¿½ç•¥æ‰æ— æ³•è¯†åˆ«çš„ token
                 }
                 if (index >= nodes.size())
                     break;
 
                 symbol = int2StrMap.get(nodes.get(index).getCode());
-                //ÅĞ¶ÏÎªÖÕ½á·ûºÅ
+                //åˆ¤æ–­ä¸ºç»ˆç»“ç¬¦å·
                 if (top.charAt(0) < 'A' || top.charAt(0) > 'Z') {
-                    //¼ÌĞøÉ¨Ãè
+                    //ç»§ç»­æ‰«æ
                     if (top.equals(symbol)) {
                         index++;
                         if (symbol.equals("#"))
                             continue;
                         curNode = curNode.findLefted();
-
-                        if (symList.contains(top) && !curNode.getName().equals("Digit") && !curNode.getName().equals("SymbolVar")) // ÎªË«Ä¿ÔËËã·û
+                        if (symList.contains(top) && !curNode.getName().equals("Digit") && !curNode.getName().equals("SymbolVar")) // ä¸ºåŒç›®è¿ç®—ç¬¦
                             curNode.addChild(new ASTNode(0, "symbol", top, true, true));
                         else
                             curNode.addChild(new ASTNode(0, top, node.getSymbol().trim(), true, true));
                     } else {
                         legal = false;
-                        if (top.equals("#"))
-                            //Õ»ÄÚÒÑ¾­Îª¿Õ£¬ÎŞ·¨¼ÌĞøÉ¨ÃèÁË
-                            break; // nearest namely while loop
-
-                        //×Ô¶¯¼ÓÉÏÕâ¸öÈ±ÉÙµÄ·ûºÅ / Ìø¹ı¸Ã·ûºÅ---
-                        //index++;
+                        if (top.equals("#")) //æ ˆå†…å·²ç»ä¸ºç©ºï¼Œæ— æ³•ç»§ç»­æ‰«æäº†
+                            break; // nearest namely the upper while loop
+                        //è‡ªåŠ¨åŠ ä¸Šè¿™ä¸ªç¼ºå°‘çš„ç¬¦å·
                         curNode = curNode.findLefted();
                         curNode.addChild(new ASTNode(0, top, true, false));
-
-                        errorStack.add("µÚ" + node.getRow() + "ĞĞ,µÚ" + node.getCol() + "ÁĞ´¦ " + node.getSymbol() + " ³öÏÖÓï·¨´íÎó,È±ÉÙ " + top);
+                        errorStack.add("ç¬¬" + node.getRow() + "è¡Œ,ç¬¬" + node.getCol() + "åˆ—å¤„ " + node.getSymbol() + " å‡ºç°è¯­æ³•é”™è¯¯,ç¼ºå°‘ " + top);
                     }
-                    updateMatch(top); //¸üĞÂÆ¥ÅäÕ» TODO ¶ªµôÒ»¸öÓï¾äµÄÊ±ºò£¬¸ÃÔõÃ´´¦ÀíÕâ¸öÕ»---
+                    updateMatch(top); //æ›´æ–°åŒ¹é…æ ˆ                           TODO ä¸¢æ‰ä¸€ä¸ªè¯­å¥çš„æ—¶å€™ï¼Œè¯¥æ€ä¹ˆå¤„ç†è¿™ä¸ªæ ˆ---
 
-                } else { //Îª·ÇÖÕ½á·ûºÅ
+                } else { //ä¸ºéç»ˆç»“ç¬¦å·
                     y = llDrive.getNtMap().get(top);
                     x = llDrive.gettMap().get(symbol);
                     pos = llTable[y][x];
                     if (pos != -1) {
                         if (pos == -2) {
-                            /* ÌØÊâÇé¿öÏÂÃ¬¶Ü²úÉúÊ½µÄÑ¡Ôñ, ±êÊ¶·û×÷Îª Select¼¯Ã¬¶ÜµÄµØ·½
-                             * É¨Ãè·ÖºÅÖ®Ç°Óöµ½µÄ·ûºÅ£¬Óöµ½ Âß¼­·û¡¢¹ØÏµ·û¡¢ÔËËã·ûÇ°Óöµ½ ¸³Öµ·ûºÅÔòÑ¡Ôñ ¸³ÖµÓï¾äµÄ²úÉúÊ½£¬·ñÔò·´Ö®*/
+                            /* ç‰¹æ®Šæƒ…å†µä¸‹çŸ›ç›¾äº§ç”Ÿå¼çš„é€‰æ‹©, æ ‡è¯†ç¬¦ä½œä¸º Selecté›†çŸ›ç›¾çš„åœ°æ–¹
+                             * æ‰«æåˆ†å·ä¹‹å‰é‡åˆ°çš„ç¬¦å·ï¼Œé‡åˆ° é€»è¾‘ç¬¦ã€å…³ç³»ç¬¦ã€è¿ç®—ç¬¦å‰é‡åˆ° èµ‹å€¼ç¬¦å·åˆ™é€‰æ‹© èµ‹å€¼è¯­å¥çš„äº§ç”Ÿå¼ï¼Œå¦åˆ™åä¹‹*/
                             int t_index = index;
                             LexiNode temp = nodes.get(t_index++);
-                            String[] p1 = {"||", "&&", "<", "<=", "<>", ">", ">=", "==", "+", "-", "*", "/", "(", ")","|","&","^","~"};
+                            String[] pSym = {"||", "&&", "<", "<=", "<>", ">", ">=", "==", "+", "-", "*", "/", "(", ")","|","&","^","~"};
                             String selection = null;
                             int mode = top.equals("Statement") ? 0 : (top.equals("ELSEIF") ? 1 : (top.equals("Variable") ? 2 : 3));
 
                             if (mode == 1) {
-                                // else if ²úÉúÊ½ ÅĞ¶ÏÏÂÒ»¸ö·ûºÅÊÇ·ñÊÇ if µÄÍ¬Ê±ÒªÅĞ¶¨µ±Ç°ÊÇ²»ÊÇ else,·ñÔò¿ÉÄÜÓĞ if() sta } ÀàËÆµÄÇé¿ö
+                                // else if äº§ç”Ÿå¼ åˆ¤æ–­ä¸‹ä¸€ä¸ªç¬¦å·æ˜¯å¦æ˜¯ if çš„åŒæ—¶è¦åˆ¤å®šå½“å‰æ˜¯ä¸æ˜¯ else,å¦åˆ™å¯èƒ½æœ‰ if() sta } ç±»ä¼¼çš„æƒ…å†µ
                                 if (temp.getSymbol().equals("else") && nodes.get(t_index).getSymbol().equals("if"))
                                     selection = special_production[mode * 2];
                                 else
                                     selection = special_production[mode * 2 + 1];
                             } else if (mode == 2) {
-                                // Variable²úÉúÊ½£¬¿´ÏÂÒ»¸ötokenÊÇidentifier»¹ÊÇ integer or fraction
+                                // Variableäº§ç”Ÿå¼ï¼Œçœ‹ä¸‹ä¸€ä¸ªtokenæ˜¯identifierè¿˜æ˜¯ integer or fraction
                                 temp = nodes.get(t_index);
                                 if (int2StrMap.get(temp.getCode()).equals("identifier"))
                                     selection = special_production[mode * 2];
                                 else
                                     selection = special_production[mode * 2 + 1];
                             } else if (mode == 0) {
-                                // statement ²úÉúÊ½
-                                while (!temp.getSymbol().trim().equals(";")) {
-                                    for (String p : p1) {
+                                // Statement äº§ç”Ÿå¼
+                                while (!temp.getSymbol().trim().equals(";") && t_index <= nodes.size()) {
+                                    for (String p : pSym) {
                                         if (p.equals(temp.getSymbol().trim())) {
                                             selection = special_production[mode * 2];
                                             break;
@@ -145,9 +135,9 @@ public class GramParser {
                                     temp = nodes.get(t_index++);
                                 }
                             } else {
-                                // Con ¶àÖØ¸³Öµ²úÉúÊ½£¬¿´ºóÃæµÄµÈºÅÊıÁ¿ 1 or 2
+                                // Con å¤šé‡èµ‹å€¼äº§ç”Ÿå¼ï¼Œçœ‹åé¢çš„èµ‹å€¼ç¬¦å·çš„æ•°é‡ 1 or 2
                                 int assCount = 0;
-                                List<String> diffSymbol = Arrays.asList(p1);// ÓÃÒÔÇø·ÖµÄ·ûºÅ£¬Ö»ÓĞ±í´ïÊ½ÖĞ²Å»á³öÏÖ
+                                List<String> diffSymbol = Arrays.asList(pSym);// ç”¨ä»¥åŒºåˆ†çš„ç¬¦å·ï¼Œåªæœ‰è¡¨è¾¾å¼ä¸­æ‰ä¼šå‡ºç°
                                 while (!temp.getSymbol().trim().equals(";") && !temp.getSymbol().trim().equals(",")
                                         && !diffSymbol.contains(temp.getSymbol().trim())) {
                                     if ("=".equals(temp.getSymbol().trim()))
@@ -167,15 +157,14 @@ public class GramParser {
                             rootNode = new ASTNode(childNum, "Pro", false, true);
                             curNode = rootNode;
                         } else {
-                            curNode = curNode.findLefted(); //ÕÒµ½»¹Ê£º¢×Ó½ÚµãÃ»Á¬ÉÏµÄ½Úµã
+                            curNode = curNode.findLefted(); //æ‰¾åˆ°è¿˜å‰©å­©å­èŠ‚ç‚¹æ²¡è¿ä¸Šçš„èŠ‚ç‚¹
                             curNode.addChild(new ASTNode(childNum, top, false, true));
                         }
                     } else {
-                        //TODO  Ã»ÓĞ "P" Î´½øÈëÕ»Ê±³ÌĞò³ö´íµÄÇé¿ö
-                        if (node.getCode() == -2) { // "#" ºÅ
+                        if (node.getCode() == -2) { // "#" å·
                             legal = false;
-                            if (!errorStack.contains("È±ÉÙ½áÊø·û!"))
-                                errorStack.add("È±ÉÙ½áÊø·û!"); //TODO handle undone
+                            if (!errorStack.contains("ç¼ºå°‘ç»“æŸç¬¦!"))
+                                errorStack.add("ç¼ºå°‘ç»“æŸç¬¦!");               //TODO handle undone
                         } else {
                             if (rootNode == null) {
                                 // manually handle stack
@@ -185,54 +174,54 @@ public class GramParser {
                                 curNode = rootNode;
                             }
 
-                            // ¶ªµô³ö´íµÄÓï¾ä S£¬¼ÌĞøÏÂÒ»ÌõÓï¾äµÄÓï·¨·ÖÎö
-                            // ½ÚµãËÑË÷µ½ S µÄ First¼¯£¬Õ»Ò»Ö±pop Ö±µ½Óöµ½ Pro£¨ÏÂÒ»ÌõÓï¾äµÄ¿ªÊ¼£©
+                            // ä¸¢æ‰å‡ºé”™çš„è¯­å¥ Statementï¼Œç»§ç»­ä¸‹ä¸€æ¡è¯­å¥çš„è¯­æ³•åˆ†æ
+                            // èŠ‚ç‚¹æœç´¢åˆ° Pro çš„ Firsté›†ï¼Œæ ˆä¸€ç›´pop ç›´åˆ°é‡åˆ° Proï¼ˆä¸‹ä¸€æ¡è¯­å¥çš„å¼€å§‹ï¼‰
                             legal = false;
-                            errorStack.add("µÚ" + node.getRow() + "ĞĞ,µÚ" + node.getCol() + "ÁĞ´¦ " + node.getSymbol() + " ³öÏÖÓï·¨´íÎó," + errorHandle(top, symbol));
-
-                            // 1.Õ»µÄ¶ªÆú
-                            while (!top.equals("Pro")) {  // "#" »¹ÊÇ "Pro" ?
-                                curNode = curNode.findLefted(); // TODO Handle NullPointerException
+                            errorStack.add("ç¬¬" + node.getRow() + "è¡Œ,ç¬¬" + node.getCol() + "åˆ—å¤„ " +
+                                    node.getSymbol() + " å‡ºç°è¯­æ³•é”™è¯¯," + errorHandle(top, symbol));
+                            // 1.æ ˆçš„ä¸¢å¼ƒ
+                            while (!top.equals("Pro")) {  // "#" è¿˜æ˜¯ "Pro" ?
+                                curNode = curNode.findLefted();// TODO handle some NullPointerException
                                 curNode.addChild(new ASTNode(0, top, false, false));
                                 top = stack.pop();
                             }
-                            // ´ËÊ±ÕÒµ½ÁË P£¬µ«ÓÉÓÚ·µ»ØÑ­»·Ê±»áÔÙ popÒ»´Î£¬¹ÊĞèÒª»ØÍË
+                            // æ­¤æ—¶æ‰¾åˆ°äº† Proï¼Œä½†ç”±äºè¿”å›å¾ªç¯æ—¶ä¼šå† popä¸€æ¬¡ï¼Œæ•…éœ€è¦å›é€€
                             stack.addFirst("Pro");
-                            // 2.´Ê·¨·ÖÎö½ÚµãµÄ¶ªÆú,ÕÒµ½ SµÄ first¼¯ÖĞµÄ´Ê·¨µ¥Ôª
-                            List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get("Pro").split(" ")); //¸Ä³ÉÁËProµÄFirst¼¯
+                            // 2.è¯æ³•å•å…ƒTokençš„ä¸¢å¼ƒ,æ‰¾åˆ° Pro çš„Firsté›†ä¸­çš„è¯æ³•å•å…ƒ
+                            List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get("Pro").split(" ")); //æ”¹æˆäº†Proçš„Firsté›†
                             while (!stateStart.contains(symbol) && !symbol.equals("#")) {
                                 index++;
                                 if (index >= nodes.size())
                                     break;
                                 symbol = int2StrMap.get(nodes.get(index).getCode());
                             }
-                            // ´ËÊ±ÒÑ¾­ÕÒµ½ÆğÊ¼·ûºÅÁË£¬ÇÒ·µ»ØÑ­»·Ê±²»Ôö¼Ó index£¬¹Ê²»ÓÃ»ØÍË
+                            // æ­¤æ—¶å·²ç»æ‰¾åˆ°èµ·å§‹ç¬¦å·äº†ï¼Œä¸”è¿”å›å¾ªç¯æ—¶ä¸å¢åŠ  indexï¼Œæ•…ä¸ç”¨å›é€€
                         }
                     }
 
                 }
             }
-            //·ÖÎöÍê³Éºó£¬Õ»ÖĞ»¹ÓĞÔªËØ
+            //åˆ†æå®Œæˆåï¼Œæ ˆä¸­è¿˜æœ‰å…ƒç´ 
             if (stack.size() > 0) {
-                errorStack.add("È±ÉÙ½áÊø·û!");
+                errorStack.add("ç¼ºå°‘ç»“æŸç¬¦!");
             }
             if (legal)
-                System.out.println("\nÓï·¨·ÖÎö³É¹¦£¡£¡£¡\n");
+                System.out.println("\nè¯­æ³•åˆ†ææˆåŠŸï¼ï¼ï¼\n");
             else
-                System.out.println("Óï·¨·ÖÎöÊ§°Ü£¬´íÎóÈçÏÂ£º");
+                System.out.println("è¯­æ³•åˆ†æå¤±è´¥ï¼Œé”™è¯¯å¦‚ä¸‹ï¼š");
 
             Set<String> set = new LinkedHashSet<>(errorStack);
             errorStack = new LinkedList<>(set);
 
-            //Êä³ö´íÎóÕ»ÖĞµÄÄÚÈİ
+            //è¾“å‡ºé”™è¯¯æ ˆä¸­çš„å†…å®¹
             for (String error : errorStack) {
                 System.out.println(error);
             }
 
-            //Êä³ö AST
+            //è¾“å‡º AST
             System.out.println(rootNode.toJSON());
 
-            //Ğ´ÈëÎÄ¼ş
+            //å†™å…¥æ–‡ä»¶
             String prefix = ResourceUtils.getFile("classpath:others").getAbsolutePath();
             FileWriter fileWriter = new FileWriter(prefix + "/GramOutput.txt");
             fileWriter.write(rootNode.toJSON());
@@ -248,7 +237,7 @@ public class GramParser {
 
     }
 
-    // À¨ºÅÓ³Éä
+    // æ‹¬å·æ˜ å°„
     public String parMap(String symbol) {
         if (symbol.equals("("))
             return ")";
@@ -257,7 +246,7 @@ public class GramParser {
         else if (symbol.equals("{"))
             return "}";
         else
-            return symbol; // ' and "
+            return symbol; // ' and " are both the same in map
     }
 
     public void updateMatch(String top) {
@@ -272,24 +261,24 @@ public class GramParser {
         }
     }
 
-    // ·ÇÖÕ½á·û -> ÖÕ½á·û ±¨´íÊ±½øÈë£¬ÀûÓÃ½üËÆÇî¾ÙµÄ·½·¨±¨´í½Ï¾ßÌåµÄ´íÎó
+    // éç»ˆç»“ç¬¦ -> ç»ˆç»“ç¬¦ æŠ¥é”™æ—¶è¿›å…¥ï¼Œåˆ©ç”¨è¿‘ä¼¼ç©·ä¸¾çš„æ–¹æ³•æŠ¥é”™è¾ƒå…·ä½“çš„é”™è¯¯
     private String errorHandle(String top, String symbol) {
         List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get("Statement").split(" "));
 
         // tune the priority
         if (symbol.equals(",")) {
-            return "È±ÉÙ ±êÊ¶·û";
+            return "ç¼ºå°‘ æ ‡è¯†ç¬¦";
         } else if (stateStart.contains(symbol) && !symbol.equals(";")) {
-//            if (top == 'B' || top == '') ¸üÏ¸ÖÂµÄ»®·Ö
-            return "È±ÉÙ ;";
+//            if (top == 'B' || top == '') æ›´ç»†è‡´çš„åˆ’åˆ†
+            return "ç¼ºå°‘ ;";
         } else if (matchStack.size() != 0) {
             String src = matchStack.pop();
-//            matchStack.addFirst(src); //ÖØĞÂ¼Ó»ØÀ´
-            return "È±ÉÙ " + parMap(src);
+//            matchStack.addFirst(src); //é‡æ–°åŠ å›æ¥
+            return "ç¼ºå°‘ " + parMap(src);
         } else if (symbol.equals(";"))
-            return "È±ÉÙ ±í´ïÊ½";
+            return "ç¼ºå°‘ è¡¨è¾¾å¼";
         else
-            return "ÆäËû´íÎó";
+            return "å…¶ä»–é”™è¯¯";
     }
 
     public static void main(String[] args) {

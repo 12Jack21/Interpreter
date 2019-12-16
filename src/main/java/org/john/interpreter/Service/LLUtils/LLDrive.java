@@ -70,7 +70,7 @@ public class LLDrive {
 
     private void initTable() throws Exception {
         //计算所有产生式的 Select集
-        countFirst_s();
+        countSelect();
 
         List<String> special_production_list = Arrays.asList(CodeTable.special_production);
         table = new int[ntMap.size()][tMap.size()]; //构建 LL分析表,整数代表第几个产生式
@@ -85,7 +85,7 @@ public class LLDrive {
                 production = productions[i];
                 int x = tMap.get(cStr);
                 int y = ntMap.get(Node.splitP(production).leftP);
-                if (manualProcess(table, cStr, i))
+                if (manualProcess(cStr, i)) //处理悬挂 else 问题
                     continue;
                 if (special_production_list.contains(production)) {
                     table[y][x] = -2; // 特殊整数 -2 指代特殊处理
@@ -99,7 +99,7 @@ public class LLDrive {
         }
     }
 
-    private void countFirst_s() { //计算 Select集
+    private void countSelect() { //计算 Select集
         for (String p : productions) {
             StringBuilder sb = new StringBuilder();
             Node pNode = Node.splitP(p);
@@ -142,7 +142,7 @@ public class LLDrive {
     }
 
     //manual process the predict table (choose one of the contradict production to fill the table)
-    private boolean manualProcess(int[][] table, String c, int index) {
+    private boolean manualProcess(String c, int index) {
         String nt = Node.splitP(productions[index]).leftP;
         return nt.equals("ELSE") && c.equals("else") && productions[index].equals("ELSE->");
     }

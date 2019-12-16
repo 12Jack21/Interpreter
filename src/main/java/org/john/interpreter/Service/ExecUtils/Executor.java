@@ -28,7 +28,7 @@ public class Executor {
     }
 
     /* all the analysis set here */
-    public static Wrapper analyze(String pro,String scans) {
+    public static Wrapper analyze(String pro, String scans) {
         if (!pro.endsWith("\n"))
             pro += "\n";
         List<LexiNode> lexiNodes = LexicalAnalysis.lexicalScan(pro);
@@ -43,14 +43,21 @@ public class Executor {
             lexiResult.deleteCharAt(lexiResult.length() - 1);
 
         Translator t = new Translator();
-        if (astNode != null) {
-            t.setScanList(new LinkedList<>(splitScanString(scans)));
-            t.translate(astNode);
-            // 语义分析前 不能执行
-            astNode.addNullTips();
-            astNode.setParentNull();
+        Wrapper wrapper;
+        try { //TODO 考虑把语法分析也加入这里
+            if (astNode != null) {
+                t.setScanList(new LinkedList<>(splitScanString(scans)));
+                t.translate(astNode);
+                // 语义分析前 不能执行
+                astNode.addNullTips();
+                astNode.setParentNull();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            wrapper = new Wrapper(lexiResult.toString(), astNode, gramParser.getErrorStack(), t.getMessages(), t.getPrintList());
         }
-        Wrapper wrapper = new Wrapper(lexiResult.toString(), astNode, gramParser.getErrorStack(), t.getMessages(), t.getPrintList());
+
         return wrapper;
     }
 
@@ -81,7 +88,7 @@ public class Executor {
 //                }
 //            }
 
-            Wrapper w = analyze(pros[0],"12");
+            Wrapper w = analyze(pros[0], "12");
             for (String msg : w.getMessages()) {
                 out.write(msg + "\n");
                 System.out.println(msg);
@@ -130,19 +137,19 @@ public class Executor {
             for (String m : t.getMessages())
                 System.out.println(m);
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static ArrayList<String> splitScanString(String scans){
+    private static ArrayList<String> splitScanString(String scans) {
         // 换行符 和 空格 分割
         ArrayList<String> inputs = new ArrayList<>();
         List<String> tmp = new ArrayList<>(Arrays.asList(scans.split("\n")));
         List<String> t;
-        for (String input:tmp) {
+        for (String input : tmp) {
             t = Arrays.asList(input.split(" "));
-            for (String s : t){
+            for (String s : t) {
                 if (s.length() != 0)
                     inputs.add(s);
             }

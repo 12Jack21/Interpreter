@@ -4,22 +4,20 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 public class ASTNode implements Serializable {
-
-    private boolean find = false;
-
-    private int maxChildNum;
-    private int curIndex;
-    private String name;
-    private String value = null;
+    private int maxChildNum; //最大孩子数
+    private int curIndex; //当前索引
+    private String name; //标识名
+    private String value = null; //本身的字符串值
     private boolean isLeaf; //是否为叶子节点
     private boolean isLegal; //是否合法(正确解析)
-    private ASTNode[] children;
-    private ASTNode parent;
+    private ASTNode[] children; //孩子节点数组
+    private ASTNode parent; //父节点
+    private boolean find = false; //是否被找到过
 
     public ASTNode() {
     }
 
-    public ASTNode(ASTNode root){
+    public ASTNode(ASTNode root){ //深拷贝一个新的节点
         curIndex = 0;
         name = root.name;
         value = root.value;
@@ -92,10 +90,8 @@ public class ASTNode implements Serializable {
         }
         if (isLegal && hasChildLefted())
             return this;
-
         if (this.parent == null) // root node
             return null;
-
         return this.parent.findLefted();
     }
 
