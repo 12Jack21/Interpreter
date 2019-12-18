@@ -1043,7 +1043,6 @@ public class Translator {
                     }
                 } else {
                     // 数组取下标的值, 不正确则返回 默认值 0
-//                    SimpleVariable index = translateExp(index_node.getChildren()[1]); //Logical expression
                     ArrayList<SimpleVariable> dimension_logics = translateIndex(index_node);
                     ArrayList<Integer> dimension_index = new ArrayList<>();// 下标列表
                     // 检查下标是否合法,不合法则自动退出
@@ -1192,7 +1191,7 @@ public class Translator {
                 SimpleVariable log = translateExp(logic);
                 messages.add("调用了 print函数，在屏幕上输出" + log.getValue() + ",返回默认值 1");
                 printList.add(log.getValue()); // 存入输出栈
-                System.out.println(log.getValue()); //输出到屏幕上
+                System.out.print(log.getValue() + " "); //输出到屏幕上
                 variable = new SimpleVariable(null, "int", "1", level);
             }
             // scan函数调用
@@ -1223,7 +1222,6 @@ public class Translator {
                             variable = new SimpleVariable(null, "int", "1", level);
                         }
                     } else if (!array.getType().equals("char") && var.getDimensionIndex() == null) {
-                        // TODO 数组与简单变量同名时，可能出现歧义
                         messages.add("非 char 字符数组的数组变量不能直接接收输入！");
                         variable = new SimpleVariable(null, "int", "0", level);
                     } else {
@@ -1346,7 +1344,6 @@ public class Translator {
         ArrayList<String> values = new ArrayList<>();
         values.add("43");
         values.add("90");
-        t.arrayTable.addVariable(new ArrayVariable("p2", "int", 2, values, 1));
 
         List<String> msg = w.getMessages();
         for (String m : msg)

@@ -1,2 +1,6 @@
-char c=12;
-print(c + '');
+int a(real r)
+{
+    return r + 1;
+}
+int b = a(0.99);
+b = b + a(0.99);

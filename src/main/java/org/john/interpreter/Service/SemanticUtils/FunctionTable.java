@@ -6,37 +6,33 @@ public class FunctionTable {
     private ArrayList<FunctionVariable> table = new ArrayList<>();
 
     /* add new variable, if the variable has been defined throw error message*/
-    public boolean addVariable(FunctionVariable var){
+    public boolean addVariable(FunctionVariable var) {
         int i = 0;
-        while(i < table.size()){
+        while (i < table.size()) {
             FunctionVariable varInTable = table.get(i);
             // 考虑到了level
-            if(varInTable.getName().equals(var.getName())){
+            if (varInTable.getName().equals(var.getName())) {
                 return false;
             }
             i++;
         }
         table.add(var);
-        //System.out.println("variable " + var.getName()+ " is added\n");
         return true;
     }
 
     /* ask for variable which has name name*/
-    public FunctionVariable getVar(String name){
+    public FunctionVariable getVar(String name) {
         // 由于 level较大者为后来的 变量，从后往前遍历时会先拿到
-        if(table.size() > 0){
+        if (table.size() > 0) {
             int i = table.size() - 1;
-            while(i >= 0){
-                if(table.get(i).getName().equals(name)){
+            while (i >= 0) {
+                if (table.get(i).getName().equals(name)) {
                     return table.get(i);
                 }
                 i--;
             }
             return null;
-        }else{
-            //addError("Error: no variables has been defined\n");
+        } else
             return null;
-        }
     }
-
 }

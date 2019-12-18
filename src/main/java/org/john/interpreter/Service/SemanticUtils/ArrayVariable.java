@@ -3,39 +3,13 @@ package org.john.interpreter.Service.SemanticUtils;
 import java.util.ArrayList;
 
 public class ArrayVariable {
-    private String arrayName;
-    private String type;
-    private int length; // 数组长度
+    private String arrayName; //数组名
+    private String type; //数组类型
     private ArrayList<Integer> dimensionList; // 多维数组的维度表
-    private ArrayList<String> values;
+    private ArrayList<String> values; //数组存的值列表
     private int level; // 作用域
 
     public ArrayVariable() {
-    }
-
-    public ArrayVariable(ArrayVariable src, int level) {
-        arrayName = src.arrayName;
-        type = src.type;
-        if (src.dimensionList == null)
-            this.dimensionList = null;
-        else
-            this.dimensionList = new ArrayList<>(src.dimensionList);
-        if (src.values == null)
-            this.values = null;
-        else
-            this.values = new ArrayList<>(src.values);
-        this.level = level;
-    }
-
-    public ArrayVariable(String arrayName, String type, int length, ArrayList<String> values, int level) {
-        this.arrayName = arrayName;
-        this.type = type;
-        this.length = length;
-        if (values == null)
-            this.values = null;
-        else
-            this.values = new ArrayList<>(values);
-        this.level = level;
     }
 
     public ArrayVariable(String arrayName, String type, ArrayList<Integer> dimensionList, ArrayList<String> values, int level) {
@@ -60,10 +34,6 @@ public class ArrayVariable {
         this.type = type;
     }
 
-    public void setLength(int length) {
-        this.length = length;
-    }
-
     public void setValues(ArrayList<String> values) {
         this.values = values;
     }
@@ -78,10 +48,6 @@ public class ArrayVariable {
 
     public String getType() {
         return type;
-    }
-
-    public int getLength() {
-        return length;
     }
 
     public ArrayList<String> getValues() {

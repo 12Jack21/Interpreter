@@ -77,17 +77,6 @@ public class Executor {
             int index = 0;
             List<LexiNode> lexiNodes = null;
 
-//            for (String pro : pros) {
-//                out.write("\n--- " + index++ + " ---\n");
-//                //进行词法分析得到分析节点集合
-//                lexiNodes = LexicalAnalysis.lexicalScan(pro + "\0");
-//
-//                for (LexiNode node : lexiNodes) {
-//                    out.write(node.toString());
-//                    out.write("\n");
-//                }
-//            }
-
             Wrapper w = analyze(pros[0], "12");
             for (String msg : w.getMessages()) {
                 out.write(msg + "\n");
