@@ -3,9 +3,9 @@ package org.john.interpreter.Service.SemanticUtils;
 import java.util.ArrayList;
 
 public class SimpleVariable {
-    private String name;
-    private String type;
-    private String value;
+    private String name; //变量名
+    private String type; //类型
+    private String value; //值
     private int level; // 作用域级别
     private ArrayList<Integer> dimensionIndex = null; // 为了传递数组的维度信息，以供 scan 时使用
     public SimpleVariable(){}

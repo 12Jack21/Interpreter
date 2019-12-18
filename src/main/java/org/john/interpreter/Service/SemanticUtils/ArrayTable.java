@@ -3,12 +3,8 @@ package org.john.interpreter.Service.SemanticUtils;
 import java.util.ArrayList;
 
 public class ArrayTable {
-    private String errorMessage = "";
-    private ArrayList<ArrayVariable> table = new ArrayList<ArrayVariable>();
+    private ArrayList<ArrayVariable> table = new ArrayList<>();
     public ArrayTable(){}
-    public void addError(String message){
-        errorMessage += message;
-    }
 
     /* add new defined array */
     public boolean addVariable(ArrayVariable array){
@@ -17,16 +13,12 @@ public class ArrayTable {
             ArrayVariable varInTable = table.get(i);
             if (varInTable.getArrayName().equals(array.getArrayName())
                     && varInTable.getLevel() == array.getLevel()) {
-                addError("Error: Array " + array.getArrayName() + " has been defined before\n");
                 return false;
             }
             i++;
         }
         table.add(array);
         return true;
-    }
-    public String getErrorMessage(){
-        return errorMessage;
     }
     public ArrayVariable getArray(String name){
         if(table.size() > 0){
@@ -36,9 +28,6 @@ public class ArrayTable {
                     return table.get(i);
                 i--;
             }
-            addError("Error: Array " + name + " is not defined\n");
-        }else{
-            addError("Error: Array " + name + " is not defined\n");
         }
         return null;
     }

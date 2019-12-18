@@ -265,7 +265,7 @@ public class Translator {
                 whileNum--;
 
             } else {
-                // TODO 程序无限循环，除了里面有 break
+                // 程序无限循环，除了里面有 break
             }
 
         } else if (name.equals("Logic")) {
@@ -887,7 +887,7 @@ public class Translator {
         return reVar;
     }
 
-    // "Variable-> ..." TODO 取值的时候没有，就返回默认值（考虑 Null 会给上层带来不便）
+    // "Variable-> ..." 取值的时候没有值，就返回默认值（考虑 Null 会给上层节点带来异常）
     private SimpleVariable translateVariable(ASTNode variable_node) {
         SimpleVariable variable = null;
         if (variable_node.getMaxChildNum() == 1) {
@@ -913,9 +913,11 @@ public class Translator {
                     char ch;
                     for (int i = 0; i < raw.length(); i++) {
                         ch = raw.charAt(i);
-                        // 需要把 a-f (ascii code from 97 to 102)转换成 10-15
+                        // 需要把 a-f(ascii code from 97 to 102)转换成 10-15
                         if (ch >= 97 && ch <= 102)
                             value = (value << 4) + (ch - 87);
+                        else if (ch >= 65 && ch <= 70)  // A-F (ascii from 65 to 70)
+                            value = (value << 4) + (ch - 55);
                         else
                             value = (value << 4) + Integer.parseInt(String.valueOf(ch));
                     }
@@ -967,7 +969,6 @@ public class Translator {
                         // 不用考虑 正号
                         if (symbol.equals("-")) {
                             if (!id.getType().equals("char")) {
-                                //TODO 传一个深拷贝的对象，以免导致赋值产生变量表中变量的值被改变的问题
                                 //不能简单地把负号加上去，可能出现 “--2.14” 无法转化的情况
                                 String val = null;
                                 if (id.getType().equals("real"))
@@ -1016,7 +1017,7 @@ public class Translator {
                     // 有可能是字符数组取整个 string，如print(a),这里优先考虑 char 数组
                     ArrayVariable array = arrayTable.getArray(identifier);
                     if (array != null) {
-                        if (!array.getType().equals("char")) { //TODO char数组也得考虑---
+                        if (!array.getType().equals("char")) {
                             // 数组则返回 level == -1
                             variable = new SimpleVariable(array.getArrayName(), "int", "0", -1);
                         } else {
@@ -1031,7 +1032,6 @@ public class Translator {
                         SimpleVariable id = simpleTable.getVar(identifier);
                         if (id == null) {
                             messages.add("变量 " + identifier + "未被声明，无法使用,自动返回默认值 0");
-                            //TODO 这些变量是否应该都有名字,出错的地方应该为匿名
                             variable = new SimpleVariable(identifier, "int", "0", level);
                         } else {
                             if (id.getValue() == null) {
@@ -1130,7 +1130,7 @@ public class Translator {
                                 }else {
                                     ArrayVariable par = (ArrayVariable) parameters.get(i);
                                     ArrayVariable arg = (ArrayVariable) arguments.get(i);
-                                    // TODO 判断 type 和维度列表是否匹配！！！放入typehandle转化也可
+                                    // 判断 type 和维度列表是否匹配！！！放入typehandle转化也可
                                     tmp = new ArrayVariable(par.getArrayName(),par.getType(),par.getDimensionList(),
                                             arg.getValues(), level + 1);
                                     arrayTable.addVariable(tmp); // 添加数组进作用域
@@ -1271,7 +1271,7 @@ public class Translator {
                         }
                         array.getValues().set(real_index, scanVal);
                         messages.add("数组变量" + array.getArrayName() + "第" + real_index + "个'物理'位置被赋值为" + array.getValues().get(real_index)
-                                + ",数组当前值为" + array.getValues() + " scan返回 1"); //TODO 修改多维数据的显示方式
+                                + ",数组当前值为" + array.getValues() + " scan返回 1"); // 修改多维数据的显示方式
                         variable = new SimpleVariable(null, "int", "1", level);
                     }
                 } else {
@@ -1307,7 +1307,6 @@ public class Translator {
         return variable;
     }
 
-    // TODO 如果要传数组参数的话，就需要文法中实现 指针功能，这里暂定传入的参数为简单变量
     private ArrayList<Object> translateArgument(ASTNode argument) {
         ArrayList<Object> args = new ArrayList<>();
         if (argument.getMaxChildNum() != 0) {
@@ -1406,98 +1405,6 @@ public class Translator {
     }
 
     public static void main(String[] args) {
-        // ox game
-        Scanner s = new Scanner(System.in);
-        char h = '-';
-        char z = '+';
-
-        String err = "\nerr-------err------err\n";
-        String hint = " please enter for rows cols: ";
-        String clear = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
-        int win = 1;
-        char white = 'o'; // -1
-        int w = -1;
-        char black = 'x'; // 1
-        int b = 1;
-        char curc = white;
-        int cur = w;
-        int n = 3;
-        int[][] chess = new int[n][n];
-        int total = 0;
-        while (win != 0) {
-            total = total + 1;
-            System.out.print("+--+--+--+\n");
-            for (int i = 0; i < n; i = i + 1) {
-                System.out.print(z);
-                for (int j = 0; j < n; j = j + 1) {
-                    if (chess[i][j] == w)
-                        System.out.print(white);
-                    else if (chess[i][j] == b)
-                        System.out.print(black);
-                    else System.out.print(' ');
-                    System.out.print(' ');
-                    System.out.print(z);
-                }
-                System.out.print("\n+--+--+--+\n");
-            }
-            System.out.print(curc);
-            System.out.print(hint);
-            int i, j;
-            i = s.nextInt();
-            j = s.nextInt();
-
-            if (i < 0 || i > n || j < 0 || j > n) {
-                System.out.print(err);
-                System.out.print("out of border\n");
-                break;
-            }
-            if (chess[i][j] != 0) {
-                System.out.print(err);
-                System.out.print("illegal step\n");
-                break;
-            }
-
-            chess[i][j] = cur;
-
-            // search for win
-            int count1, count2, count3, count4 = 0;
-            count1 = count2 = count3 = 0;
-            for (int k = 0; k < n; k = k + 1) {
-                if (chess[i][k] == cur)
-                    count1 = count1 + 1;
-                if (chess[k][j] == cur)
-                    count2 = count2 + 1;
-                if (chess[k][k] == cur)
-                    count3 = count3 + 1;
-                if (chess[k][n - k - 1] == cur)
-                    count4 = count4 + 1;
-            }
-
-            if (count4 == n || count1 == n || count2 == n || count3 == n) {
-                win = cur;
-            }
-
-            // invert
-            curc = (char) (black + white - curc);
-            cur = -cur;
-
-            if (total == n * n) {
-                // win-win
-                break;
-            } else {
-                System.out.print(clear);
-            }
-            continue;
-        }
-
-
-        if (win == 0) {
-            System.out.print("no one wins\n");
-        } else {
-            System.out.print(curc);
-            System.out.print(" has won!Congratulation!\n");
-        }
-
 //        testWhileIf();
     }
 }
