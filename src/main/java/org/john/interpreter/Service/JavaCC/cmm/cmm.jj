@@ -59,7 +59,7 @@ public class CMM/*@bgen(jjtree)*/implements CMMTreeConstants/*@egen*/ {/*@bgen(j
 
 PARSER_END(CMM)
 
-SKIP : /* WHITE SPACE */
+SKIP : /* \u8e47\u754c\u6690\u701b\u6943\ue0c1 */
 {
   " "
 | "\t"
@@ -75,7 +75,7 @@ SPECIAL_TOKEN : /* \u5a09\u3129\u5674\u9429\u7a3f\u53e7 */
 | <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
 }
 
-TOKEN :
+TOKEN : /* \u934f\u62bd\u656d\u701b\ufffd */
 {
   <IF: "if">
   | <ELSE: "else">
@@ -142,7 +142,7 @@ TOKEN : /* LITERALS */
 
 TOKEN : /* \u93cd\u56ea\u7611\u7ed7\ufffd */
 {
-  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
+  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>|"_")*(<LETTER> | <DIGIT>) >
 |
   <#LETTER: ["a"-"z","A"-"Z"] >
 |
