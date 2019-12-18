@@ -321,25 +321,99 @@ void Logic():{}
 {
   Relation() ( LogicOp() Relation() )*
 }
-void LogicOp():{}
+void LogicOp():
 {
-  <SC_OR> | <SC_AND>
+   Token t;
+ }
+{
+  t = <SC_OR>
+   {
+       jjtThis.setName(t.image);
+     }
+  | t = <SC_AND>
+  {
+    jjtThis.setName(t.image);
+  }
 }
 void Relation():{}
 {
   Arithmetic() (RelationOp() Arithmetic() )*
 }
-void RelationOp():{}
+void RelationOp():
 {
-  <EQ> | <NEQ> | <GE> |<LE> | <GT> | <LT>
+   Token t;
+ }
+{
+  t = <EQ>
+     {
+         jjtThis.setName(t.image);
+       }
+  |t = <NEQ>
+      {
+          jjtThis.setName(t.image);
+        }
+  |t = <GE>
+      {
+          jjtThis.setName(t.image);
+        }
+  |t = <LE>
+      {
+          jjtThis.setName(t.image);
+        }
+  |t = <GT>
+      {
+          jjtThis.setName(t.image);
+        }
+  |t = <LT>
+      {
+          jjtThis.setName(t.image);
+        }
 }
 void Arithmetic():{}
 {
   Variable() (ArithOp() Variable() )*
 }
-void ArithOp():{}
+void ArithOp():
 {
-  <PLUS> | <MINUS> | <TIMES> | <DIVIDE> | <MOD> | <XOR> | <TILDE> | <BIT_AND> | <BIT_OR>
+  Token t;
+ }
+{
+  t = <PLUS>
+     {
+         jjtThis.setName(t.image);
+       }
+  | t = <MINUS>
+       {
+           jjtThis.setName(t.image);
+         }
+  |t = <TIMES>
+      {
+          jjtThis.setName(t.image);
+        }
+  | t = <DIVIDE>
+       {
+           jjtThis.setName(t.image);
+         }
+  | t = <MOD>
+       {
+           jjtThis.setName(t.image);
+         }
+  | t = <XOR>
+       {
+           jjtThis.setName(t.image);
+         }
+  | t = <TILDE>
+       {
+           jjtThis.setName(t.image);
+         }
+  | t = <BIT_AND>
+       {
+           jjtThis.setName(t.image);
+         }
+  | t = <BIT_OR>
+       {
+           jjtThis.setName(t.image);
+         }
 }
 void Variable():{}
 {
@@ -389,8 +463,27 @@ void Digit():{}
   | <PLUS> Positive()
   | <TILDE> Positive()
 }
-void Positive():{}
+void Positive()#void:{}
 {
-  <INTEGER_LITERAL>
-  | <REAL_LITERAL>
+  MyInteger() | MyReal()
+}
+void MyInteger():
+{
+   Token t;
+}
+{
+  t = <INTEGER_LITERAL>
+  {
+    jjtThis.setName(t.image);
+  }
+}
+void MyReal():
+{
+   Token t;
+}
+{
+  t = <REAL_LITERAL>
+  {
+    jjtThis.setName(t.image);
+  }
 }

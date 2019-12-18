@@ -1,6 +1,6 @@
 ### 使用方法 ###
 1. cd 进入cmm文件夹
-2. 输入命令 java CMM < <TestFile>，这里TestFile为测试用的CMM语言文件
+2. 输入命令 java CMM < <TestCode>，这里TestCode为测试用的CMM语言文件
 3. 输出被打印到控制台上
 
 - 扩展

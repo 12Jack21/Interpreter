@@ -758,15 +758,35 @@ void Logic():{/*@bgen(jjtree) Logic */
   }
 /*@egen*/
 }
-void LogicOp():{/*@bgen(jjtree) LogicOp */
-  ASTLogicOp jjtn000 = new ASTLogicOp(JJTLOGICOP);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-/*@egen*/}
+void LogicOp():
+{/*@bgen(jjtree) LogicOp */
+   ASTLogicOp jjtn000 = new ASTLogicOp(JJTLOGICOP);
+   boolean jjtc000 = true;
+   jjtree.openNodeScope(jjtn000);
+/*@egen*/
+   Token t;
+ }
 {/*@bgen(jjtree) LogicOp */
   try {
 /*@egen*/
-  <SC_OR> | <SC_AND>/*@bgen(jjtree)*/
+  t = <SC_OR>/*@bgen(jjtree)*/
+   {
+     jjtree.closeNodeScope(jjtn000, true);
+     jjtc000 = false;
+   }
+/*@egen*/
+   {
+       jjtn000.setName(t.image);
+     }
+  | t = <SC_AND>/*@bgen(jjtree)*/
+  {
+    jjtree.closeNodeScope(jjtn000, true);
+    jjtc000 = false;
+  }
+/*@egen*/
+  {
+    jjtn000.setName(t.image);
+  }/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);
@@ -804,15 +824,71 @@ void Relation():{/*@bgen(jjtree) Relation */
   }
 /*@egen*/
 }
-void RelationOp():{/*@bgen(jjtree) RelationOp */
-  ASTRelationOp jjtn000 = new ASTRelationOp(JJTRELATIONOP);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-/*@egen*/}
+void RelationOp():
+{/*@bgen(jjtree) RelationOp */
+   ASTRelationOp jjtn000 = new ASTRelationOp(JJTRELATIONOP);
+   boolean jjtc000 = true;
+   jjtree.openNodeScope(jjtn000);
+/*@egen*/
+   Token t;
+ }
 {/*@bgen(jjtree) RelationOp */
   try {
 /*@egen*/
-  <EQ> | <NEQ> | <GE> |<LE> | <GT> | <LT>/*@bgen(jjtree)*/
+  t = <EQ>/*@bgen(jjtree)*/
+     {
+       jjtree.closeNodeScope(jjtn000, true);
+       jjtc000 = false;
+     }
+/*@egen*/
+     {
+         jjtn000.setName(t.image);
+       }
+  |t = <NEQ>/*@bgen(jjtree)*/
+      {
+        jjtree.closeNodeScope(jjtn000, true);
+        jjtc000 = false;
+      }
+/*@egen*/
+      {
+          jjtn000.setName(t.image);
+        }
+  |t = <GE>/*@bgen(jjtree)*/
+      {
+        jjtree.closeNodeScope(jjtn000, true);
+        jjtc000 = false;
+      }
+/*@egen*/
+      {
+          jjtn000.setName(t.image);
+        }
+  |t = <LE>/*@bgen(jjtree)*/
+      {
+        jjtree.closeNodeScope(jjtn000, true);
+        jjtc000 = false;
+      }
+/*@egen*/
+      {
+          jjtn000.setName(t.image);
+        }
+  |t = <GT>/*@bgen(jjtree)*/
+      {
+        jjtree.closeNodeScope(jjtn000, true);
+        jjtc000 = false;
+      }
+/*@egen*/
+      {
+          jjtn000.setName(t.image);
+        }
+  |t = <LT>/*@bgen(jjtree)*/
+      {
+        jjtree.closeNodeScope(jjtn000, true);
+        jjtc000 = false;
+      }
+/*@egen*/
+      {
+          jjtn000.setName(t.image);
+        }/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);
@@ -850,15 +926,98 @@ void Arithmetic():{/*@bgen(jjtree) Arithmetic */
   }
 /*@egen*/
 }
-void ArithOp():{/*@bgen(jjtree) ArithOp */
+void ArithOp():
+{/*@bgen(jjtree) ArithOp */
   ASTArithOp jjtn000 = new ASTArithOp(JJTARITHOP);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
-/*@egen*/}
+/*@egen*/
+  Token t;
+ }
 {/*@bgen(jjtree) ArithOp */
   try {
 /*@egen*/
-  <PLUS> | <MINUS> | <TIMES> | <DIVIDE> | <MOD> | <XOR> | <TILDE> | <BIT_AND> | <BIT_OR>/*@bgen(jjtree)*/
+  t = <PLUS>/*@bgen(jjtree)*/
+     {
+       jjtree.closeNodeScope(jjtn000, true);
+       jjtc000 = false;
+     }
+/*@egen*/
+     {
+         jjtn000.setName(t.image);
+       }
+  | t = <MINUS>/*@bgen(jjtree)*/
+       {
+         jjtree.closeNodeScope(jjtn000, true);
+         jjtc000 = false;
+       }
+/*@egen*/
+       {
+           jjtn000.setName(t.image);
+         }
+  |t = <TIMES>/*@bgen(jjtree)*/
+      {
+        jjtree.closeNodeScope(jjtn000, true);
+        jjtc000 = false;
+      }
+/*@egen*/
+      {
+          jjtn000.setName(t.image);
+        }
+  | t = <DIVIDE>/*@bgen(jjtree)*/
+       {
+         jjtree.closeNodeScope(jjtn000, true);
+         jjtc000 = false;
+       }
+/*@egen*/
+       {
+           jjtn000.setName(t.image);
+         }
+  | t = <MOD>/*@bgen(jjtree)*/
+       {
+         jjtree.closeNodeScope(jjtn000, true);
+         jjtc000 = false;
+       }
+/*@egen*/
+       {
+           jjtn000.setName(t.image);
+         }
+  | t = <XOR>/*@bgen(jjtree)*/
+       {
+         jjtree.closeNodeScope(jjtn000, true);
+         jjtc000 = false;
+       }
+/*@egen*/
+       {
+           jjtn000.setName(t.image);
+         }
+  | t = <TILDE>/*@bgen(jjtree)*/
+       {
+         jjtree.closeNodeScope(jjtn000, true);
+         jjtc000 = false;
+       }
+/*@egen*/
+       {
+           jjtn000.setName(t.image);
+         }
+  | t = <BIT_AND>/*@bgen(jjtree)*/
+       {
+         jjtree.closeNodeScope(jjtn000, true);
+         jjtc000 = false;
+       }
+/*@egen*/
+       {
+           jjtn000.setName(t.image);
+         }
+  | t = <BIT_OR>/*@bgen(jjtree)*/
+       {
+         jjtree.closeNodeScope(jjtn000, true);
+         jjtc000 = false;
+       }
+/*@egen*/
+       {
+           jjtn000.setName(t.image);
+         }/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);
@@ -1061,16 +1220,57 @@ void Digit():{/*@bgen(jjtree) Digit */
   }
 /*@egen*/
 }
-void Positive():{/*@bgen(jjtree) Positive */
-  ASTPositive jjtn000 = new ASTPositive(JJTPOSITIVE);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-/*@egen*/}
-{/*@bgen(jjtree) Positive */
+void Positive()     :{}
+{
+  MyInteger() | MyReal()
+}
+void MyInteger():
+{/*@bgen(jjtree) MyInteger */
+   ASTMyInteger jjtn000 = new ASTMyInteger(JJTMYINTEGER);
+   boolean jjtc000 = true;
+   jjtree.openNodeScope(jjtn000);
+/*@egen*/
+   Token t;
+}
+{/*@bgen(jjtree) MyInteger */
   try {
 /*@egen*/
-  <INTEGER_LITERAL>
-  | <REAL_LITERAL>/*@bgen(jjtree)*/
+  t = <INTEGER_LITERAL>/*@bgen(jjtree)*/
+  {
+    jjtree.closeNodeScope(jjtn000, true);
+    jjtc000 = false;
+  }
+/*@egen*/
+  {
+    jjtn000.setName(t.image);
+  }/*@bgen(jjtree)*/
+  } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+    }
+  }
+/*@egen*/
+}
+void MyReal():
+{/*@bgen(jjtree) MyReal */
+   ASTMyReal jjtn000 = new ASTMyReal(JJTMYREAL);
+   boolean jjtc000 = true;
+   jjtree.openNodeScope(jjtn000);
+/*@egen*/
+   Token t;
+}
+{/*@bgen(jjtree) MyReal */
+  try {
+/*@egen*/
+  t = <REAL_LITERAL>/*@bgen(jjtree)*/
+  {
+    jjtree.closeNodeScope(jjtn000, true);
+    jjtc000 = false;
+  }
+/*@egen*/
+  {
+    jjtn000.setName(t.image);
+  }/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);

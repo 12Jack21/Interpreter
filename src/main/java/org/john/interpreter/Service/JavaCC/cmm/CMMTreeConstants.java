@@ -30,7 +30,8 @@ public interface CMMTreeConstants
   public int JJTCALL = 26;
   public int JJTARGUMENT = 27;
   public int JJTDIGIT = 28;
-  public int JJTPOSITIVE = 29;
+  public int JJTMYINTEGER = 29;
+  public int JJTMYREAL = 30;
 
 
   public String[] jjtNodeName = {
@@ -63,7 +64,8 @@ public interface CMMTreeConstants
     "Call",
     "Argument",
     "Digit",
-    "Positive",
+    "MyInteger",
+    "MyReal",
   };
 }
-/* JavaCC - OriginalChecksum=61dd0d92b72f686229d2e9a1f71f42c3 (do not edit this line) */
+/* JavaCC - OriginalChecksum=806d3a4acba5d950721c42de8770140e (do not edit this line) */

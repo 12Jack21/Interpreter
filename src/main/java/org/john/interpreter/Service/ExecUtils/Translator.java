@@ -65,7 +65,7 @@ public class Translator {
                     translate(root.getChildren()[i]);
             }
         } else if (name.equals("Statement")) {
-            if (whileNum <= 0 || (!toBreak && !toContinue))
+            if (whileNum <= 0 || (!toBreak && !toContinue && !toReturn))
                 translate(root.getChildren()[0]);
         } else if (name.equals("Declare")) {
             // int, real, char, void
@@ -1158,6 +1158,7 @@ public class Translator {
 
                             // 传入一个深拷贝
                             translate(new ASTNode(func.getPro_node()));
+                            toReturn = false;
                             proNum--;
                             // 把返回值置入 variable变量中
                             if (returnVal == null) {
