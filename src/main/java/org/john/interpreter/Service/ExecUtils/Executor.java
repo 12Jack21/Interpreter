@@ -52,10 +52,10 @@ public class Executor {
                 astNode.addNullTips();
                 astNode.setParentNull();
             }
+            wrapper = new Wrapper(lexiResult.toString(), astNode, gramParser.getErrorStack(), t.getMessages(), t.getPrintList());
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            wrapper = new Wrapper(lexiResult.toString(), astNode, gramParser.getErrorStack(), t.getMessages(), t.getPrintList());
+            wrapper = new Wrapper(lexiResult.toString(), null, gramParser.getErrorStack(), t.getMessages(), t.getPrintList());
         }
 
         return wrapper;

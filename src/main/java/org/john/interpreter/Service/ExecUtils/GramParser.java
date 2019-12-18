@@ -189,6 +189,7 @@ public class GramParser {
                             stack.addFirst("Pro");
                             // 2.词法单元Token的丢弃,找到 Pro 的First集中的词法单元
                             List<String> stateStart = Arrays.asList(llDrive.getFirstMap().get("Pro").split(" ")); //改成了Pro的First集
+                            symbol = int2StrMap.get(nodes.get(++index).getCode()); // 至少丢掉一个Token 防止进入死循环
                             while (!stateStart.contains(symbol) && !symbol.equals("#")) {
                                 index++;
                                 if (index >= nodes.size())
