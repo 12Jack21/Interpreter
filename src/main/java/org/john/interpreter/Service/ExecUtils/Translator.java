@@ -49,7 +49,7 @@ public class Translator {
     }
 
     // 先序遍历 AST，递归调用，目的：输出遍历过程中分析得出的信息，存到messages中
-    // 先假设语法分析已经全部通过
+    // 假设语法分析已经全部通过,没有语法错误的情况下才能进行解释执行
     public void translate(ASTNode root) {
         String name = root.getName();
         if (name.equals("Pro")) {
@@ -90,7 +90,7 @@ public class Translator {
                     translateAssignment(C_node.getChildren()[1], type); // 处理Assignment TODO 不需要 flush吗
                     C_node = C_node.getChildren()[2];
                 }
-            } else {//  函数定义 TODO add array parameters
+            } else {//  函数定义
                 // 保存 pro_node 到函数表中
                 try {
                     ArrayList<Object> parameters = translateParameter(F.getChildren()[1]);
@@ -279,7 +279,7 @@ public class Translator {
                 toContinue = true;
                 messages.add("遇到 continue,跳到下一次循环");
             } else if (na.equals("return")) {
-                //TODO 程序 return 后会截断后面代码的执行---
+                // 程序 return 后会截断后面代码的执行---
                 ASTNode result_node = root.getChildren()[1];
                 if (result_node.getMaxChildNum() != 0) {
                     SimpleVariable log = translateExp(result_node.getChildren()[0]);
@@ -457,7 +457,6 @@ public class Translator {
                         messages.add("变量" + identifier + "被赋值为" + v.getValue());
                     } else {
                         // 声明和初始化过程 --------------------------------
-                        // 为了少省定义一个变量的开销
                         logic_value = typeHandle(new SimpleVariable(null, type, null, level), logic_value);
                         logic_value.setName(identifier);
                         if (!simpleTable.addVariable(logic_value))
