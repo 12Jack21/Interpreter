@@ -2,6 +2,7 @@ package org.john.interpreter.Service.ExecUtils;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.List;
 
 public class ASTNode implements Serializable {
     private int maxChildNum; //最大孩子数
@@ -124,11 +125,12 @@ public class ASTNode implements Serializable {
     }
 
     public void addNullTips() {
+        List<String> specials = Arrays.asList(CodeTable.specials);
         // Pre-order traverse the tree
         if (maxChildNum == 0 && value == null) {
             if (name.charAt(0) > 'A' && name.charAt(0) < 'Z')
                 name += " -> null";
-        } else if (value != null)
+        } else if (specials.contains(name) && value != null)
             name += " (" + value + ")";
         for (ASTNode child : children) {
             if (child != null)

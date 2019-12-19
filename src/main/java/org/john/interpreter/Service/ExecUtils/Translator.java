@@ -162,7 +162,6 @@ public class Translator {
                         translate(H_node); // 执行 H_node
                     }
                 }
-
                 // else if 里的条件都不满足时
                 if (!exeELSEIF) {
                     if (root.getChildren()[6].getMaxChildNum() != 0) {
@@ -682,7 +681,7 @@ public class Translator {
         return variables;
     }
 
-    // TODO logical expression 需要进行短路求值
+    // logical expression 需要进行短路求值
 //    private SimpleVariable translateLogic(ASTNode logic){
 //        SimpleVariable log = null;
 //

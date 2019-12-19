@@ -47,7 +47,8 @@ public class Executor {
         try { //TODO 考虑把语法分析也加入这里
             if (astNode != null) {
                 t.setScanList(new LinkedList<>(splitScanString(scans)));
-                t.translate(astNode);
+                if (gramParser.getErrorStack().size() == 0) //语法没有错误时才去解释执行
+                    t.translate(astNode);
                 // 语义分析前 不能执行
                 astNode.addNullTips();
                 astNode.setParentNull();

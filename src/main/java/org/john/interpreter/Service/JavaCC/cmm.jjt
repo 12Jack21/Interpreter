@@ -138,7 +138,7 @@ TOKEN : /* LITERALS */
 
 TOKEN : /* 标识符 */
 {
-  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>|<UNDERSCORE> )*(<LETTER> | <DIGIT>) >
+  < IDENTIFIER: <LETTER> | <LETTER> (<LETTER>|<DIGIT>|<UNDERSCORE> )*(<LETTER> | <DIGIT>) >
 |
   <#LETTER: ["a"-"z","A"-"Z"] >
 |

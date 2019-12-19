@@ -81,8 +81,10 @@ public class GramParser {
                             curNode.addChild(new ASTNode(0, top, node.getSymbol().trim(), true, true));
                     } else {
                         legal = false;
-                        if (top.equals("#")) //栈内已经为空，无法继续扫描了
+                        if (top.equals("#")) { //栈内已经为空，无法继续扫描了
+                            errorStack.add("无效的结束符！");
                             break; // nearest namely the upper while loop
+                        }
                         //自动加上这个缺少的符号
                         curNode = curNode.findLefted();
                         curNode.addChild(new ASTNode(0, top, true, false));
@@ -272,12 +274,13 @@ public class GramParser {
         } else if (stateStart.contains(symbol) && !symbol.equals(";")) {
 //            if (top == 'B' || top == '') 更细致的划分
             return "缺少 ;";
-        } else if (matchStack.size() != 0) {
+        } else if (symbol.equals(";"))
+            return "缺少 表达式";
+        else if (matchStack.size() != 0) {
             String src = matchStack.pop();
 //            matchStack.addFirst(src); //重新加回来
             return "缺少 " + parMap(src);
-        } else if (symbol.equals(";"))
-            return "缺少 表达式";
+        }
         else
             return "其他错误";
     }

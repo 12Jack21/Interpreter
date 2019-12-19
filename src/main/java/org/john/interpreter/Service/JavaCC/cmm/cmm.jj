@@ -100,7 +100,7 @@ TOKEN : /* LITERALS */
       | <HEX_LITERAL>  // \u9357\u4f78\u53da\u6769\u6d98\u57d7\u93c1\ufffd
   >
 |
-  < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
+  < #DECIMAL_LITERAL: ["1"-"9"] (<DIGIT>)* >
 |
   < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
 |
@@ -110,7 +110,7 @@ TOKEN : /* LITERALS */
       | (<DIGIT>)+ (<EXPONENT>)?
   >
 |
-  < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
+  < #EXPONENT: ["e","E"] (["+","-"])? (<DIGIT>)+ >
 |
   < CHARACTER_LITERAL:
       "'"
@@ -142,7 +142,7 @@ TOKEN : /* LITERALS */
 
 TOKEN : /* \u93cd\u56ea\u7611\u7ed7\ufffd */
 {
-  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>|"_")*(<LETTER> | <DIGIT>) >
+  < IDENTIFIER: <LETTER> | <LETTER> (<LETTER>|<DIGIT>|<UNDERSCORE> )*(<LETTER> | <DIGIT>) >
 |
   <#LETTER: ["a"-"z","A"-"Z"] >
 |
@@ -162,8 +162,8 @@ TOKEN : /* \u9352\u55db\u6ba7\u7ed7\ufffd */
 | < DOT: "." >
 }
 
-TOKEN : { /*\u93bf\u5d84\u7d94\u7ed7\ufffd*/
-  <UNDERSCORE:"_"> // put it in another place
+TOKEN : { /* \u93bf\u5d84\u7d94\u7ed7\ufffd */
+  <UNDERSCORE:"_">
    | <ASSIGN:"=">
    | <PLUS:"+">
    | <MINUS:"-">
@@ -262,7 +262,7 @@ void Statement():{/*@bgen(jjtree) Statement */
   try {
 /*@egen*/
   Declare()
-  | LOOKAHEAD( Assignment() )  //\u9352\u55d7\u5f7f\u6d94\u5b2a\u58a0\u9351\u8679\u5e47\u74a7\u5b2a\ufffd\u714e\u57af\u95ab\u590b\u5ae8\u74a7\u5b2a\ufffd\u8270\ue1e2\u9359\ufffd
+  | LOOKAHEAD( Assignment() )
     Assignment() <SEMICOLON>
   | Logic() <SEMICOLON>
   | IF()
@@ -955,7 +955,7 @@ void ArithOp():
        {
            jjtn000.setName(t.image);
          }
-  |t = <TIMES>/*@bgen(jjtree)*/
+  | t = <TIMES>/*@bgen(jjtree)*/
       {
         jjtree.closeNodeScope(jjtn000, true);
         jjtc000 = false;
