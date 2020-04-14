@@ -7,25 +7,25 @@ import java.util.Map;
 
 public class CodeTable {
 
-    //¹Ø¼ü´Ê±í
+    //å…³é”®è¯è¡¨
     public static String[] keys = {"if", "else", "while", "do", "int",
             "real", "char", "for", "print", "scan", "break", "continue", "return"};
 
-    // °Ñ '.' É¾È¥
+    // æŠŠ '.' åˆ å»
     public static String[] signs = {"/", "+", "-", "*", "%", "<", ">", "==", "<>", ">=",
             "<=", "&&", "||", "*/", "~", "|", "&", "=", "(", ")", "{", "}", "[", "]", "'", "\"", ";",
             ",", "\\n", "\\r", "\\t", "\n", "\r", "\t", "//", "/*"};
-    // ÌØÀı (¿ÆÑ§¼ÆÊı·¨µÄÊıÖ±½Óµ±³É fraction)
+    // ç‰¹ä¾‹ (ç§‘å­¦è®¡æ•°æ³•çš„æ•°ç›´æ¥å½“æˆ fraction)
     public static String[] specials = {"identifier", "integer", "fraction", "character", "string", "hexadecimal"};
 
-    public static char[] invs = {'\n', '\r', '\t'};// TODO ×ªÒå×Ö·û£¬ÌâÄ¿ÒªÇóÊÇÄÄÖÖ£¬ '\n' or '\\n'
+    public static char[] invs = {'\n', '\r', '\t'};// TODO è½¬ä¹‰å­—ç¬¦ï¼Œé¢˜ç›®è¦æ±‚æ˜¯å“ªç§ï¼Œ '\n' or '\\n'
 
     public static List<String> keyList = Arrays.asList(keys);
 
     public static List<String> signList = Arrays.asList(signs);
 
 
-    //´Ó×Ö·û´® token µ½ ÖÖ±ğÂë code µÄÓ³Éä
+    //ä»å­—ç¬¦ä¸² token åˆ° ç§åˆ«ç  code çš„æ˜ å°„
     public static HashMap<String, Integer> str2IntMap() {
         HashMap<String, Integer> map = new HashMap<>();
 
@@ -51,7 +51,7 @@ public class CodeTable {
         return map;
     }
 
-    // µ±×÷ÌØÊâÇé¿ö´¦ÀíµÄÃ¬¶Ü²úÉúÊ½
+    // å½“ä½œç‰¹æ®Šæƒ…å†µå¤„ç†çš„çŸ›ç›¾äº§ç”Ÿå¼
     public static String[] special_production = {
             "Statement->Logic ;", "Statement->Assignment ;",
             "ELSEIF->else if ( Logic ) H ELSEIF", "ELSEIF->",
@@ -63,7 +63,7 @@ public class CodeTable {
     };
 
     //"S->Logic;" production versus "S->Declare"
-    //²úÉúÊ½
+    //äº§ç”Ÿå¼
     public static String[] productions = {
             "Pro->Statement Pro", "Pro->{ Pro } Pro", "Pro->",  // att: follow set of Pro should contains #
             "Statement->Declare", "Statement->Assignment ;", "Statement->IF", "Statement->WHILE",
@@ -84,7 +84,7 @@ public class CodeTable {
 
             "X->= O", "X->", //no.28
             "O->Logic", "O->{ Y }",     // array assignment
-            "Y->Logic C'", "Y->",//TODO ÊÇ·ñÉ¾µô¿ÕÊı×é³õÊ¼»¯
+            "Y->Logic C'", "Y->",//TODO æ˜¯å¦åˆ æ‰ç©ºæ•°ç»„åˆå§‹åŒ–
             "C'->, Y", "C'->",             // for array assignment {}
 
             "IF->if ( Logic ) H ELSEIF ELSE",    //if
@@ -118,28 +118,28 @@ public class CodeTable {
             "Argument->Logic CCC", "Argument->",
             "CCC->, Argument", "CCC->", //no.73
 
-            "Digit->Positive", "Digit->- Positive", "Digit->+ Positive", "Digit->~ Positive", //Ñ¡ÔñÕıÊı»òÕß¸ºÊı
-            "Positive->integer", "Positive->fraction", "Positive->hexadecimal"  //ÕûÊı¡¢Ğ¡Êı¡¢Ê®Áù½øÖÆÊı
+            "Digit->Positive", "Digit->- Positive", "Digit->+ Positive", "Digit->~ Positive", //é€‰æ‹©æ­£æ•°æˆ–è€…è´Ÿæ•°
+            "Positive->integer", "Positive->fraction", "Positive->hexadecimal"  //æ•´æ•°ã€å°æ•°ã€åå…­è¿›åˆ¶æ•°
     };
 
     /*
-     * Thoughts: ÔÊĞíÄ³¸ö²úÉúÊ½£¬µ«ÊÇ¸Ã²úÉúÊ½ÊÇ´íÎóµÄ£¬ÕâÑù¿ÉÒÔ±¨³ö×î¾«È·µÄ´íÎó
-     *       ie. º¯ÊıÖĞ²ÎÊıÁĞ±íÔÊĞí¸³ÖµµÄ²úÉúÊ½±»¼ÓÈë£¬µ«ÊÇ±¾Éí²»±»ÔÊĞí
+     * Thoughts: å…è®¸æŸä¸ªäº§ç”Ÿå¼ï¼Œä½†æ˜¯è¯¥äº§ç”Ÿå¼æ˜¯é”™è¯¯çš„ï¼Œè¿™æ ·å¯ä»¥æŠ¥å‡ºæœ€ç²¾ç¡®çš„é”™è¯¯
+     *       ie. å‡½æ•°ä¸­å‚æ•°åˆ—è¡¨å…è®¸èµ‹å€¼çš„äº§ç”Ÿå¼è¢«åŠ å…¥ï¼Œä½†æ˜¯æœ¬èº«ä¸è¢«å…è®¸
      * */
     /*
-     Õ»¶¥ÖÕ½á·û²»Æ¥ÅäÊ±£¬¿ÉÒÔ±¨´íÎª È±ÉÙÄ³ÖÕ½á·û£»
-     Õ»¶¥·ÇÖÕ½á·û²»Æ¥ÅäÊ±(Select¼¯²»Æ¥Åä)£º
-     1.Follow¼¯Ò²²»Æ¥Åä
-     2.Follow¼¯Æ¥Åä
+     æ ˆé¡¶ç»ˆç»“ç¬¦ä¸åŒ¹é…æ—¶ï¼Œå¯ä»¥æŠ¥é”™ä¸º ç¼ºå°‘æŸç»ˆç»“ç¬¦ï¼›
+     æ ˆé¡¶éç»ˆç»“ç¬¦ä¸åŒ¹é…æ—¶(Selecté›†ä¸åŒ¹é…)ï¼š
+     1.Followé›†ä¹Ÿä¸åŒ¹é…
+     2.Followé›†åŒ¹é…
     */
 
 //                "Arithmetic->Item V",
-//            "V->+ Arithmetic", "V->- Arithmetic", "V->", //ÓÒ½áºÏ
+//            "V->+ Arithmetic", "V->- Arithmetic", "V->", //å³ç»“åˆ
 //            "Item->Variable Factor",
 //            "Factor->* Item", "Factor->/ Item", "Factor->",
 //                "A->= Relation","A->",
 
-    // ¸÷¸öÔËËã·ûµÄÓÅÏÈ¼¶
+    // å„ä¸ªè¿ç®—ç¬¦çš„ä¼˜å…ˆçº§
     public static HashMap<String, Integer> opPriority() {
         HashMap<String, Integer> map = new HashMap<>();
         map.put("||", 1);

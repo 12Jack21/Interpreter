@@ -225,11 +225,11 @@ public class GramParser {
             System.out.println(rootNode.toJSON());
 
             //写入文件
-            String prefix = ResourceUtils.getFile("classpath:others").getAbsolutePath();
-            FileWriter fileWriter = new FileWriter(prefix + "/GramOutput.txt");
-            fileWriter.write(rootNode.toJSON());
-            fileWriter.flush();
-            fileWriter.close();
+//            String prefix = ResourceUtils.getFile("classpath:others").getAbsolutePath();
+//            FileWriter fileWriter = new FileWriter(prefix + "/GramOutput.txt");
+//            fileWriter.write(rootNode.toJSON());
+//            fileWriter.flush();
+//            fileWriter.close();
 
             return rootNode;
 

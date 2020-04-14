@@ -12,7 +12,7 @@ public class LexicalAnalysis {
     public LexicalAnalysis() {
     }
 
-    //ÊÇ·ñÎª·ûºÅ»òÕß ÏÂ»®Ïß
+    //æ˜¯å¦ä¸ºç¬¦å·æˆ–è€… ä¸‹åˆ’çº¿
     private static boolean isLetter(char ch) {
         return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_';
     }
@@ -32,47 +32,47 @@ public class LexicalAnalysis {
         char ch = pro[p++];
         String special = null;
 
-        //ÅĞ¶Ï»»ĞĞºÍ \t ·ûºÅµÄÌØÊâÌõ¼ş
+        //åˆ¤æ–­æ¢è¡Œå’Œ \t ç¬¦å·çš„ç‰¹æ®Šæ¡ä»¶
         int row = node.getSymbol().equals("\n\0") ? node.getRow() + 1 : node.getRow();
         int col = node.getSymbol().equals("\t\0") ? node.getCol() + 4 : node.getCol() + node.getLength();
         if (row == node.getRow() + 1)
-            col = 1; //ĞÂµÄÒ»ĞĞ
-        //È¥µô¿Õ¸ñ, tab
+            col = 1; //æ–°çš„ä¸€è¡Œ
+        //å»æ‰ç©ºæ ¼, tab
         while (ch == ' ') {
             col++;
             ch = pro[p++];
             if (ch == ' ')
                 ch = pro[p++];
         }
-        // char×Ö·ûºÍstr×Ö·û´®µÄÅĞ¶¨
+        // charå­—ç¬¦å’Œstrå­—ç¬¦ä¸²çš„åˆ¤å®š
         if (ch == '\'' || ch == '\"') {
             token[i++] = ch;
             char left = ch;
             ch = pro[p++];
-            // É¨ÃèÈÎºÎ³ıÁË¸ÃÒıºÅÖ®ÍâµÄ×Ö·û£¬Í¬Ê±×¢Òâ³ÌĞò×Ö·ûÊı×é¿ÉÄÜÒç³ö
+            // æ‰«æä»»ä½•é™¤äº†è¯¥å¼•å·ä¹‹å¤–çš„å­—ç¬¦ï¼ŒåŒæ—¶æ³¨æ„ç¨‹åºå­—ç¬¦æ•°ç»„å¯èƒ½æº¢å‡º
             while (ch != '\n' && ch != left && p < pro.length) {
                 token[i++] = ch;
                 ch = pro[p++];
             }
             if (p >= pro.length)
-                special = "error"; //½âÎöµ½Í·ÁË
+                special = "error"; //è§£æåˆ°å¤´äº†
             else {
                 if (ch == '\n') {
-                    special = "error"; //Ã»ÓĞÓÒÒıºÅÖ±½Ó±¨´í
+                    special = "error"; //æ²¡æœ‰å³å¼•å·ç›´æ¥æŠ¥é”™
                     p--;
                 } else if (ch == '\"') {
                     token[i] = '\"';
                     special = "string";
                 } else {
-                    token[i] = '\''; //µ½ÓïÒå·ÖÎöÔÙ´¦Àí×Ö·û¹ı³¤µÄÇé¿ö
+                    token[i] = '\''; //åˆ°è¯­ä¹‰åˆ†æå†å¤„ç†å­—ç¬¦è¿‡é•¿çš„æƒ…å†µ
                     special = "character";
                 }
             }
         }
-        //¼ì²âµ½·ûºÅ
+        //æ£€æµ‹åˆ°ç¬¦å·
         else if (signList.contains(String.valueOf(ch)) || ch == '\\') {
             token[i++] = ch;
-            ch = pro[p++]; //ÄÃµ½É¨ÃèµÄÆğÊ¼·ûºÅ
+            ch = pro[p++]; //æ‹¿åˆ°æ‰«æçš„èµ·å§‹ç¬¦å·
             token[i++] = ch;
 
             String a = String.valueOf(token);
@@ -81,36 +81,36 @@ public class LexicalAnalysis {
                 if (String.valueOf(token).contains(Character.toString(inv)))
                     containInv = true;
             }
-            //Èç¹û»¹°üº¬¸Ã·ûºÅ ,ÀıÈç <= , == µÈ
+            //å¦‚æœè¿˜åŒ…å«è¯¥ç¬¦å· ,ä¾‹å¦‚ <= , == ç­‰
             if (containInv || !signList.contains(String.valueOf(token).trim())) {
                 p--;
-                token[i - 1] = '\0'; //»ØÍË
+                token[i - 1] = '\0'; //å›é€€
             }
         }
-        //±êÊ¶·ûµÄÅĞ¶¨¹æÔò£º ÓÉÊı×Ö¡¢×ÖÄ¸ºÍÏÂ»®Ïß×é³ÉµÄ´®£¬µ«±ØĞëÒÔ×ÖÄ¸¿ªÍ·¡¢ÇÒ²»ÄÜÒÔÏÂ»®Ïß½áÎ²µÄ´®
+        //æ ‡è¯†ç¬¦çš„åˆ¤å®šè§„åˆ™ï¼š ç”±æ•°å­—ã€å­—æ¯å’Œä¸‹åˆ’çº¿ç»„æˆçš„ä¸²ï¼Œä½†å¿…é¡»ä»¥å­—æ¯å¼€å¤´ã€ä¸”ä¸èƒ½ä»¥ä¸‹åˆ’çº¿ç»“å°¾çš„ä¸²
         else if (isLetter(ch) && ch != '_') {
             token[i++] = ch;
             ch = pro[p++];
             while (isLetter(ch) || isDigit(ch)) {
-                //ÅĞ¶ÏÊÇ·ñÒÔÏÂ»®Ïß½áÎ²,¿ÉÄÜ»áÓĞ AB_12_a ÕâÑùµÄ±êÊ¶·û,ÕâÀï p ¾ÍÊÇÏòºó¿´ÁËÒ»Î»
+                //åˆ¤æ–­æ˜¯å¦ä»¥ä¸‹åˆ’çº¿ç»“å°¾,å¯èƒ½ä¼šæœ‰ AB_12_a è¿™æ ·çš„æ ‡è¯†ç¬¦,è¿™é‡Œ p å°±æ˜¯å‘åçœ‹äº†ä¸€ä½
                 if (ch == '_' && !isLetter(pro[p]) && !isDigit(pro[p]))
                     break;
                 token[i++] = ch;
                 ch = pro[p++];
             }
-            p--; //¶à¶ÁÁËÒ»Î»£¨³¬Ç°ËÑË÷£©
-            //²»Îª¹Ø¼ü×Ö, ¼´Îª±êÊ¶·û
+            p--; //å¤šè¯»äº†ä¸€ä½ï¼ˆè¶…å‰æœç´¢ï¼‰
+            //ä¸ä¸ºå…³é”®å­—, å³ä¸ºæ ‡è¯†ç¬¦
             if (!keyList.contains(String.valueOf(token).trim()))
                 special = "identifier";
-        } else if (isDigit(ch)) { //Êı×ÖµÄÅĞ¶¨
+        } else if (isDigit(ch)) { //æ•°å­—çš„åˆ¤å®š
             int mode = 0;
             if (ch == '0' && (pro[p] == 'x' || pro[p] == 'X')) {
                 mode = 2;
-                // Ê®Áù½øÖÆÊı
-                token[i++] = ch; //´æÈë 0
-                token[i++] = pro[p++]; // ´æÈë x or X
-                ch = pro[p++]; // ÏÂÒ»¸ö×Ö·û
-                if (!isHex(ch)) // ºóÃæ²»¸ú×ÅÊı×ÖµÄ»°£¬±¨´í
+                // åå…­è¿›åˆ¶æ•°
+                token[i++] = ch; //å­˜å…¥ 0
+                token[i++] = pro[p++]; // å­˜å…¥ x or X
+                ch = pro[p++]; // ä¸‹ä¸€ä¸ªå­—ç¬¦
+                if (!isHex(ch)) // åé¢ä¸è·Ÿç€æ•°å­—çš„è¯ï¼ŒæŠ¥é”™
                     mode = -1;
                 else
                     while (isHex(ch)) {
@@ -118,9 +118,9 @@ public class LexicalAnalysis {
                         ch = pro[p++];
                     }
             } else {
-                //¸ú×ÅÊı×Ö»òÕßÊı×Ö¿ªÍ·
+                //è·Ÿç€æ•°å­—æˆ–è€…æ•°å­—å¼€å¤´
                 while (isDigit(ch) || ch == '.') {
-                    //Ô²µãÊıÁ¿³¬¹ı¹æ¶¨
+                    //åœ†ç‚¹æ•°é‡è¶…è¿‡è§„å®š
                     if (ch == '.' && mode == 1)
                         break;
                     else {
@@ -133,11 +133,11 @@ public class LexicalAnalysis {
                 if (ch == 'e' || ch == 'E') {
                     token[i++] = ch;
                     ch = pro[p++];
-                    if (ch == '-') { // ¿¼ÂÇÖ®ºó½Ó×Å¸ººÅ
+                    if (ch == '-') { // è€ƒè™‘ä¹‹åæ¥ç€è´Ÿå·
                         token[i++] = ch;
                         ch = pro[p++];
                     }
-                    // ºóÃæ²»¸ú×ÅÊı×Ö£¬¾Í±¨´í
+                    // åé¢ä¸è·Ÿç€æ•°å­—ï¼Œå°±æŠ¥é”™
                     if (!isDigit(ch))
                         mode = -1;
                     while (isDigit(ch)) {
@@ -150,26 +150,26 @@ public class LexicalAnalysis {
             }
             p--;
             if (mode == 2)
-                special = "hexadecimal"; //Ê¶±ğÎªÊ®Áù½øÖÆÊı
+                special = "hexadecimal"; //è¯†åˆ«ä¸ºåå…­è¿›åˆ¶æ•°
             else if (mode == 1)
-                special = "fraction"; //Ê¶±ğÎªĞ¡Êı
+                special = "fraction"; //è¯†åˆ«ä¸ºå°æ•°
             else if (mode == 0)
-                special = "integer"; //Ê¶±ğÎªÕûÊı
+                special = "integer"; //è¯†åˆ«ä¸ºæ•´æ•°
             else
                 special = "error";
         } else {
             token[i] = ch;
-            special = "error"; // Ê¶±ğÎª ´íÎó
+            special = "error"; // è¯†åˆ«ä¸º é”™è¯¯
         }
 
         int newLength = token[i] == '\0' ? i : i + 1;
         char[] newArray = Arrays.copyOf(token, newLength);
         boolean isInv = false;
 
-        //special ±ä³ÉÍ¨ÓÃ×Ö·û´®
+        //special å˜æˆé€šç”¨å­—ç¬¦ä¸²
         if (special == null)
             special = String.valueOf(token);
-        //ÅĞ¶ÏÊÇ·ñÎª×ªÒå×Ö·û
+        //åˆ¤æ–­æ˜¯å¦ä¸ºè½¬ä¹‰å­—ç¬¦
         char first = special.length() == 0 ? '\0' : special.charAt(0);
         for (char inv : invs) {
             if (first == inv) {
@@ -187,25 +187,25 @@ public class LexicalAnalysis {
         return new LexiNode(String.valueOf(newArray), str2Code.get(special), row, col, p);
     }
 
-    // ÍêÕûµÄÉ¨ÃèÒ»Õû¸ö³ÌĞò
+    // å®Œæ•´çš„æ‰«æä¸€æ•´ä¸ªç¨‹åº
     public static List<LexiNode> lexicalScan(String pro) {
         if (pro == null)
             return null;
-        while (pro.endsWith("\n")) //³ıÈ¥×îºóµÄ»»ĞĞ
+        while (pro.endsWith("\n")) //é™¤å»æœ€åçš„æ¢è¡Œ
             pro = pro.substring(0, pro.length() - 1);
-        pro += " ";     // ·ÀÖ¹ indexOutOfBound
+        pro += " ";     // é˜²æ­¢ indexOutOfBound
         char[] program = pro.toCharArray();
         List<LexiNode> nodes = new ArrayList<>();
         HashMap<String, Integer> str2Code = str2IntMap();
-        //ÆğÊ¼½Úµã
+        //èµ·å§‹èŠ‚ç‚¹
         LexiNode node = new LexiNode("", -1, 1, 1, 0);
 
         boolean singleCom = false;
         boolean multiCom = false;
         do {
-            node = oneScan(program, node); //µ¥´ÊÉ¨Ãè
+            node = oneScan(program, node); //å•è¯æ‰«æ
 
-            // ×¢ÊÍµÄÅĞ¶¨
+            // æ³¨é‡Šçš„åˆ¤å®š
             if (node.getSymbol().equals("//"))
                 singleCom = true;
             else if (node.getCode() == str2Code.get("\n"))
@@ -217,7 +217,7 @@ public class LexicalAnalysis {
             if (!singleCom && !multiCom && !node.getSymbol().equals("*/"))
                 nodes.add(node);
         } while (node.getP() < pro.length() - 1);
-        if (node.getSymbol().equals("")) //³ıÈ¥×îºó¿ÉÄÜ³öÏÖµÄ¿Õ¸ñ
+        if (node.getSymbol().equals("")) //é™¤å»æœ€åå¯èƒ½å‡ºç°çš„ç©ºæ ¼
             nodes.remove(node);
         return nodes;
     }
@@ -236,7 +236,7 @@ public class LexicalAnalysis {
     }
 
     public static void main(String[] args) {
-        String b = "9e20"; // ²»ÄÜÖ±½Ó×ª»¯ hexadecimal
+        String b = "9e20"; // ä¸èƒ½ç›´æ¥è½¬åŒ– hexadecimal
         String a = "0x12";
 //        int k = Integer.parseInt(a);
         double k = Double.parseDouble(b);

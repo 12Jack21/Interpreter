@@ -20,10 +20,10 @@ public class Executor {
         BufferedReader br = new BufferedReader(new InputStreamReader(stream));
         while ((line = br.readLine()) != null) {
             sbuf.append(line);
-            sbuf.append("\n");//Ìí¼Ó»»ĞĞ·û
+            sbuf.append("\n");//æ·»åŠ æ¢è¡Œç¬¦
         }
         if (sbuf.indexOf("\n") != -1)
-            sbuf.deleteCharAt(sbuf.lastIndexOf("\n"));//É¾³ı×îºóÒ»¸ö»»ĞĞ·û
+            sbuf.deleteCharAt(sbuf.lastIndexOf("\n"));//åˆ é™¤æœ€åä¸€ä¸ªæ¢è¡Œç¬¦
         return sbuf.toString();
     }
 
@@ -44,12 +44,12 @@ public class Executor {
 
         Translator t = new Translator();
         Wrapper wrapper;
-        try { //TODO ¿¼ÂÇ°ÑÓï·¨·ÖÎöÒ²¼ÓÈëÕâÀï
+        try { //TODO è€ƒè™‘æŠŠè¯­æ³•åˆ†æä¹ŸåŠ å…¥è¿™é‡Œ
             if (astNode != null) {
                 t.setScanList(new LinkedList<>(splitScanString(scans)));
-                if (gramParser.getErrorStack().size() == 0) //Óï·¨Ã»ÓĞ´íÎóÊ±²ÅÈ¥½âÊÍÖ´ĞĞ
+                if (gramParser.getErrorStack().size() == 0) //è¯­æ³•æ²¡æœ‰é”™è¯¯æ—¶æ‰å»è§£é‡Šæ‰§è¡Œ
                     t.translate(astNode);
-                // ÓïÒå·ÖÎöÇ° ²»ÄÜÖ´ĞĞ
+                // è¯­ä¹‰åˆ†æå‰ ä¸èƒ½æ‰§è¡Œ
                 astNode.addNullTips();
                 astNode.setParentNull();
             }
@@ -64,16 +64,16 @@ public class Executor {
 
     private static void testProgram() {
         try {
-            //»ñÈ¡ÎÄ¼şÂ·¾¶
+            //è·å–æ–‡ä»¶è·¯å¾„
             String prefix = ResourceUtils.getFile("classpath:others").getAbsolutePath();
             System.out.println(prefix);
             FileInputStream fis = new FileInputStream(prefix + "/Grammar_Test.txt");
 
-            /* Ğ´ÈëTxtÎÄ¼ş */
-            File write = new File(prefix + "/My.txt"); // Ïà¶ÔÂ·¾¶£¬Èç¹ûÃ»ÓĞÔòÒª½¨Á¢Ò»¸öĞÂµÄoutput.txtÎÄ¼ş
+            /* å†™å…¥Txtæ–‡ä»¶ */
+            File write = new File(prefix + "/My.txt"); // ç›¸å¯¹è·¯å¾„ï¼Œå¦‚æœæ²¡æœ‰åˆ™è¦å»ºç«‹ä¸€ä¸ªæ–°çš„output.txtæ–‡ä»¶
             BufferedWriter out = new BufferedWriter(new FileWriter(write));
 
-            // ³ÌĞòÎÄ¼şµÄÃ¿¸ö³ÌĞò¶¼ÓÃ "-----" À´·Ö¸ô
+            // ç¨‹åºæ–‡ä»¶çš„æ¯ä¸ªç¨‹åºéƒ½ç”¨ "-----" æ¥åˆ†éš”
             String[] pros = readCodeFile(fis).split("-----");
             int index = 0;
             List<LexiNode> lexiNodes = null;
@@ -84,12 +84,12 @@ public class Executor {
                 System.out.println(msg);
             }
 
-            System.out.println("\nprint Êä³öĞÅÏ¢ÈçÏÂ£º");
+            System.out.println("\nprint è¾“å‡ºä¿¡æ¯å¦‚ä¸‹ï¼š");
             for (String m : w.getOutputList()) {
                 System.out.println(m);
             }
-            out.flush(); // °Ñ»º´æÇøÄÚÈİÑ¹ÈëÎÄ¼ş
-            out.close(); // ×îºó¼ÇµÃ¹Ø±ÕÎÄ¼ş
+            out.flush(); // æŠŠç¼“å­˜åŒºå†…å®¹å‹å…¥æ–‡ä»¶
+            out.close(); // æœ€åè®°å¾—å…³é—­æ–‡ä»¶
 
 //            GramParser gramParser = new GramParser();
 //            gramParser.LLParse(LexicalAnalysis.preprocess(lexiNodes));
@@ -98,20 +98,20 @@ public class Executor {
         }
     }
 
-    // ºó¶Ëµ÷ÊÔÊ±Ê¹ÓÃ
+    // åç«¯è°ƒè¯•æ—¶ä½¿ç”¨
     private static void testOnBack() {
         try {
-            //»ñÈ¡ÎÄ¼şÂ·¾¶
+            //è·å–æ–‡ä»¶è·¯å¾„
             String prefix = ResourceUtils.getFile("classpath:others").getAbsolutePath();
             System.out.println(prefix);
             FileInputStream fis = new FileInputStream(prefix + "/Grammar_Test.txt");
             FileInputStream scanInputs = new FileInputStream(prefix + "/scan_input.txt");
 
-            /* Ğ´ÈëTxtÎÄ¼ş */
-            File write = new File(prefix + "/My.txt"); // Ïà¶ÔÂ·¾¶£¬Èç¹ûÃ»ÓĞÔòÒª½¨Á¢Ò»¸öĞÂµÄoutput.txtÎÄ¼ş
+            /* å†™å…¥Txtæ–‡ä»¶ */
+            File write = new File(prefix + "/My.txt"); // ç›¸å¯¹è·¯å¾„ï¼Œå¦‚æœæ²¡æœ‰åˆ™è¦å»ºç«‹ä¸€ä¸ªæ–°çš„output.txtæ–‡ä»¶
             BufferedWriter out = new BufferedWriter(new FileWriter(write));
 
-            // ³ÌĞòÎÄ¼şµÄÃ¿¸ö³ÌĞò¶¼ÓÃ "-----" À´·Ö¸ô
+            // ç¨‹åºæ–‡ä»¶çš„æ¯ä¸ªç¨‹åºéƒ½ç”¨ "-----" æ¥åˆ†éš”
 //            String[] pros = readCodeFile(fis).split("-----");
 
             List<LexiNode> lexiNodes = LexicalAnalysis.lexicalScan(readCodeFile(fis));
@@ -121,7 +121,7 @@ public class Executor {
 
             Translator t = new Translator();
             LinkedList<String> scanList = new LinkedList<>(splitScanString(readCodeFile(scanInputs)));
-            t.setScanList(scanList);  // ×¢ÈëÊäÈëµÄÊı¾İ
+            t.setScanList(scanList);  // æ³¨å…¥è¾“å…¥çš„æ•°æ®
             t.translate(astNode);
             System.out.println("--------msg-------");
             for (String m : t.getMessages())
@@ -133,7 +133,7 @@ public class Executor {
     }
 
     private static ArrayList<String> splitScanString(String scans) {
-        // »»ĞĞ·û ºÍ ¿Õ¸ñ ·Ö¸î
+        // æ¢è¡Œç¬¦ å’Œ ç©ºæ ¼ åˆ†å‰²
         ArrayList<String> inputs = new ArrayList<>();
         List<String> tmp = new ArrayList<>(Arrays.asList(scans.split("\n")));
         List<String> t;

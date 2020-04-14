@@ -26,10 +26,10 @@ public class Follow {
             for (String p : production) {
                 Node pNode = Node.splitP(p);
                 String leftP = pNode.leftP;
-                String followTemp = followMap.get(leftP); //ÓÃÓÚÔİ´æÖÕ½á·û
+                String followTemp = followMap.get(leftP); //ç”¨äºæš‚å­˜ç»ˆç»“ç¬¦
                 List<String> rightP = pNode.rightP;
 
-                //¶ÔÓÚ²úÉúÊ½ÓÒ±ß ´ÓÓÒÍù×ó±éÀú
+                //å¯¹äºäº§ç”Ÿå¼å³è¾¹ ä»å³å¾€å·¦éå†
                 for (int i = rightP.size() - 1; i >= 0; i--) {
                     String t = rightP.get(i);
                     if (t.charAt(0) < 'A' || t.charAt(0) > 'Z') {
@@ -38,16 +38,16 @@ public class Follow {
                         String follow = followMap.get(t);
                         if (follow != null) {
                             if (followTemp != null)
-                                if (add(followTemp, t)) //¼ÓÈëFollow¼¯
+                                if (add(followTemp, t)) //åŠ å…¥Followé›†
                                     isChange = true;
-                        } else if (followTemp != null) { //Follow¼¯Îª¿Õ
+                        } else if (followTemp != null) { //Followé›†ä¸ºç©º
                             followMap.put(t, followTemp.replace("\0,", ""));
                             isChange = true;
                         }
                         if (nullableList.contains(t) && followTemp != null && firstMap.get(t) != null) {
                             followTemp = followTemp + ' ' + firstMap.get(t);
                         } else
-                            followTemp = firstMap.get(t); //Ò²¿ÉÒÔÎªnull
+                            followTemp = firstMap.get(t); //ä¹Ÿå¯ä»¥ä¸ºnull
                     }
                 }
             }
@@ -56,16 +56,16 @@ public class Follow {
     }
 
     @SuppressWarnings("DuplicatedCode")
-    // Í¨ÓÃµÄ ½« followTempµÄÖÕ½á·û¼ÓÈë key£¨·ÇÖÕ½á·û£©µÄfollow¼¯ÖĞ
+    // é€šç”¨çš„ å°† followTempçš„ç»ˆç»“ç¬¦åŠ å…¥ keyï¼ˆéç»ˆç»“ç¬¦ï¼‰çš„followé›†ä¸­
     private boolean add(String followTemp, String key) {
          boolean isAdd = false;
         String follow = followMap.get(key);
 
         String[] arr1 = follow.split(" ");
         String[] arr2 = followTemp.split(" ");
-        Set<String> followSet = new HashSet<>(Arrays.asList(arr1)); //Á½¸öÀïÃæÖ»ÒªÓĞÒ»¸öÓĞ¾Í¼ÓÉÏ
+        Set<String> followSet = new HashSet<>(Arrays.asList(arr1)); //ä¸¤ä¸ªé‡Œé¢åªè¦æœ‰ä¸€ä¸ªæœ‰å°±åŠ ä¸Š
         followSet.addAll(Arrays.asList(arr2));
-        followSet.remove(""); // È¥µô ¿Õ
+        followSet.remove(""); // å»æ‰ ç©º
         StringBuilder sb = new StringBuilder();
         for (String element : followSet) {
             if (element.charAt(0) != '\0') // TODO doubt

@@ -1,0 +1,33 @@
+<project name="examples" default="cmm" basedir="">
+
+  <property name="javacc.home" value="D:\Software\javacc-6.0\"/>
+<target name="cmm" description="Builds example 'cmm'">
+    <delete dir="cmm"/>
+    <mkdir dir="cmm"/> 
+    <copy file="cmm.jjt" todir="cmm"/>
+    <copy file="ASTMyID.java" todir="cmm"/>
+    <copy file="ASTMyInteger.java" todir="cmm"/>
+    <copy file="ASTMyReal.java" todir="cmm"/>
+    <copy file="ASTLogicOp.java" todir="cmm"/>
+    <copy file="ASTRelationOp.java" todir="cmm"/>
+    <copy file="ASTArithOp.java" todir="cmm"/>
+    <jjtree target="cmm.jjt" outputdirectory="cmm" javacchome="${javacc.home}"/>
+    <javacc target="cmm/cmm.jj" outputdirectory="cmm" javacchome="${javacc.home}"/>
+    <javac deprecation="false" srcdir="cmm" destdir="cmm"/>
+    <echo message="*******"/>
+    <echo message="******* Now cd into the cmm directory and run 'java cmm' ******"/>
+    <echo message="*******"/>
+  </target>
+
+  <target name="all" description="Builds all examples" depends="clean,cmm">
+    <echo message="*******"/>
+    <echo message="******* All Built ******"/>
+    <echo message="*******"/>
+  </target>
+    
+  <target name="clean" description="Cleans up any example directories">
+	<delete dir="cmm"/>
+  </target>
+    
+
+</project>

@@ -14,7 +14,7 @@ public class LLDrive {
     private Map<String, String> firstMap;
     private List<String> nullableList;
 
-    private List<String> selectList = new ArrayList<>(); // index¶ÔÓ¦µÄ²úÉúÊ½µÄ Select¼¯
+    private List<String> selectList = new ArrayList<>(); // indexå¯¹åº”çš„äº§ç”Ÿå¼çš„ Selecté›†
 
     public LLDrive(String[] productions) throws Exception {
         this.productions = productions;
@@ -34,7 +34,7 @@ public class LLDrive {
     }
 
     private void init() throws Exception {
-        //¼ÆËãÏàÓ¦µÄ First¼¯ºÍ Follow¼¯
+        //è®¡ç®—ç›¸åº”çš„ Firsté›†å’Œ Followé›†
         Nullable nullAble = new Nullable(productions);
         nullableList = nullAble.countNullable();
         First first = new First(productions, nullableList);
@@ -42,8 +42,8 @@ public class LLDrive {
         Follow follow = new Follow(productions, nullableList, firstMap);
         followMap = follow.countFollow();
 
-        tMap = new HashMap<>(); //ÓÒ±ßÖÕ½á·û ¼ÆÊı
-        ntMap = new HashMap<>(); //×ó±ß·ÇÖÕ½á·û ¼ÆÊı
+        tMap = new HashMap<>(); //å³è¾¹ç»ˆç»“ç¬¦ è®¡æ•°
+        ntMap = new HashMap<>(); //å·¦è¾¹éç»ˆç»“ç¬¦ è®¡æ•°
         int num = 0;
         for (String p : productions) {
             String t = Node.splitP(p).leftP;
@@ -69,14 +69,14 @@ public class LLDrive {
     }
 
     private void initTable() throws Exception {
-        //¼ÆËãËùÓĞ²úÉúÊ½µÄ Select¼¯
+        //è®¡ç®—æ‰€æœ‰äº§ç”Ÿå¼çš„ Selecté›†
         countSelect();
 
         List<String> special_production_list = Arrays.asList(CodeTable.special_production);
-        table = new int[ntMap.size()][tMap.size()]; //¹¹½¨ LL·ÖÎö±í,ÕûÊı´ú±íµÚ¼¸¸ö²úÉúÊ½
+        table = new int[ntMap.size()][tMap.size()]; //æ„å»º LLåˆ†æè¡¨,æ•´æ•°ä»£è¡¨ç¬¬å‡ ä¸ªäº§ç”Ÿå¼
 
         for (int[] aTable : table) {
-            Arrays.fill(aTable, -1); // ´ú±í ±¨´í
+            Arrays.fill(aTable, -1); // ä»£è¡¨ æŠ¥é”™
         }
         String production;
         for (int i = 0; i < selectList.size(); i++) {
@@ -85,21 +85,21 @@ public class LLDrive {
                 production = productions[i];
                 int x = tMap.get(cStr);
                 int y = ntMap.get(Node.splitP(production).leftP);
-                if (manualProcess(cStr, i)) //´¦ÀíĞü¹Ò else ÎÊÌâ
+                if (manualProcess(cStr, i)) //å¤„ç†æ‚¬æŒ‚ else é—®é¢˜
                     continue;
                 if (special_production_list.contains(production)) {
-                    table[y][x] = -2; // ÌØÊâÕûÊı -2 Ö¸´úÌØÊâ´¦Àí
+                    table[y][x] = -2; // ç‰¹æ®Šæ•´æ•° -2 æŒ‡ä»£ç‰¹æ®Šå¤„ç†
                 } else {
                     if (table[y][x] == -1)
                         table[y][x] = i;
                     else
-                        throw new Exception("ÇëĞŞ¸Ä²úÉúÊ½£¬´Ë·Ç LL(1) ÎÄ·¨£¡");
+                        throw new Exception("è¯·ä¿®æ”¹äº§ç”Ÿå¼ï¼Œæ­¤é LL(1) æ–‡æ³•ï¼");
                 }
             }
         }
     }
 
-    private void countSelect() { //¼ÆËã Select¼¯
+    private void countSelect() { //è®¡ç®— Selecté›†
         for (String p : productions) {
             StringBuilder sb = new StringBuilder();
             Node pNode = Node.splitP(p);
@@ -111,7 +111,7 @@ public class LLDrive {
                         sb.append(' ');
                     sb.append(t);
                     break;
-                } else { //²»ÎªÖÕ½á·ûÔòÕÒ¸Ã ·ÇÖÕ½á·ûµÄFirst¼¯
+                } else { //ä¸ä¸ºç»ˆç»“ç¬¦åˆ™æ‰¾è¯¥ éç»ˆç»“ç¬¦çš„Firsté›†
                     if (sb.length() != 0)
                         sb.append(' ');
                     sb.append(firstMap.get(t));
@@ -119,24 +119,24 @@ public class LLDrive {
                         break;
                 }
 //                String follow = followMap.get(pNode.leftP);
-                String follow = followMap.get(t); //»ñµÃ¿ÉÒÔÎª¿ÕµÄ·ÇÖÕ½á·ûµÄ Follow¼¯
+                String follow = followMap.get(t); //è·å¾—å¯ä»¥ä¸ºç©ºçš„éç»ˆç»“ç¬¦çš„ Followé›†
                 if (follow != null) {
                     if (sb.length() > 0)
                         sb.append(' ');
                     sb.append(follow);
                 }
             }
-            if (rightP.size() == 0) //¿Õ±í´ïÊ½µÄÇé¿öÏÂ£¬ÉÏÃæ forÑ­»·²»»áÖ´ĞĞ
+            if (rightP.size() == 0) //ç©ºè¡¨è¾¾å¼çš„æƒ…å†µä¸‹ï¼Œä¸Šé¢ forå¾ªç¯ä¸ä¼šæ‰§è¡Œ
                 sb.append(followMap.get(pNode.leftP));
 
-            //ÓÉÓÚ sb ÖĞ»áÓĞÖØ¸´µÄ ÖÕ½á·û£¬¹ÊÓÃ HashSetÀ´È¥µôÖØ¸´µÄÔªËØ
+            //ç”±äº sb ä¸­ä¼šæœ‰é‡å¤çš„ ç»ˆç»“ç¬¦ï¼Œæ•…ç”¨ HashSetæ¥å»æ‰é‡å¤çš„å…ƒç´ 
             Set<String> first_sSet = new HashSet<>(Arrays.asList(sb.toString().split(" ")));
             sb.delete(0, sb.length());
 
             first_sSet.remove("");
             for (String str : first_sSet)
                 sb.append(str).append(' ');
-            sb.delete(sb.length() - 1, sb.length()); // É¾³ı×îºóÒ»¸ö ¿Õ¸ñ
+            sb.delete(sb.length() - 1, sb.length()); // åˆ é™¤æœ€åä¸€ä¸ª ç©ºæ ¼
             selectList.add(sb.toString());
         }
     }
@@ -155,9 +155,9 @@ public class LLDrive {
         List<String> rp = Node.splitP(productions[pos]).rightP;
         for (int i = rp.size() - 1; i >= 0; i--) {
             String t = rp.get(i);
-            stack.addFirst(t); //¼Óµ½µÚÒ»¸öÎ»ÖÃ
+            stack.addFirst(t); //åŠ åˆ°ç¬¬ä¸€ä¸ªä½ç½®
         }
-        return rp.size(); // Îª0ËµÃ÷Îª¿Õ±í´ïÊ½
+        return rp.size(); // ä¸º0è¯´æ˜ä¸ºç©ºè¡¨è¾¾å¼
     }
 
 }
